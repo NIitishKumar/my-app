@@ -1,0 +1,98 @@
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { ProtectedRoute } from '../shared/components/ProtectedRoute';
+import { AdminLayout } from '../shared/layouts/AdminLayout';
+import { TeacherLayout } from '../shared/layouts/TeacherLayout';
+import { StudentLayout } from '../shared/layouts/StudentLayout';
+import { ParentLayout } from '../shared/layouts/ParentLayout';
+import { Login } from '../features/auth/pages/Login';
+import { AdminDashboard } from '../features/admin/dashboard/AdminDashboard';
+import { ClassesPage } from '../features/admin/classes';
+import { TeachersPage } from '../features/admin/teachers';
+import { LecturesPage } from '../features/admin/lectures';
+import { TeacherDashboard } from '../features/teacher/dashboard/TeacherDashboard';
+import { Attendance as TeacherAttendance } from '../features/teacher/attendance/Attendance';
+import { Queries as TeacherQueries } from '../features/teacher/queries/Queries';
+import { StudentDashboard } from '../features/student/dashboard/StudentDashboard';
+import { Exams } from '../features/student/exams/Exams';
+import { Notifications } from '../features/student/notifications/Notifications';
+import { Records as StudentRecords } from '../features/student/records/Records';
+import { ParentDashboard } from '../features/parent/dashboard/ParentDashboard';
+import { Attendance as ParentAttendance } from '../features/parent/attendance/Attendance';
+import { Records as ParentRecords } from '../features/parent/records/Records';
+import { ROUTES, USER_ROLES } from '../shared/constants';
+
+export const AppRoutes = () => {
+  return (
+    <Routes>
+      {/* Public Routes */}
+      <Route path={ROUTES.LOGIN} element={<Login />} />
+
+      {/* Admin Routes */}
+      <Route
+        path="/admin/*"
+        element={
+          <ProtectedRoute allowedRoles={[USER_ROLES.ADMIN]}>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="classes" element={<ClassesPage />} />
+        <Route path="teachers" element={<TeachersPage />} />
+        <Route path="lectures" element={<LecturesPage />} />
+        <Route index element={<Navigate to={ROUTES.ADMIN_DASHBOARD} replace />} />
+      </Route>
+
+      {/* Teacher Routes */}
+      <Route
+        path="/teacher/*"
+        element={
+          <ProtectedRoute allowedRoles={[USER_ROLES.TEACHER]}>
+            <TeacherLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="dashboard" element={<TeacherDashboard />} />
+        <Route path="attendance" element={<TeacherAttendance />} />
+        <Route path="queries" element={<TeacherQueries />} />
+        <Route index element={<Navigate to={ROUTES.TEACHER_DASHBOARD} replace />} />
+      </Route>
+
+      {/* Student Routes */}
+      <Route
+        path="/student/*"
+        element={
+          <ProtectedRoute allowedRoles={[USER_ROLES.STUDENT]}>
+            <StudentLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="dashboard" element={<StudentDashboard />} />
+        <Route path="exams" element={<Exams />} />
+        <Route path="notifications" element={<Notifications />} />
+        <Route path="records" element={<StudentRecords />} />
+        <Route index element={<Navigate to={ROUTES.STUDENT_DASHBOARD} replace />} />
+      </Route>
+
+      {/* Parent Routes */}
+      <Route
+        path="/parent/*"
+        element={
+          <ProtectedRoute allowedRoles={[USER_ROLES.PARENT]}>
+            <ParentLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="dashboard" element={<ParentDashboard />} />
+        <Route path="attendance" element={<ParentAttendance />} />
+        <Route path="records" element={<ParentRecords />} />
+        <Route index element={<Navigate to={ROUTES.PARENT_DASHBOARD} replace />} />
+      </Route>
+
+      {/* Default redirect */}
+      <Route path="/" element={<Navigate to={ROUTES.LOGIN} replace />} />
+      <Route path="*" element={<Navigate to={ROUTES.LOGIN} replace />} />
+    </Routes>
+  );
+};
+
