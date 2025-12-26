@@ -8,6 +8,7 @@ import { Login } from '../features/auth/pages/Login';
 import { AdminDashboard } from '../features/admin/dashboard/AdminDashboard';
 import { ClassesPage } from '../features/admin/classes';
 import { TeachersPage } from '../features/admin/teachers';
+import { StudentsPage } from '../features/admin/students';
 import { LecturesPage } from '../features/admin/lectures';
 import { TeacherDashboard } from '../features/teacher/dashboard/TeacherDashboard';
 import { Attendance as TeacherAttendance } from '../features/teacher/attendance/Attendance';
@@ -39,6 +40,7 @@ export const AppRoutes = () => {
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="classes" element={<ClassesPage />} />
         <Route path="teachers" element={<TeachersPage />} />
+        <Route path="students" element={<StudentsPage />} />
         <Route path="lectures" element={<LecturesPage />} />
         <Route index element={<Navigate to={ROUTES.ADMIN_DASHBOARD} replace />} />
       </Route>

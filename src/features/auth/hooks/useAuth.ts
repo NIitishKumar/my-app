@@ -1,6 +1,7 @@
 /**
  * Auth React Query Hooks
  * Custom hooks for authentication operations
+ * Uses Zustand for client state, React Query for API calls
  */
 
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -8,19 +9,23 @@ import { useNavigate } from 'react-router-dom';
 import { authService } from '../api/auth.service';
 import { queryKeys } from '../../../shared/hooks/useApi';
 import { ROUTES, USER_ROLES } from '../../../shared/constants';
+import { useAuthStore } from '../../../store';
 import type { LoginCredentials } from '../models/auth.model';
+import type { User } from '../../../store/types';
 
 /**
  * Hook for user login
+ * Uses React Query for API call, Zustand for state
  */
 export const useLogin = () => {
   const navigate = useNavigate();
+  const login = useAuthStore((state) => state.login);
 
   return useMutation({
     mutationFn: (credentials: LoginCredentials) => authService.login(credentials),
     onSuccess: (session) => {
-      // Save session to storage
-      authService.saveSession(session);
+      // Store session in Zustand
+      login(session.user as User, session.token);
 
       // Redirect based on role
       switch (session.user.role) {
@@ -48,27 +53,30 @@ export const useLogin = () => {
 
 /**
  * Hook for user logout
+ * Clears both Zustand state and makes API call
  */
 export const useLogout = () => {
   const navigate = useNavigate();
+  const logout = useAuthStore((state) => state.logout);
 
   return useMutation({
     mutationFn: () => authService.logout(),
     onSuccess: () => {
-      authService.clearSession();
+      logout();
       navigate(ROUTES.LOGIN);
     },
     onError: (error) => {
       console.error('Logout error:', error);
       // Clear session even on error
-      authService.clearSession();
+      logout();
       navigate(ROUTES.LOGIN);
     },
   });
 };
 
 /**
- * Hook to get current session
+ * Hook to get current session from Zustand
+ * For backward compatibility with components using useSession
  */
 export const useSession = () => {
   return useQuery({

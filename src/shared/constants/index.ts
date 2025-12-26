@@ -12,6 +12,7 @@ export const ROUTES = {
   ADMIN_DASHBOARD: '/admin/dashboard',
   ADMIN_CLASSES: '/admin/classes',
   ADMIN_TEACHERS: '/admin/teachers',
+  ADMIN_STUDENTS: '/admin/students',
   ADMIN_LECTURES: '/admin/lectures',
   TEACHER_DASHBOARD: '/teacher/dashboard',
   TEACHER_ATTENDANCE: '/teacher/attendance',
