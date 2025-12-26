@@ -2,35 +2,57 @@
  * ClassesPage Component
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useClasses } from '../hooks/useClasses';
 import { useCreateClass } from '../hooks/useCreateClass';
 import { useUpdateClass } from '../hooks/useUpdateClass';
 import { useDeleteClass } from '../hooks/useDeleteClass';
+import { useClassDetails } from '../hooks/useClassDetails';
 import { ClassTable } from '../components/ClassTable';
 import { ClassForm } from '../components/ClassForm';
-import { generateMockClasses, filterClasses } from '../utils/classes.utils';
+import { filterClasses } from '../utils/classes.utils';
+import { useUIStore } from '../../../../store/ui.store';
 import type { Class, CreateClassData } from '../types/classes.types';
 
 const ITEMS_PER_PAGE = 10;
 
 export const ClassesPage = () => {
   const [showForm, setShowForm] = useState(false);
+  const [editingClassId, setEditingClassId] = useState<string | undefined>();
   const [editingClass, setEditingClass] = useState<Class | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Use mock data for now
-  const mockClasses = useMemo(() => generateMockClasses(), []);
-  const { data: apiClasses, isLoading, error } = useClasses();
+  const { data: allClasses = [], isLoading, error } = useClasses();
   
-  // Use mock data if API data is not available
-  const allClasses = apiClasses && apiClasses.length > 0 ? apiClasses : mockClasses;
+  // Fetch class details when editing
+  const { 
+    data: fetchedClassData, 
+    isLoading: isLoadingClassDetails,
+    error: classDetailsError 
+  } = useClassDetails(editingClassId || '');
+
+  // Update editingClass when fetched data is available or use table data as fallback
+  useEffect(() => {
+    if (editingClassId) {
+      if (fetchedClassData) {
+        // Use fresh data from API
+        setEditingClass(fetchedClassData);
+      } else if (classDetailsError && allClasses.length > 0) {
+        // Fallback to table data if API call fails
+        const classFromTable = allClasses.find(c => c.id === editingClassId);
+        if (classFromTable) {
+          setEditingClass(classFromTable);
+        }
+      }
+    }
+  }, [editingClassId, fetchedClassData, classDetailsError, allClasses]);
 
   const createClass = useCreateClass();
   const updateClass = useUpdateClass();
   const deleteClass = useDeleteClass();
+  const addToast = useUIStore((state) => state.addToast);
 
   // Filter classes based on search and status
   const filteredClasses = useMemo(() => {
@@ -63,20 +85,59 @@ export const ClassesPage = () => {
   const endItem = Math.min(currentPage * ITEMS_PER_PAGE, filteredClasses.length);
 
   const handleSubmit = (data: CreateClassData) => {
-    if (editingClass) {
+    console.log('handleSubmit called with data:', data);
+    console.log('editingClassId:', editingClassId);
+    console.log('editingClass:', editingClass);
+    
+    if (editingClassId || editingClass) {
+      const classId = editingClass?.id || editingClassId;
+      if (!classId) {
+        console.error('Cannot update: missing class ID');
+        alert('Error: Missing class ID. Please try again.');
+        return;
+      }
+      
+      console.log('Submitting update for class ID:', classId);
+      console.log('Update data:', data);
+      
       updateClass.mutate(
-        { id: editingClass.id, ...data },
+        { id: classId, ...data },
         {
-          onSuccess: () => {
+          onSuccess: (result) => {
+            console.log('Class updated successfully:', result);
             setShowForm(false);
             setEditingClass(undefined);
+            setEditingClassId(undefined);
+          },
+          onError: (error) => {
+            console.error('Error updating class:', error);
+            alert(`Error updating class: ${error instanceof Error ? error.message : 'Unknown error'}`);
           },
         }
       );
     } else {
+      console.log('Creating new class');
       createClass.mutate(data, {
-        onSuccess: () => {
+        onSuccess: (result, variables, context) => {
+          console.log('Class created successfully:', result);
+          // Show success toast message (use API message if available)
+          addToast({
+            type: 'success',
+            message: 'Class created successfully!',
+            duration: 3000,
+          });
+          // Close form and redirect to listing
           setShowForm(false);
+          setEditingClass(undefined);
+          setEditingClassId(undefined);
+        },
+        onError: (error) => {
+          console.error('Error creating class:', error);
+          addToast({
+            type: 'error',
+            message: `Error creating class: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            duration: 5000,
+          });
         },
       });
     }
@@ -85,15 +146,19 @@ export const ClassesPage = () => {
   const handleCancel = () => {
     setShowForm(false);
     setEditingClass(undefined);
+    setEditingClassId(undefined);
   };
 
   const handleAddNew = () => {
     setEditingClass(undefined);
+    setEditingClassId(undefined);
     setShowForm(true);
   };
 
   const handleEdit = (classItem: Class) => {
+    // Set the ID to trigger API fetch, and use table data as initial fallback
     setEditingClass(classItem);
+    setEditingClassId(classItem.id);
     setShowForm(true);
   };
 
@@ -113,7 +178,7 @@ export const ClassesPage = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  if (isLoading && !mockClasses.length) {
+  if (isLoading) {
     return (
       <div className="p-4 lg:p-6">
         <div className="text-center">Loading classes...</div>
@@ -121,10 +186,10 @@ export const ClassesPage = () => {
     );
   }
 
-  if (error && !mockClasses.length) {
+  if (error) {
     return (
       <div className="p-4 lg:p-6">
-        <div className="text-center text-red-600">Error loading classes</div>
+        <div className="text-center text-red-600">Error loading classes: {error instanceof Error ? error.message : 'Unknown error'}</div>
       </div>
     );
   }
@@ -139,12 +204,16 @@ export const ClassesPage = () => {
 
       {showForm ? (
         <div className="mb-6">
-          <ClassForm
-            initialData={editingClass}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            isLoading={createClass.isPending || updateClass.isPending}
-          />
+          {isLoadingClassDetails && !editingClass ? (
+            <div className="text-center py-8">Loading class details...</div>
+          ) : (
+            <ClassForm
+              initialData={editingClass}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              isLoading={createClass.isPending || updateClass.isPending || (isLoadingClassDetails && !!editingClassId)}
+            />
+          )}
         </div>
       ) : (
         <>

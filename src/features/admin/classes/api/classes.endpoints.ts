@@ -3,12 +3,12 @@
  */
 
 export const classesEndpoints = {
-  base: '/admin/classes',
-  list: () => '/admin/classes',
-  detail: (id: string) => `/admin/classes/${id}`,
-  create: () => '/admin/classes',
-  update: (id: string) => `/admin/classes/${id}`,
-  delete: (id: string) => `/admin/classes/${id}`,
+  base: '/classes',
+  list: () => '/classes',
+  detail: (id: string) => `/classes/${id}`,
+  create: () => '/classes',
+  update: (id: string) => `/classes/${id}`,
+  delete: (id: string) => `/classes/${id}`,
 } as const;
 
 

@@ -106,24 +106,28 @@ export const validateClassForm = (data: Partial<CreateClassData>): ValidationErr
 
   // Class Head validation
   if (data.classHead) {
-    errors.classHead = {};
+    const classHeadErrors: Record<string, string> = {};
     if (!data.classHead.firstName || data.classHead.firstName.trim().length === 0) {
-      errors.classHead.firstName = 'First name is required';
+      classHeadErrors.firstName = 'First name is required';
     }
     if (!data.classHead.lastName || data.classHead.lastName.trim().length === 0) {
-      errors.classHead.lastName = 'Last name is required';
+      classHeadErrors.lastName = 'Last name is required';
     }
     if (!data.classHead.email || data.classHead.email.trim().length === 0) {
-      errors.classHead.email = 'Email is required';
+      classHeadErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.classHead.email)) {
-      errors.classHead.email = 'Please enter a valid email address';
+      classHeadErrors.email = 'Please enter a valid email address';
     }
     if (!data.classHead.employeeId || data.classHead.employeeId.trim().length === 0) {
-      errors.classHead.employeeId = 'Employee ID is required';
+      classHeadErrors.employeeId = 'Employee ID is required';
     } else if (data.classHead.employeeId.length < VALIDATION.EMPLOYEE_ID_MIN_LENGTH) {
-      errors.classHead.employeeId = `Employee ID must be at least ${VALIDATION.EMPLOYEE_ID_MIN_LENGTH} characters`;
+      classHeadErrors.employeeId = `Employee ID must be at least ${VALIDATION.EMPLOYEE_ID_MIN_LENGTH} characters`;
     } else if (data.classHead.employeeId.length > VALIDATION.EMPLOYEE_ID_MAX_LENGTH) {
-      errors.classHead.employeeId = `Employee ID must not exceed ${VALIDATION.EMPLOYEE_ID_MAX_LENGTH} characters`;
+      classHeadErrors.employeeId = `Employee ID must not exceed ${VALIDATION.EMPLOYEE_ID_MAX_LENGTH} characters`;
+    }
+    // Only add classHead errors if there are actual errors
+    if (Object.keys(classHeadErrors).length > 0) {
+      errors.classHead = classHeadErrors;
     }
   } else {
     errors.classHead = {
@@ -133,24 +137,28 @@ export const validateClassForm = (data: Partial<CreateClassData>): ValidationErr
 
   // Schedule validation
   if (data.schedule) {
-    errors.schedule = {};
+    const scheduleErrors: Record<string, string> = {};
     if (!data.schedule.academicYear || data.schedule.academicYear.trim().length === 0) {
-      errors.schedule.academicYear = 'Academic year is required';
+      scheduleErrors.academicYear = 'Academic year is required';
     }
     if (!data.schedule.semester || data.schedule.semester.trim().length === 0) {
-      errors.schedule.semester = 'Semester is required';
+      scheduleErrors.semester = 'Semester is required';
     }
     if (!data.schedule.startDate) {
-      errors.schedule.startDate = 'Start date is required';
+      scheduleErrors.startDate = 'Start date is required';
     }
     if (!data.schedule.endDate) {
-      errors.schedule.endDate = 'End date is required';
+      scheduleErrors.endDate = 'End date is required';
     } else if (data.schedule.startDate && data.schedule.endDate) {
       const startDate = new Date(data.schedule.startDate);
       const endDate = new Date(data.schedule.endDate);
       if (endDate <= startDate) {
-        errors.schedule.endDate = 'End date must be after start date';
+        scheduleErrors.endDate = 'End date must be after start date';
       }
+    }
+    // Only add schedule errors if there are actual errors
+    if (Object.keys(scheduleErrors).length > 0) {
+      errors.schedule = scheduleErrors;
     }
   } else {
     errors.schedule = {

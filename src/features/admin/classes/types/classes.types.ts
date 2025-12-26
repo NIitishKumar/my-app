@@ -98,4 +98,80 @@ export interface CreateClassDTO {
   is_active: boolean;
 }
 
+// Actual API Response Types (camelCase with _id)
+export interface ClassHeadApiDTO {
+  firstName: string;
+  lastName: string;
+  email: string;
+  employeeId: string;
+}
+
+export interface ClassScheduleApiDTO {
+  academicYear: string;
+  semester: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface StudentApiDTO {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  studentId: string;
+  age: number;
+  gender: string;
+}
+
+export interface LectureApiDTO {
+  _id: string;
+  title: string;
+  subject: string;
+  teacher: string;
+  schedule: string;
+  duration: number;
+  type: string;
+}
+
+export interface ClassApiDTO {
+  _id: string;
+  className: string;
+  subjects: string[];
+  grade: string;
+  roomNo: string;
+  capacity: number;
+  enrolled: number;
+  isActive: boolean;
+  classHead?: ClassHeadApiDTO | null;
+  schedule?: ClassScheduleApiDTO | null;
+  students: StudentApiDTO[];
+  lectures: LectureApiDTO[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ClassesApiResponse {
+  success: boolean;
+  count: number;
+  data: ClassApiDTO[];
+}
+
+export interface ClassApiResponse {
+  success: boolean;
+  data: ClassApiDTO;
+}
+
+export interface UpdateClassApiResponse {
+  success: boolean;
+  message: string;
+  data: ClassApiDTO;
+}
+
+// Create API Response (camelCase format - same as ClassApiDTO)
+export interface CreateClassApiResponse {
+  success: boolean;
+  message: string;
+  data: ClassApiDTO;
+}
+
 

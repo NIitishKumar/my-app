@@ -2,7 +2,8 @@
  * ClassForm Component
  */
 
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
+import { useFormik } from 'formik';
 import { GRADE_OPTIONS, SEMESTER_OPTIONS, SUBJECT_OPTIONS, getAcademicYearOptions } from '../constants/classes.constants';
 import { validateClassForm, formatDateForInput, parseDateFromInput, getDefaultClassFormData } from '../utils/classes.utils';
 import type { CreateClassData, Class } from '../types/classes.types';
@@ -16,11 +17,11 @@ interface ClassFormProps {
 }
 
 export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassFormProps) => {
-  const defaultData = getDefaultClassFormData();
-  
-  const [formData, setFormData] = useState<Partial<CreateClassData>>(
-    initialData
-      ? {
+  // Memoize initial values to prevent unnecessary re-renders that block input
+  // Only recalculate when initialData changes (not on every render)
+  const initialValues = useMemo<Partial<CreateClassData>>(() => {
+    if (initialData) {
+      return {
           className: initialData.className,
           subjects: initialData.subjects,
           grade: initialData.grade,
@@ -42,91 +43,156 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
             endDate: initialData.schedule.endDate,
           },
           isActive: initialData.isActive,
-        }
-      : defaultData
-  );
-
-  const [errors, setErrors] = useState<ValidationErrors>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const [showSuccess, setShowSuccess] = useState(false);
-
-  // Validate on change
-  useEffect(() => {
-    if (Object.keys(touched).length > 0) {
-      const validationErrors = validateClassForm(formData);
-      setErrors(validationErrors);
+      };
     }
-  }, [formData, touched]);
+    // Call getDefaultClassFormData inside useMemo so it's only called when needed
+    return getDefaultClassFormData();
+  }, [initialData]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Mark all fields as touched
-    const allTouched: Record<string, boolean> = {};
-    Object.keys(formData).forEach((key) => {
-      allTouched[key] = true;
-    });
-    setTouched(allTouched);
-
-    // Validate
-    const validationErrors = validateClassForm(formData);
-    setErrors(validationErrors);
+  const formik = useFormik<Partial<CreateClassData>>({
+    initialValues,
+    validate: (values) => {
+      const errors = validateClassForm(values);
+      // Convert ValidationErrors to Formik errors format
+      const formikErrors: Record<string, string | Record<string, string>> = {};
+      
+      Object.keys(errors).forEach((key) => {
+        const error = errors[key as keyof ValidationErrors];
+        if (typeof error === 'string') {
+          formikErrors[key] = error;
+        } else if (error && typeof error === 'object') {
+          // Check if the nested object has any actual error messages
+          const nestedErrors = error as Record<string, string>;
+          const hasNestedErrors = Object.keys(nestedErrors).some(
+            (nestedKey) => nestedErrors[nestedKey] !== undefined && nestedErrors[nestedKey] !== ''
+          );
+          // Only add nested errors if there are actual error messages
+          if (hasNestedErrors) {
+            formikErrors[key] = nestedErrors;
+          }
+        }
+      });
+      
+      return formikErrors;
+    },
+    validateOnChange: false,
+    validateOnBlur: false,
+    validateOnMount: false,
+    onSubmit: (values, { setSubmitting }) => {
+      // Log form values and validation errors
+      console.log('=== FORM SUBMISSION ===');
+      console.log('Is Edit Mode:', !!initialData);
+      console.log('Initial Data:', initialData);
+      
+      // Log all form values
+      console.log('--- FORM VALUES ---');
+      console.log('Form Data (raw):', values);
+      console.log('Form Data (stringified):', JSON.stringify(values, null, 2));
+      
+      // Log each field individually for clarity
+      console.log('Class Name:', values.className);
+      console.log('Grade:', values.grade);
+      console.log('Room No:', values.roomNo);
+      console.log('Capacity:', values.capacity);
+      console.log('Enrolled:', values.enrolled);
+      console.log('Subjects:', values.subjects);
+      console.log('Class Head:', values.classHead);
+      console.log('Schedule:', values.schedule);
+      console.log('Is Active:', values.isActive);
+      console.log('Students:', values.students);
+      console.log('Lectures:', values.lectures);
+      
+      // Run validation and log errors
+      const validationErrors = validateClassForm(values);
+      console.log('--- VALIDATION ERRORS ---');
+      console.log('Validation Errors (raw):', validationErrors);
+      console.log('Validation Errors (stringified):', JSON.stringify(validationErrors, null, 2));
 
     // Check if there are any errors
     const hasErrors = Object.keys(validationErrors).some(
-      (key) => validationErrors[key as keyof ValidationErrors] !== undefined
-    );
+        (key) => {
+          const error = validationErrors[key as keyof ValidationErrors];
+          if (typeof error === 'string') {
+            return !!error;
+          }
+          if (error && typeof error === 'object') {
+            return Object.keys(error).length > 0;
+          }
+          return false;
+        }
+      );
+      
+      console.log('Has Validation Errors:', hasErrors);
+      console.log('Form is Valid:', !hasErrors);
+      
+      // Log Formik's internal state
+      console.log('--- FORMIK STATE ---');
+      console.log('Formik Errors:', formik.errors);
+      console.log('Formik Touched:', formik.touched);
+      console.log('Formik isSubmitting:', formik.isSubmitting);
+      console.log('Formik isValid:', formik.isValid);
+      console.log('======================');
 
-    if (hasErrors) {
-      return;
-    }
-
-    // Submit
-    onSubmit(formData as CreateClassData);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
-  };
-
-  const handleFieldChange = (field: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    setTouched((prev) => ({ ...prev, [field]: true }));
-  };
-
-  const handleNestedFieldChange = (parent: string, field: string, value: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [parent]: {
-        ...(prev[parent as keyof typeof prev] as any),
-        [field]: value,
-      },
-    }));
-    setTouched((prev) => ({ ...prev, [`${parent}.${field}`]: true }));
-  };
-
-  const handleSubjectToggle = (subject: string) => {
-    const currentSubjects = formData.subjects || [];
-    const newSubjects = currentSubjects.includes(subject)
-      ? currentSubjects.filter((s) => s !== subject)
-      : [...currentSubjects, subject];
-    handleFieldChange('subjects', newSubjects);
-  };
+      // Always call parent onSubmit - let the parent handle validation
+      // The validation check above is just for logging
+      console.log('Calling parent onSubmit with values:', values);
+      try {
+        onSubmit(values as CreateClassData);
+        // Show success message
+        formik.setStatus({ showSuccess: true });
+        setTimeout(() => {
+          formik.setStatus({ showSuccess: false });
+        }, 3000);
+      } catch (error) {
+        console.error('Error in onSubmit callback:', error);
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    enableReinitialize: true,
+  });
 
   const getFieldError = (field: string): string | undefined => {
     if (field.includes('.')) {
       const [parent, child] = field.split('.');
-      return (errors[parent as keyof ValidationErrors] as any)?.[child];
+      const parentError = formik.errors[parent as keyof typeof formik.errors];
+      if (parentError && typeof parentError === 'object') {
+        return (parentError as Record<string, string>)?.[child];
+      }
+      return undefined;
     }
-    return errors[field as keyof ValidationErrors] as string | undefined;
+    return formik.errors[field as keyof typeof formik.errors] as string | undefined;
+  };
+
+  const isFieldTouched = (field: string): boolean => {
+    if (field.includes('.')) {
+      const [parent, child] = field.split('.');
+      const parentTouched = formik.touched[parent as keyof typeof formik.touched];
+      if (parentTouched && typeof parentTouched === 'object') {
+        return (parentTouched as Record<string, boolean>)?.[child] || false;
+      }
+      return false;
+    }
+    return formik.touched[field as keyof typeof formik.touched] || false;
   };
 
   const isFieldValid = (field: string): boolean => {
     const error = getFieldError(field);
-    return touched[field] && !error;
+    return isFieldTouched(field) && !error;
   };
 
   const isFieldInvalid = (field: string): boolean => {
     const error = getFieldError(field);
-    return touched[field] && !!error;
+    return isFieldTouched(field) && !!error;
+  };
+
+  const handleSubjectToggle = (subject: string) => {
+    const currentSubjects = formik.values.subjects || [];
+    const newSubjects = currentSubjects.includes(subject)
+      ? currentSubjects.filter((s) => s !== subject)
+      : [...currentSubjects, subject];
+    formik.setFieldValue('subjects', newSubjects);
+    formik.setFieldTouched('subjects', true);
   };
 
   const academicYearOptions = getAcademicYearOptions();
@@ -139,14 +205,14 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
           <p className="text-sm text-gray-600 mt-1">Enter class information below</p>
         </div>
 
-        {showSuccess && (
+        {formik.status?.showSuccess && (
           <div className="mx-6 mt-4 flex items-center justify-between px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
             <div className="flex items-center space-x-2">
               <i className="fas fa-check-circle text-green-600"></i>
               <p className="text-sm text-green-800">Record saved successfully!</p>
             </div>
             <button
-              onClick={() => setShowSuccess(false)}
+              onClick={() => formik.setStatus({ ...formik.status, showSuccess: false })}
               className="text-green-600 hover:text-green-800"
             >
               <i className="fas fa-times"></i>
@@ -154,7 +220,7 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={formik.handleSubmit} className="p-6 space-y-6">
           {/* Basic Information Section */}
           <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -165,12 +231,16 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
                 <div className="relative">
                   <input
                     type="text"
+                    name="className"
                     placeholder="e.g., Grade 10"
-                    value={formData.className || ''}
-                    onChange={(e) => handleFieldChange('className', e.target.value)}
-                    onBlur={() => setTouched((prev) => ({ ...prev, className: true }))}
+                    value={formik.values.className || ''}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    disabled={isLoading || formik.isSubmitting}
                     className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
-                      isFieldInvalid('className')
+                      isLoading || formik.isSubmitting
+                        ? 'bg-gray-100 cursor-not-allowed'
+                        : isFieldInvalid('className')
                         ? 'border-red-500 bg-red-50 focus:ring-red-500'
                         : isFieldValid('className')
                         ? 'border-green-500 bg-green-50 focus:ring-green-500'
@@ -200,11 +270,15 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
                   Grade <span className="text-red-500">*</span>
                 </label>
                 <select
-                  value={formData.grade || ''}
-                  onChange={(e) => handleFieldChange('grade', e.target.value)}
-                  onBlur={() => setTouched((prev) => ({ ...prev, grade: true }))}
+                  name="grade"
+                  value={formik.values.grade || ''}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  disabled={isLoading || formik.isSubmitting}
                   className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
-                    isFieldInvalid('grade')
+                    isLoading || formik.isSubmitting
+                      ? 'bg-gray-100 cursor-not-allowed'
+                      : isFieldInvalid('grade')
                       ? 'border-red-500 bg-red-50 focus:ring-red-500'
                       : isFieldValid('grade')
                       ? 'border-green-500 bg-green-50 focus:ring-green-500'
@@ -233,10 +307,11 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
                 </label>
                 <input
                   type="text"
+                  name="roomNo"
                   placeholder="e.g., Room 201"
-                  value={formData.roomNo || ''}
-                  onChange={(e) => handleFieldChange('roomNo', e.target.value)}
-                  onBlur={() => setTouched((prev) => ({ ...prev, roomNo: true }))}
+                  value={formik.values.roomNo || ''}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
                   className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
                     isFieldInvalid('roomNo')
                       ? 'border-red-500 bg-red-50 focus:ring-red-500'
@@ -260,12 +335,15 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
                 </label>
                 <input
                   type="number"
+                  name="capacity"
                   min={1}
                   max={200}
                   placeholder="e.g., 30"
-                  value={formData.capacity || ''}
-                  onChange={(e) => handleFieldChange('capacity', parseInt(e.target.value) || 0)}
-                  onBlur={() => setTouched((prev) => ({ ...prev, capacity: true }))}
+                  value={formik.values.capacity || ''}
+                  onChange={(e) => {
+                    formik.setFieldValue('capacity', parseInt(e.target.value) || 0);
+                  }}
+                  onBlur={formik.handleBlur}
                   className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
                     isFieldInvalid('capacity')
                       ? 'border-red-500 bg-red-50 focus:ring-red-500'
@@ -298,7 +376,7 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
                 >
                   <input
                     type="checkbox"
-                    checked={(formData.subjects || []).includes(subject)}
+                    checked={(formik.values.subjects || []).includes(subject)}
                     onChange={() => handleSubjectToggle(subject)}
                     className="w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                   />
@@ -324,10 +402,11 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
                 </label>
                 <input
                   type="text"
+                  name="classHead.firstName"
                   placeholder="Enter first name"
-                  value={formData.classHead?.firstName || ''}
-                  onChange={(e) => handleNestedFieldChange('classHead', 'firstName', e.target.value)}
-                  onBlur={() => setTouched((prev) => ({ ...prev, 'classHead.firstName': true }))}
+                  value={formik.values.classHead?.firstName || ''}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
                   className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
                     isFieldInvalid('classHead.firstName')
                       ? 'border-red-500 bg-red-50 focus:ring-red-500'
@@ -349,10 +428,11 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
                 </label>
                 <input
                   type="text"
+                  name="classHead.lastName"
                   placeholder="Enter last name"
-                  value={formData.classHead?.lastName || ''}
-                  onChange={(e) => handleNestedFieldChange('classHead', 'lastName', e.target.value)}
-                  onBlur={() => setTouched((prev) => ({ ...prev, 'classHead.lastName': true }))}
+                  value={formik.values.classHead?.lastName || ''}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
                   className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
                     isFieldInvalid('classHead.lastName')
                       ? 'border-red-500 bg-red-50 focus:ring-red-500'
@@ -375,10 +455,11 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
                 <div className="relative">
                   <input
                     type="email"
+                    name="classHead.email"
                     placeholder="teacher@school.com"
-                    value={formData.classHead?.email || ''}
-                    onChange={(e) => handleNestedFieldChange('classHead', 'email', e.target.value)}
-                    onBlur={() => setTouched((prev) => ({ ...prev, 'classHead.email': true }))}
+                    value={formik.values.classHead?.email || ''}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
                     className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
                       isFieldInvalid('classHead.email')
                         ? 'border-red-500 bg-red-50 focus:ring-red-500'
@@ -409,10 +490,11 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
                 </label>
                 <input
                   type="text"
+                  name="classHead.employeeId"
                   placeholder="Enter employee ID"
-                  value={formData.classHead?.employeeId || ''}
-                  onChange={(e) => handleNestedFieldChange('classHead', 'employeeId', e.target.value)}
-                  onBlur={() => setTouched((prev) => ({ ...prev, 'classHead.employeeId': true }))}
+                  value={formik.values.classHead?.employeeId || ''}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
                   className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
                     isFieldInvalid('classHead.employeeId')
                       ? 'border-red-500 bg-red-50 focus:ring-red-500'
@@ -439,9 +521,10 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
                   Academic Year <span className="text-red-500">*</span>
                 </label>
                 <select
-                  value={formData.schedule?.academicYear || ''}
-                  onChange={(e) => handleNestedFieldChange('schedule', 'academicYear', e.target.value)}
-                  onBlur={() => setTouched((prev) => ({ ...prev, 'schedule.academicYear': true }))}
+                  name="schedule.academicYear"
+                  value={formik.values.schedule?.academicYear || ''}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
                   className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
                     isFieldInvalid('schedule.academicYear')
                       ? 'border-red-500 bg-red-50 focus:ring-red-500'
@@ -469,9 +552,10 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
                   Semester <span className="text-red-500">*</span>
                 </label>
                 <select
-                  value={formData.schedule?.semester || ''}
-                  onChange={(e) => handleNestedFieldChange('schedule', 'semester', e.target.value)}
-                  onBlur={() => setTouched((prev) => ({ ...prev, 'schedule.semester': true }))}
+                  name="schedule.semester"
+                  value={formik.values.schedule?.semester || ''}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
                   className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
                     isFieldInvalid('schedule.semester')
                       ? 'border-red-500 bg-red-50 focus:ring-red-500'
@@ -500,12 +584,13 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
                 </label>
                 <input
                   type="date"
-                  value={formatDateForInput(formData.schedule?.startDate)}
+                  name="schedule.startDate"
+                  value={formatDateForInput(formik.values.schedule?.startDate)}
                   onChange={(e) => {
                     const date = parseDateFromInput(e.target.value);
-                    handleNestedFieldChange('schedule', 'startDate', date);
+                    formik.setFieldValue('schedule.startDate', date);
                   }}
-                  onBlur={() => setTouched((prev) => ({ ...prev, 'schedule.startDate': true }))}
+                  onBlur={formik.handleBlur}
                   className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
                     isFieldInvalid('schedule.startDate')
                       ? 'border-red-500 bg-red-50 focus:ring-red-500'
@@ -527,13 +612,14 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
                 </label>
                 <input
                   type="date"
-                  value={formatDateForInput(formData.schedule?.endDate)}
+                  name="schedule.endDate"
+                  value={formatDateForInput(formik.values.schedule?.endDate)}
                   onChange={(e) => {
                     const date = parseDateFromInput(e.target.value);
-                    handleNestedFieldChange('schedule', 'endDate', date);
+                    formik.setFieldValue('schedule.endDate', date);
                   }}
-                  onBlur={() => setTouched((prev) => ({ ...prev, 'schedule.endDate': true }))}
-                  min={formatDateForInput(formData.schedule?.startDate)}
+                  onBlur={formik.handleBlur}
+                  min={formatDateForInput(formik.values.schedule?.startDate)}
                   className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
                     isFieldInvalid('schedule.endDate')
                       ? 'border-red-500 bg-red-50 focus:ring-red-500'
@@ -562,8 +648,9 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
                   type="radio"
                   name="isActive"
                   value="true"
-                  checked={formData.isActive === true}
-                  onChange={() => handleFieldChange('isActive', true)}
+                  checked={formik.values.isActive === true}
+                  onChange={() => formik.setFieldValue('isActive', true)}
+                  onBlur={formik.handleBlur}
                   className="w-4 h-4 text-indigo-600 focus:ring-2 focus:ring-indigo-500"
                   required
                 />
@@ -574,8 +661,9 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
                   type="radio"
                   name="isActive"
                   value="false"
-                  checked={formData.isActive === false}
-                  onChange={() => handleFieldChange('isActive', false)}
+                  checked={formik.values.isActive === false}
+                  onChange={() => formik.setFieldValue('isActive', false)}
+                  onBlur={formik.handleBlur}
                   className="w-4 h-4 text-indigo-600 focus:ring-2 focus:ring-indigo-500"
                   required
                 />
@@ -609,11 +697,26 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
             Cancel
           </button>
           <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={isLoading}
+            type="submit"
+            onClick={(e) => {
+              e.preventDefault();
+              // Validate and submit
+              formik.validateForm().then((errors) => {
+                console.log('=== BUTTON CLICK - VALIDATION CHECK ===');
+                console.log('Formik Validation Errors:', errors);
+                console.log('Formik Values:', formik.values);
+                console.log('Is Edit Mode:', !!initialData);
+                console.log('Formik Errors Object:', formik.errors);
+                console.log('Formik isValid:', formik.isValid);
+                console.log('========================================');
+                
+                // Submit the form - Formik will handle validation
+                formik.submitForm();
+              });
+            }}
+            disabled={isLoading || formik.isSubmitting}
             className={`px-6 py-2.5 text-white rounded-lg font-medium transition-colors flex items-center space-x-2 ${
-              isLoading
+              isLoading || formik.isSubmitting
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-indigo-600 hover:bg-indigo-700'
             }`}
