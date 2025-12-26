@@ -6,15 +6,11 @@ import { useUIStore, useAuthStore, selectIsSidebarOpen, selectUser } from '../..
 
 const adminMenuItems = [
   { path: ROUTES.ADMIN_DASHBOARD, label: 'Dashboard', icon: 'fa-home' },
-  { path: ROUTES.ADMIN_CLASSES, label: 'Classes', icon: 'fa-chalkboard' },
-  { path: ROUTES.ADMIN_TEACHERS, label: 'Teachers', icon: 'fa-chalkboard-teacher' },
-  { path: ROUTES.ADMIN_LECTURES, label: 'Students', icon: 'fa-user-graduate' },
-  { path: '#subjects', label: 'Subjects', icon: 'fa-book' },
-  { path: '#timetable', label: 'Timetable', icon: 'fa-calendar-alt' },
-  { path: '#attendance', label: 'Attendance', icon: 'fa-clipboard-check' },
-  { path: '#exams', label: 'Exams', icon: 'fa-file-alt' },
-  { path: '#notifications', label: 'Notifications', icon: 'fa-bell', badge: 3 },
-  { path: '#reports', label: 'Reports', icon: 'fa-chart-bar' },
+  { path: ROUTES.ADMIN_CLASSES, label: 'Classes', icon: 'fa-desktop' },
+  { path: ROUTES.ADMIN_TEACHERS, label: 'Teachers', icon: 'fa-user' },
+  { path: ROUTES.ADMIN_STUDENTS, label: 'Students', icon: 'fa-user-graduate' },
+  { path: ROUTES.ADMIN_LECTURES, label: 'Lectures', icon: 'fa-book' },
+  { path: '#subjects', label: 'Subjects', icon: 'fa-book-open' },
 ];
 
 const mobileBottomNav = [

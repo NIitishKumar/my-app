@@ -23,7 +23,7 @@ export const Sidebar = ({ items, isOpen = false, onClose }: SidebarProps) => {
       {/* Logo/Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-linear-to-br from-indigo-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg">
+          <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg">
             <i className="fas fa-graduation-cap text-white text-xl"></i>
           </div>
           <div>
