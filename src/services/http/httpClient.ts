@@ -59,9 +59,9 @@ class HttpClient {
   /**
    * DELETE request
    */
-  async delete<T>(url: string): Promise<T> {
+  async delete<T, D = any>(url: string, data?: D): Promise<T> {
     try {
-      const response: AxiosResponse<T> = await apiClient.delete(url);
+      const response: AxiosResponse<T> = await apiClient.delete(url, { data });
       return this.handleResponse(response);
     } catch (error) {
       throw this.handleError(error);

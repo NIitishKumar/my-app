@@ -2,15 +2,15 @@
  * TeachersPage Component
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useTeachers } from '../hooks/useTeachers';
 import { useCreateTeacher } from '../hooks/useCreateTeacher';
 import { useUpdateTeacher } from '../hooks/useUpdateTeacher';
 import { useDeleteTeacher } from '../hooks/useDeleteTeacher';
 import { TeacherTable } from '../components/TeacherTable';
 import { TeacherForm } from '../components/TeacherForm';
-import { generateMockTeachers, filterTeachers } from '../utils/teachers.utils';
-import type { Teacher, CreateTeacherData } from '../types/teachers.types';
+import { DEPARTMENT_OPTIONS } from '../constants/teachers.constants';
+import type { Teacher, CreateTeacherData, TeachersQueryParams } from '../types/teachers.types';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -19,51 +19,41 @@ export const TeachersPage = () => {
   const [editingTeacher, setEditingTeacher] = useState<Teacher | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'on-leave'>('all');
+  const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Use mock data for now
-  const mockTeachers = useMemo(() => generateMockTeachers(), []);
-  const { data: apiTeachers, isLoading, error } = useTeachers();
-  
-  // Use mock data if API data is not available
-  const allTeachers = apiTeachers && apiTeachers.length > 0 ? apiTeachers : mockTeachers;
+  // Build query params for API
+  const queryParams: TeachersQueryParams = {
+    page: currentPage,
+    limit: ITEMS_PER_PAGE,
+    ...(searchTerm.trim() && { search: searchTerm.trim() }),
+    ...(statusFilter !== 'all' && { status: statusFilter }),
+    ...(departmentFilter !== 'all' && { department: departmentFilter }),
+  };
+
+  const { data, isLoading, error } = useTeachers(queryParams);
+  const teachers = data?.teachers || [];
+  const pagination = data?.pagination || {
+    count: 0,
+    total: 0,
+    page: 1,
+    limit: ITEMS_PER_PAGE,
+    pages: 1,
+  };
 
   const createTeacher = useCreateTeacher();
   const updateTeacher = useUpdateTeacher();
   const deleteTeacher = useDeleteTeacher();
 
-  // Filter teachers based on search and status
-  const filteredTeachers = useMemo(() => {
-    let filtered = allTeachers || [];
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, departmentFilter]);
 
-    // Apply search filter
-    if (searchTerm.trim()) {
-      filtered = filterTeachers(filtered, searchTerm);
-    }
-
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter((teacher) => teacher.status === statusFilter);
-    }
-
-    return filtered;
-  }, [allTeachers, searchTerm, statusFilter]);
-
-  // Paginate filtered teachers
-  const paginatedTeachers = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    return filteredTeachers.slice(startIndex, endIndex);
-  }, [filteredTeachers, currentPage]);
-
-  const totalPages = Math.ceil(filteredTeachers.length / ITEMS_PER_PAGE);
-  const startItem = (currentPage - 1) * ITEMS_PER_PAGE + 1;
-  const endItem = Math.min(currentPage * ITEMS_PER_PAGE, filteredTeachers.length);
-
-  const handleSubmit = (data: CreateTeacherData) => {
+  const handleSubmit = (formData: CreateTeacherData) => {
     if (editingTeacher) {
       updateTeacher.mutate(
-        { id: editingTeacher.id, ...data },
+        { id: editingTeacher.id, ...formData },
         {
           onSuccess: () => {
             setShowForm(false);
@@ -72,7 +62,7 @@ export const TeachersPage = () => {
         }
       );
     } else {
-      createTeacher.mutate(data, {
+      createTeacher.mutate(formData, {
         onSuccess: () => {
           setShowForm(false);
         },
@@ -111,7 +101,7 @@ export const TeachersPage = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  if (isLoading && !mockTeachers.length) {
+  if (isLoading && teachers.length === 0) {
     return (
       <div className="p-4 lg:p-6">
         <div className="text-center">Loading teachers...</div>
@@ -119,10 +109,10 @@ export const TeachersPage = () => {
     );
   }
 
-  if (error && !mockTeachers.length) {
+  if (error && teachers.length === 0) {
     return (
       <div className="p-4 lg:p-6">
-        <div className="text-center text-red-600">Error loading teachers</div>
+        <div className="text-center text-red-600">Error loading teachers: {error.message || 'Unknown error'}</div>
       </div>
     );
   }
@@ -155,22 +145,34 @@ export const TeachersPage = () => {
                 </div>
                 <input
                   type="text"
-                  placeholder="Search by name, email, employee ID, or department..."
+                  placeholder="Search by name, email, or employee ID..."
                   value={searchTerm}
                   onChange={(e) => {
                     setSearchTerm(e.target.value);
-                    setCurrentPage(1); // Reset to first page on search
                   }}
                   className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 flex-wrap gap-2">
+              <select
+                value={departmentFilter}
+                onChange={(e) => {
+                  setDepartmentFilter(e.target.value);
+                }}
+                className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+              >
+                <option value="all">All Departments</option>
+                {DEPARTMENT_OPTIONS.map((dept) => (
+                  <option key={dept} value={dept}>
+                    {dept}
+                  </option>
+                ))}
+              </select>
               <select
                 value={statusFilter}
                 onChange={(e) => {
                   setStatusFilter(e.target.value as 'all' | 'active' | 'inactive' | 'on-leave');
-                  setCurrentPage(1); // Reset to first page on filter change
                 }}
                 className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
               >
@@ -191,44 +193,46 @@ export const TeachersPage = () => {
 
           {/* Table */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            {paginatedTeachers && paginatedTeachers.length > 0 ? (
+            {teachers.length > 0 ? (
               <>
                 <TeacherTable
-                  teachers={paginatedTeachers}
+                  teachers={teachers}
                   onView={handleView}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                 />
                 
                 {/* Pagination */}
-                <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between flex-wrap gap-4">
                   <div className="text-sm text-gray-700">
-                    Showing <span className="font-medium">{startItem}</span> to{' '}
-                    <span className="font-medium">{endItem}</span> of{' '}
-                    <span className="font-medium">{filteredTeachers.length}</span> results
+                    Showing <span className="font-medium">{pagination.count > 0 ? (pagination.page - 1) * pagination.limit + 1 : 0}</span> to{' '}
+                    <span className="font-medium">
+                      {Math.min(pagination.page * pagination.limit, pagination.total)}
+                    </span> of{' '}
+                    <span className="font-medium">{pagination.total}</span> results
                   </div>
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
+                      disabled={currentPage === 1 || isLoading}
                       className={`px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium ${
-                        currentPage === 1
+                        currentPage === 1 || isLoading
                           ? 'text-gray-400 cursor-not-allowed bg-gray-50'
                           : 'text-gray-700 hover:bg-gray-50'
                       }`}
                     >
                       <i className="fas fa-chevron-left"></i>
                     </button>
-                    {totalPages > 1 && (
+                    {pagination.pages > 1 && (
                       <div className="flex items-center space-x-1">
-                        {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                        {Array.from({ length: Math.min(pagination.pages, 5) }, (_, i) => {
                           let page;
-                          if (totalPages <= 5) {
+                          if (pagination.pages <= 5) {
                             page = i + 1;
                           } else if (currentPage <= 3) {
                             page = i + 1;
-                          } else if (currentPage >= totalPages - 2) {
-                            page = totalPages - 4 + i;
+                          } else if (currentPage >= pagination.pages - 2) {
+                            page = pagination.pages - 4 + i;
                           } else {
                             page = currentPage - 2 + i;
                           }
@@ -236,11 +240,12 @@ export const TeachersPage = () => {
                             <button
                               key={page}
                               onClick={() => handlePageChange(page)}
+                              disabled={isLoading}
                               className={`px-3 py-2 text-sm font-medium rounded-lg ${
                                 currentPage === page
                                   ? 'bg-indigo-600 text-white'
                                   : 'text-gray-700 hover:bg-gray-50 border border-gray-300'
-                              }`}
+                              } disabled:opacity-50`}
                             >
                               {page}
                             </button>
@@ -248,10 +253,11 @@ export const TeachersPage = () => {
                         })}
                       </div>
                     )}
-                    {totalPages === 1 && (
+                    {pagination.pages === 1 && (
                       <div className="flex items-center space-x-1">
                         <button
                           className="px-3 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white"
+                          disabled
                         >
                           1
                         </button>
@@ -259,9 +265,9 @@ export const TeachersPage = () => {
                     )}
                     <button
                       onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
+                      disabled={currentPage === pagination.pages || isLoading}
                       className={`px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium ${
-                        currentPage === totalPages
+                        currentPage === pagination.pages || isLoading
                           ? 'text-gray-400 cursor-not-allowed bg-gray-50'
                           : 'text-gray-700 hover:bg-gray-50'
                       }`}
@@ -276,9 +282,9 @@ export const TeachersPage = () => {
                 <i className="fas fa-inbox text-gray-400 text-4xl mb-3"></i>
                 <p className="text-sm font-medium text-gray-900">No records found</p>
                 <p className="text-xs text-gray-500 mt-1">
-                  {searchTerm || statusFilter !== 'all'
+                  {searchTerm || statusFilter !== 'all' || departmentFilter !== 'all'
                     ? 'Try adjusting your search or filter criteria'
-                    : 'Start by adding your first record using the form above'}
+                    : 'Start by adding your first teacher using the "Add Teacher" button'}
                 </p>
               </div>
             )}

@@ -128,7 +128,7 @@ export const TeacherTable = ({ teachers, onView, onEdit, onDelete }: TeacherTabl
                 <div className="text-sm text-gray-900">{teacher.department || '-'}</div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">{teacher.qualification}</div>
+                <div className="text-sm text-gray-900">{teacher.qualification || '-'}</div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center space-x-2">

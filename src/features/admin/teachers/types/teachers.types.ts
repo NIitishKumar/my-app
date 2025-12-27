@@ -2,25 +2,7 @@
  * Teachers Domain Types
  */
 
-export interface TeacherAddress {
-  street?: string;
-  city?: string;
-  state?: string;
-  zipCode?: string;
-}
-
-export interface EmergencyContact {
-  name?: string;
-  relationship?: string;
-  phone?: string;
-}
-
-export interface TeacherDocument {
-  name: string;
-  type: 'resume' | 'certificate' | 'degree' | 'id-proof' | 'address-proof';
-  url: string;
-}
-
+// Domain Types (used in the application)
 export interface Teacher {
   id: string;
   firstName: string;
@@ -28,24 +10,32 @@ export interface Teacher {
   email: string;
   employeeId: string;
   phone?: string;
-  dateOfBirth?: Date;
-  gender?: 'male' | 'female' | 'other';
-  address?: TeacherAddress;
-  qualification: string;
-  specialization: string[];
+  department?: string;
+  qualification?: string;
+  specialization?: string; // String, not array
   subjects: string[];
-  experience?: number; // in years
-  joiningDate: Date;
-  employmentType: 'permanent' | 'contract' | 'part-time' | 'temporary';
-  department?: 'Mathematics' | 'English' | 'Hindi' | 'Science' | 'Social Studies' | 'Computer Science' | 'Physical Education' | 'Arts' | 'Music' | 'Administration';
-  salary?: number;
   status: 'active' | 'inactive' | 'on-leave';
-  emergencyContact?: EmergencyContact;
-  documents: TeacherDocument[];
-  classes: string[]; // ObjectId references
+  employmentType: 'full-time' | 'part-time' | 'contract';
+  experience?: number; // in years
+  joiningDate?: Date;
   isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  classes: string[] | ClassReference[]; // Can be IDs or full class objects
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface ClassReference {
+  _id: string;
+  className: string;
+  grade: string;
+  roomNo: string;
+  subjects: string[];
+  schedule?: {
+    academicYear: string;
+    semester: string;
+    startDate: string;
+    endDate: string;
+  };
 }
 
 export interface CreateTeacherData {
@@ -54,95 +44,111 @@ export interface CreateTeacherData {
   email: string;
   employeeId: string;
   phone?: string;
-  dateOfBirth?: Date;
-  gender?: 'male' | 'female' | 'other';
-  address?: TeacherAddress;
-  qualification: string;
-  specialization: string[];
+  department?: string;
+  qualification?: string;
+  specialization?: string; // String, not array
   subjects: string[];
+  status?: 'active' | 'inactive' | 'on-leave';
+  employmentType?: 'full-time' | 'part-time' | 'contract';
   experience?: number;
-  joiningDate: Date;
-  employmentType: 'permanent' | 'contract' | 'part-time' | 'temporary';
-  department?: 'Mathematics' | 'English' | 'Hindi' | 'Science' | 'Social Studies' | 'Computer Science' | 'Physical Education' | 'Arts' | 'Music' | 'Administration';
-  salary?: number;
-  status: 'active' | 'inactive' | 'on-leave';
-  emergencyContact?: EmergencyContact;
-  documents: TeacherDocument[];
-  classes?: string[];
-  isActive: boolean;
+  joiningDate?: string; // ISO date string
 }
 
 export interface UpdateTeacherData extends Partial<CreateTeacherData> {
   id: string;
 }
 
-// API DTOs
-export interface TeacherAddressDTO {
-  street?: string;
-  city?: string;
-  state?: string;
-  zip_code?: string;
-}
-
-export interface EmergencyContactDTO {
-  name?: string;
-  relationship?: string;
-  phone?: string;
-}
-
-export interface TeacherDocumentDTO {
-  name: string;
-  type: string;
-  url: string;
-}
-
-export interface TeacherDTO {
-  id: string;
-  first_name: string;
-  last_name: string;
+// API Response Types (camelCase with _id)
+export interface TeacherApiDTO {
+  _id: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  employee_id: string;
+  employeeId: string;
   phone?: string;
-  date_of_birth?: string;
-  gender?: string;
-  address?: TeacherAddressDTO;
-  qualification: string;
-  specialization: string[];
-  subjects: string[];
-  experience?: number;
-  joining_date: string;
-  employment_type: string;
   department?: string;
-  salary?: number;
-  status: string;
-  emergency_contact?: EmergencyContactDTO;
-  documents: TeacherDocumentDTO[];
-  classes: string[];
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  qualification?: string;
+  specialization?: string; // String from API
+  subjects: string[];
+  status: 'active' | 'inactive' | 'on-leave';
+  employmentType: 'full-time' | 'part-time' | 'contract';
+  experience?: number;
+  joiningDate?: string; // ISO date string
+  isActive?: boolean;
+  classes?: string[] | ClassReference[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export interface CreateTeacherDTO {
-  first_name: string;
-  last_name: string;
-  email: string;
-  employee_id: string;
-  phone?: string;
-  date_of_birth?: string;
-  gender?: string;
-  address?: TeacherAddressDTO;
-  qualification: string;
-  specialization: string[];
-  subjects: string[];
-  experience?: number;
-  joining_date: string;
-  employment_type: string;
+// API Response Wrappers
+export interface TeachersApiResponse {
+  success: boolean;
+  count?: number;
+  total?: number;
+  page?: number;
+  limit?: number;
+  pages?: number;
+  data: TeacherApiDTO[];
+}
+
+export interface TeacherApiResponse {
+  success: boolean;
+  data: TeacherApiDTO;
+  message?: string;
+}
+
+export interface TeachersByDepartmentResponse {
+  success: boolean;
+  count: number;
+  data: TeacherApiDTO[];
+}
+
+export interface TeachersStatsResponse {
+  success: boolean;
+  data: {
+    totalTeachers: number;
+    teachersByDepartment: Array<{
+      _id: string;
+      count: number;
+    }>;
+    teachersByStatus: Array<{
+      _id: string;
+      count: number;
+    }>;
+    averageExperience: string;
+  };
+}
+
+export interface TeacherWithClassesResponse {
+  success: boolean;
+  data: TeacherApiDTO & {
+    classes: ClassReference[];
+  };
+}
+
+export interface AddClassToTeacherRequest {
+  classId: string;
+}
+
+export interface RemoveClassFromTeacherRequest {
+  classId: string;
+}
+
+export interface AddClassToTeacherResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface RemoveClassFromTeacherResponse {
+  success: boolean;
+  message: string;
+}
+
+// Query Parameters
+export interface TeachersQueryParams {
+  page?: number;
+  limit?: number;
   department?: string;
-  salary?: number;
-  status: string;
-  emergency_contact?: EmergencyContactDTO;
-  documents: TeacherDocumentDTO[];
-  classes?: string[];
-  is_active: boolean;
+  status?: 'active' | 'inactive' | 'on-leave';
+  search?: string;
 }

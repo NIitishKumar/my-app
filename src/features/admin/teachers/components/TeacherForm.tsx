@@ -6,19 +6,15 @@ import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { useState } from 'react';
 import {
-  GENDER_OPTIONS,
   EMPLOYMENT_TYPE_OPTIONS,
   STATUS_OPTIONS,
   DEPARTMENT_OPTIONS,
-  DOCUMENT_TYPE_OPTIONS,
   SUBJECT_OPTIONS,
   QUALIFICATION_OPTIONS,
-  SPECIALIZATION_OPTIONS,
-  RELATIONSHIP_OPTIONS,
   VALIDATION,
 } from '../constants/teachers.constants';
 import { formatDateForInput, getDefaultTeacherFormData } from '../utils/teachers.utils';
-import type { CreateTeacherData, Teacher, TeacherDocument } from '../types/teachers.types';
+import type { CreateTeacherData, Teacher } from '../types/teachers.types';
 
 interface TeacherFormProps {
   initialData?: Teacher;
@@ -27,7 +23,7 @@ interface TeacherFormProps {
   isLoading?: boolean;
 }
 
-// Validation schema
+// Validation schema (matching API requirements)
 const validationSchema = yup.object({
   firstName: yup
     .string()
@@ -57,29 +53,20 @@ const validationSchema = yup.object({
       return phoneRegex.test(value) && value.replace(/\D/g, '').length >= VALIDATION.PHONE_MIN_LENGTH;
     })
     .max(VALIDATION.PHONE_MAX_LENGTH, `Phone number must not exceed ${VALIDATION.PHONE_MAX_LENGTH} characters`),
-  dateOfBirth: yup.date().nullable(),
-  gender: yup.string().oneOf([...GENDER_OPTIONS, undefined], 'Invalid gender'),
   qualification: yup
     .string()
-    .required('Qualification is required')
-    .min(VALIDATION.QUALIFICATION_MIN_LENGTH, `Qualification must be at least ${VALIDATION.QUALIFICATION_MIN_LENGTH} characters`)
     .max(VALIDATION.QUALIFICATION_MAX_LENGTH, `Qualification must not exceed ${VALIDATION.QUALIFICATION_MAX_LENGTH} characters`),
-  specialization: yup.array().of(yup.string()),
+  specialization: yup.string().max(200, 'Specialization must not exceed 200 characters'),
   subjects: yup.array().of(yup.string()).min(1, 'At least one subject is required'),
   experience: yup
     .number()
     .min(VALIDATION.EXPERIENCE_MIN, `Experience must be at least ${VALIDATION.EXPERIENCE_MIN} years`)
     .max(VALIDATION.EXPERIENCE_MAX, `Experience must not exceed ${VALIDATION.EXPERIENCE_MAX} years`)
     .nullable(),
-  joiningDate: yup.date().required('Joining date is required'),
-  employmentType: yup.string().oneOf([...EMPLOYMENT_TYPE_OPTIONS], 'Invalid employment type').required('Employment type is required'),
+  joiningDate: yup.string(),
+  employmentType: yup.string().oneOf([...EMPLOYMENT_TYPE_OPTIONS], 'Invalid employment type'),
   department: yup.string().oneOf([...DEPARTMENT_OPTIONS, undefined], 'Invalid department'),
-  salary: yup
-    .number()
-    .min(VALIDATION.SALARY_MIN, `Salary must be at least ${VALIDATION.SALARY_MIN}`)
-    .nullable(),
-  status: yup.string().oneOf([...STATUS_OPTIONS], 'Invalid status').required('Status is required'),
-  isActive: yup.boolean().required(),
+  status: yup.string().oneOf([...STATUS_OPTIONS], 'Invalid status'),
 });
 
 export const TeacherForm = ({ initialData, onSubmit, onCancel, isLoading }: TeacherFormProps) => {
@@ -94,31 +81,18 @@ export const TeacherForm = ({ initialData, onSubmit, onCancel, isLoading }: Teac
           email: initialData.email,
           employeeId: initialData.employeeId,
           phone: initialData.phone || '',
-          dateOfBirth: initialData.dateOfBirth,
-          gender: initialData.gender,
-          address: initialData.address || {
-            street: '',
-            city: '',
-            state: '',
-            zipCode: '',
-          },
-          qualification: initialData.qualification,
-          specialization: initialData.specialization || [],
+          department: initialData.department,
+          qualification: initialData.qualification || '',
+          specialization: initialData.specialization || '',
           subjects: initialData.subjects || [],
           experience: initialData.experience,
-          joiningDate: initialData.joiningDate,
+          joiningDate: initialData.joiningDate 
+            ? (typeof initialData.joiningDate === 'string' 
+                ? initialData.joiningDate 
+                : formatDateForInput(initialData.joiningDate))
+            : '',
           employmentType: initialData.employmentType,
-          department: initialData.department,
-          salary: initialData.salary,
           status: initialData.status,
-          emergencyContact: initialData.emergencyContact || {
-            name: '',
-            relationship: '',
-            phone: '',
-          },
-          documents: initialData.documents || [],
-          classes: initialData.classes || [],
-          isActive: initialData.isActive,
         }
       : {
           firstName: defaultData.firstName || '',
@@ -126,31 +100,14 @@ export const TeacherForm = ({ initialData, onSubmit, onCancel, isLoading }: Teac
           email: defaultData.email || '',
           employeeId: defaultData.employeeId || '',
           phone: defaultData.phone || '',
-          dateOfBirth: defaultData.dateOfBirth,
-          gender: defaultData.gender,
-          address: defaultData.address || {
-            street: '',
-            city: '',
-            state: '',
-            zipCode: '',
-          },
+          department: defaultData.department,
           qualification: defaultData.qualification || '',
-          specialization: defaultData.specialization || [],
+          specialization: defaultData.specialization || '',
           subjects: defaultData.subjects || [],
           experience: defaultData.experience,
-          joiningDate: defaultData.joiningDate || new Date(),
-          employmentType: defaultData.employmentType || 'permanent',
-          department: defaultData.department,
-          salary: defaultData.salary,
+          joiningDate: defaultData.joiningDate || '',
+          employmentType: defaultData.employmentType || 'full-time',
           status: defaultData.status || 'active',
-          emergencyContact: defaultData.emergencyContact || {
-            name: '',
-            relationship: '',
-            phone: '',
-          },
-          documents: defaultData.documents || [],
-          classes: defaultData.classes || [],
-          isActive: defaultData.isActive ?? true,
         },
     validationSchema,
     onSubmit: (values) => {
@@ -159,26 +116,6 @@ export const TeacherForm = ({ initialData, onSubmit, onCancel, isLoading }: Teac
       setTimeout(() => setShowSuccess(false), 3000);
     },
   });
-
-  const handleAddDocument = () => {
-    const newDoc: TeacherDocument = {
-      name: '',
-      type: 'resume',
-      url: '',
-    };
-    formik.setFieldValue('documents', [...formik.values.documents, newDoc]);
-  };
-
-  const handleRemoveDocument = (index: number) => {
-    const newDocs = formik.values.documents.filter((_, i) => i !== index);
-    formik.setFieldValue('documents', newDocs);
-  };
-
-  const handleDocumentChange = (index: number, field: keyof TeacherDocument, value: string) => {
-    const newDocs = [...formik.values.documents];
-    newDocs[index] = { ...newDocs[index], [field]: value };
-    formik.setFieldValue('documents', newDocs);
-  };
 
   const handleSubjectToggle = (subject: string) => {
     const currentSubjects = formik.values.subjects || [];
@@ -189,28 +126,11 @@ export const TeacherForm = ({ initialData, onSubmit, onCancel, isLoading }: Teac
     }
   };
 
-  const handleSpecializationToggle = (spec: string) => {
-    const currentSpecs = formik.values.specialization || [];
-    if (currentSpecs.includes(spec)) {
-      formik.setFieldValue('specialization', currentSpecs.filter((s) => s !== spec));
-    } else {
-      formik.setFieldValue('specialization', [...currentSpecs, spec]);
-    }
-  };
-
   const getFieldError = (field: string): string | undefined => {
-    if (field.includes('.')) {
-      const [parent, child] = field.split('.');
-      return (formik.errors[parent as keyof typeof formik.errors] as any)?.[child];
-    }
     return formik.errors[field as keyof typeof formik.errors] as string | undefined;
   };
 
   const isFieldTouched = (field: string): boolean => {
-    if (field.includes('.')) {
-      const [parent, child] = field.split('.');
-      return !!(formik.touched[parent as keyof typeof formik.touched] as any)?.[child];
-    }
     return !!formik.touched[field as keyof typeof formik.touched];
   };
 
@@ -226,7 +146,9 @@ export const TeacherForm = ({ initialData, onSubmit, onCancel, isLoading }: Teac
     <div className="max-w-5xl mx-auto">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-bold text-gray-900">Add / Edit Teacher</h3>
+          <h3 className="text-lg font-bold text-gray-900">
+            {initialData ? 'Edit Teacher' : 'Add Teacher'}
+          </h3>
           <p className="text-sm text-gray-600 mt-1">Enter teacher information below</p>
         </div>
 
@@ -366,13 +288,14 @@ export const TeacherForm = ({ initialData, onSubmit, onCancel, isLoading }: Teac
                   value={formik.values.employeeId}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
+                  disabled={!!initialData}
                   className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
                     isFieldInvalid('employeeId')
                       ? 'border-red-500 bg-red-50 focus:ring-red-500'
                       : isFieldValid('employeeId')
                       ? 'border-green-500 bg-green-50 focus:ring-green-500'
                       : 'border-gray-300 focus:ring-indigo-500 focus:border-transparent'
-                  }`}
+                  } ${initialData ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                 />
                 {isFieldInvalid('employeeId') && (
                   <p className="mt-1 text-xs text-red-600 flex items-center space-x-1">
@@ -380,7 +303,7 @@ export const TeacherForm = ({ initialData, onSubmit, onCancel, isLoading }: Teac
                     <span>{getFieldError('employeeId')}</span>
                   </p>
                 )}
-                <p className="mt-1 text-xs text-gray-500">Unique employee identifier</p>
+                <p className="mt-1 text-xs text-gray-500">Unique employee identifier {initialData && '(cannot be updated)'}</p>
               </div>
 
               <div>
@@ -405,94 +328,6 @@ export const TeacherForm = ({ initialData, onSubmit, onCancel, isLoading }: Teac
                   </p>
                 )}
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
-                <input
-                  type="date"
-                  name="dateOfBirth"
-                  value={formik.values.dateOfBirth ? formatDateForInput(formik.values.dateOfBirth) : ''}
-                  onChange={(e) => {
-                    const date = e.target.value ? new Date(e.target.value) : undefined;
-                    formik.setFieldValue('dateOfBirth', date);
-                  }}
-                  onBlur={formik.handleBlur}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
-                <select
-                  name="gender"
-                  value={formik.values.gender || ''}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                >
-                  <option value="">Select gender</option>
-                  {GENDER_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option.charAt(0).toUpperCase() + option.slice(1)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Address Section */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <h4 className="text-sm font-semibold text-gray-900 mb-3">Address</h4>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div className="lg:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Street</label>
-                <input
-                  type="text"
-                  name="address.street"
-                  placeholder="Enter street address"
-                  value={formik.values.address?.street || ''}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
-                <input
-                  type="text"
-                  name="address.city"
-                  placeholder="Enter city"
-                  value={formik.values.address?.city || ''}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
-                <input
-                  type="text"
-                  name="address.state"
-                  placeholder="Enter state"
-                  value={formik.values.address?.state || ''}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Zip Code</label>
-                <input
-                  type="text"
-                  name="address.zipCode"
-                  placeholder="Enter zip code"
-                  value={formik.values.address?.zipCode || ''}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
-              </div>
             </div>
           </div>
 
@@ -501,19 +336,13 @@ export const TeacherForm = ({ initialData, onSubmit, onCancel, isLoading }: Teac
             <h4 className="text-sm font-semibold text-gray-900 mb-3">Professional Information</h4>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Qualification <span className="text-red-500">*</span>
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Qualification</label>
                 <select
                   name="qualification"
                   value={formik.values.qualification}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
-                    isFieldInvalid('qualification')
-                      ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                      : 'border-gray-300 focus:ring-indigo-500 focus:border-transparent'
-                  }`}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 >
                   <option value="">Select qualification</option>
                   {QUALIFICATION_OPTIONS.map((option) => (
@@ -522,12 +351,6 @@ export const TeacherForm = ({ initialData, onSubmit, onCancel, isLoading }: Teac
                     </option>
                   ))}
                 </select>
-                {isFieldInvalid('qualification') && (
-                  <p className="mt-1 text-xs text-red-600 flex items-center space-x-1">
-                    <i className="fas fa-exclamation-circle"></i>
-                    <span>{getFieldError('qualification')}</span>
-                  </p>
-                )}
               </div>
 
               <div>
@@ -555,52 +378,29 @@ export const TeacherForm = ({ initialData, onSubmit, onCancel, isLoading }: Teac
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Joining Date <span className="text-red-500">*</span>
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Joining Date</label>
                 <input
                   type="date"
                   name="joiningDate"
-                  value={formatDateForInput(formik.values.joiningDate)}
-                  onChange={(e) => {
-                    const date = e.target.value ? new Date(e.target.value) : new Date();
-                    formik.setFieldValue('joiningDate', date);
-                  }}
+                  value={formik.values.joiningDate}
+                  onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
-                    isFieldInvalid('joiningDate')
-                      ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                      : 'border-gray-300 focus:ring-indigo-500 focus:border-transparent'
-                  }`}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
-                {isFieldInvalid('joiningDate') && (
-                  <p className="mt-1 text-xs text-red-600 flex items-center space-x-1">
-                    <i className="fas fa-exclamation-circle"></i>
-                    <span>{getFieldError('joiningDate')}</span>
-                  </p>
-                )}
               </div>
 
-              <div className="lg:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Specialization
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {SPECIALIZATION_OPTIONS.map((spec) => (
-                    <button
-                      key={spec}
-                      type="button"
-                      onClick={() => handleSpecializationToggle(spec)}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                        formik.values.specialization?.includes(spec)
-                          ? 'bg-indigo-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      {spec}
-                    </button>
-                  ))}
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Specialization</label>
+                <input
+                  type="text"
+                  name="specialization"
+                  placeholder="e.g., Algebra, Calculus"
+                  value={formik.values.specialization}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+                <p className="mt-1 text-xs text-gray-500">Enter specialization areas separated by commas</p>
               </div>
 
               <div className="lg:col-span-2">
@@ -638,19 +438,13 @@ export const TeacherForm = ({ initialData, onSubmit, onCancel, isLoading }: Teac
             <h4 className="text-sm font-semibold text-gray-900 mb-3">Employment Information</h4>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Employment Type <span className="text-red-500">*</span>
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Employment Type</label>
                 <select
                   name="employmentType"
                   value={formik.values.employmentType}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
-                    isFieldInvalid('employmentType')
-                      ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                      : 'border-gray-300 focus:ring-indigo-500 focus:border-transparent'
-                  }`}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 >
                   {EMPLOYMENT_TYPE_OPTIONS.map((option) => (
                     <option key={option} value={option}>
@@ -658,12 +452,6 @@ export const TeacherForm = ({ initialData, onSubmit, onCancel, isLoading }: Teac
                     </option>
                   ))}
                 </select>
-                {isFieldInvalid('employmentType') && (
-                  <p className="mt-1 text-xs text-red-600 flex items-center space-x-1">
-                    <i className="fas fa-exclamation-circle"></i>
-                    <span>{getFieldError('employmentType')}</span>
-                  </p>
-                )}
               </div>
 
               <div>
@@ -685,42 +473,13 @@ export const TeacherForm = ({ initialData, onSubmit, onCancel, isLoading }: Teac
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Salary</label>
-                <input
-                  type="number"
-                  name="salary"
-                  min={VALIDATION.SALARY_MIN}
-                  placeholder="e.g., 50000"
-                  value={formik.values.salary || ''}
-                  onChange={(e) => {
-                    const value = e.target.value ? parseFloat(e.target.value) : undefined;
-                    formik.setFieldValue('salary', value);
-                  }}
-                  onBlur={formik.handleBlur}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
-                {isFieldInvalid('salary') && (
-                  <p className="mt-1 text-xs text-red-600 flex items-center space-x-1">
-                    <i className="fas fa-exclamation-circle"></i>
-                    <span>{getFieldError('salary')}</span>
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Status <span className="text-red-500">*</span>
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
                 <select
                   name="status"
                   value={formik.values.status}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
-                    isFieldInvalid('status')
-                      ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                      : 'border-gray-300 focus:ring-indigo-500 focus:border-transparent'
-                  }`}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 >
                   {STATUS_OPTIONS.map((option) => (
                     <option key={option} value={option}>
@@ -728,142 +487,7 @@ export const TeacherForm = ({ initialData, onSubmit, onCancel, isLoading }: Teac
                     </option>
                   ))}
                 </select>
-                {isFieldInvalid('status') && (
-                  <p className="mt-1 text-xs text-red-600 flex items-center space-x-1">
-                    <i className="fas fa-exclamation-circle"></i>
-                    <span>{getFieldError('status')}</span>
-                  </p>
-                )}
               </div>
-            </div>
-          </div>
-
-          {/* Emergency Contact Section */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <h4 className="text-sm font-semibold text-gray-900 mb-3">Emergency Contact</h4>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
-                <input
-                  type="text"
-                  name="emergencyContact.name"
-                  placeholder="Enter contact name"
-                  value={formik.values.emergencyContact?.name || ''}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Relationship</label>
-                <select
-                  name="emergencyContact.relationship"
-                  value={formik.values.emergencyContact?.relationship || ''}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                >
-                  <option value="">Select relationship</option>
-                  {RELATIONSHIP_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-                <input
-                  type="tel"
-                  name="emergencyContact.phone"
-                  placeholder="+1-234-567-8900"
-                  value={formik.values.emergencyContact?.phone || ''}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Documents Section */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm font-semibold text-gray-900">Documents</h4>
-              <button
-                type="button"
-                onClick={handleAddDocument}
-                className="px-3 py-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700 border border-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors"
-              >
-                <i className="fas fa-plus mr-1"></i>
-                Add Document
-              </button>
-            </div>
-            {formik.values.documents.length > 0 && (
-              <div className="space-y-3">
-                {formik.values.documents.map((doc, index) => (
-                  <div key={index} className="grid grid-cols-1 lg:grid-cols-4 gap-3 p-3 bg-white border border-gray-200 rounded-lg">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Name</label>
-                      <input
-                        type="text"
-                        placeholder="Document name"
-                        value={doc.name}
-                        onChange={(e) => handleDocumentChange(index, 'name', e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Type</label>
-                      <select
-                        value={doc.type}
-                        onChange={(e) => handleDocumentChange(index, 'type', e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      >
-                        {DOCUMENT_TYPE_OPTIONS.map((option) => (
-                          <option key={option} value={option}>
-                            {option.charAt(0).toUpperCase() + option.slice(1).replace('-', ' ')}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">URL</label>
-                      <input
-                        type="url"
-                        placeholder="Document URL"
-                        value={doc.url}
-                        onChange={(e) => handleDocumentChange(index, 'url', e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      />
-                    </div>
-                    <div className="flex items-end">
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveDocument(index)}
-                        className="w-full px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 border border-red-600 rounded-lg hover:bg-red-50 transition-colors"
-                      >
-                        <i className="fas fa-trash mr-1"></i>
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Active Status */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center space-x-3">
-              <input
-                type="checkbox"
-                name="isActive"
-                checked={formik.values.isActive}
-                onChange={formik.handleChange}
-                className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-              />
-              <label className="text-sm font-medium text-gray-700">Active</label>
             </div>
           </div>
 
@@ -902,4 +526,3 @@ export const TeacherForm = ({ initialData, onSubmit, onCancel, isLoading }: Teac
     </div>
   );
 };
-

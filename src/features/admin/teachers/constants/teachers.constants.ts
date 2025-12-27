@@ -11,11 +11,8 @@ export const teachersQueryKeys = {
   detail: (id: string) => [...teachersQueryKeys.details(), id] as const,
 } as const;
 
-// Gender options
-export const GENDER_OPTIONS = ['male', 'female', 'other'] as const;
-
-// Employment type options
-export const EMPLOYMENT_TYPE_OPTIONS = ['permanent', 'contract', 'part-time', 'temporary'] as const;
+// Employment type options (matching API)
+export const EMPLOYMENT_TYPE_OPTIONS = ['full-time', 'part-time', 'contract'] as const;
 
 // Status options
 export const STATUS_OPTIONS = ['active', 'inactive', 'on-leave'] as const;
@@ -34,8 +31,6 @@ export const DEPARTMENT_OPTIONS = [
   'Administration',
 ] as const;
 
-// Document type options
-export const DOCUMENT_TYPE_OPTIONS = ['resume', 'certificate', 'degree', 'id-proof', 'address-proof'] as const;
 
 // Subject options
 export const SUBJECT_OPTIONS = [
@@ -93,15 +88,6 @@ export const SPECIALIZATION_OPTIONS = [
   'Music Education',
 ] as const;
 
-// Emergency contact relationship options
-export const RELATIONSHIP_OPTIONS = [
-  'Spouse',
-  'Parent',
-  'Sibling',
-  'Child',
-  'Friend',
-  'Other',
-] as const;
 
 // Validation constants
 export const VALIDATION = {
@@ -118,9 +104,4 @@ export const VALIDATION = {
   QUALIFICATION_MAX_LENGTH: 100,
   EXPERIENCE_MIN: 0,
   EXPERIENCE_MAX: 50,
-  SALARY_MIN: 0,
-  STREET_MAX_LENGTH: 200,
-  CITY_MAX_LENGTH: 100,
-  STATE_MAX_LENGTH: 100,
-  ZIP_CODE_MAX_LENGTH: 10,
 } as const;
