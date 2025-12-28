@@ -7,6 +7,7 @@ import { useFormik } from 'formik';
 import { GRADE_OPTIONS, SEMESTER_OPTIONS, SUBJECT_OPTIONS, getAcademicYearOptions } from '../constants/classes.constants';
 import { validateClassForm, formatDateForInput, parseDateFromInput, getDefaultClassFormData } from '../utils/classes.utils';
 import { useStudents } from '../../students/hooks/useStudents';
+import { useLectures } from '../../lectures/hooks/useLectures';
 import type { CreateClassData, Class } from '../types/classes.types';
 import type { ValidationErrors } from '../utils/classes.utils';
 
@@ -22,12 +23,21 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
   const { data: allStudents, isLoading: isLoadingStudents } = useStudents();
   const students = useMemo(() => allStudents || [], [allStudents]);
 
+  // Fetch lectures from API
+  const { data: allLectures, isLoading: isLoadingLectures } = useLectures();
+  const lectures = useMemo(() => allLectures || [], [allLectures]);
+
   // State for student search and dropdown
   const [studentSearchTerm, setStudentSearchTerm] = useState('');
   const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
   const studentDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
+  // State for lecture search and dropdown
+  const [lectureSearchTerm, setLectureSearchTerm] = useState('');
+  const [isLectureDropdownOpen, setIsLectureDropdownOpen] = useState(false);
+  const lectureDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close student dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -46,6 +56,26 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isStudentDropdownOpen]);
+
+  // Close lecture dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        lectureDropdownRef.current &&
+        !lectureDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsLectureDropdownOpen(false);
+      }
+    };
+
+    if (isLectureDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isLectureDropdownOpen]);
 
   // Memoize initial values to prevent unnecessary re-renders that block input
   // Only recalculate when initialData changes (not on every render)
@@ -255,6 +285,53 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
       formik.setFieldValue(
         'students',
         currentIds.filter((id) => id !== studentId)
+      );
+    },
+    [formik]
+  );
+
+  // Lecture selection helpers
+  const selectedLectureIds = useMemo(() => formik.values.lectures || [], [formik.values.lectures]);
+  const selectedLectures = useMemo(() => {
+    return lectures.filter((lecture) => selectedLectureIds.includes(lecture.id));
+  }, [lectures, selectedLectureIds]);
+
+  const filteredLectures = useMemo(() => {
+    if (!lectureSearchTerm.trim()) {
+      return lectures;
+    }
+    const searchLower = lectureSearchTerm.toLowerCase();
+    return lectures.filter(
+      (lecture) =>
+        lecture.title.toLowerCase().includes(searchLower) ||
+        lecture.subject.toLowerCase().includes(searchLower) ||
+        lecture.description?.toLowerCase().includes(searchLower) ||
+        `${lecture.teacher.firstName} ${lecture.teacher.lastName}`.toLowerCase().includes(searchLower)
+    );
+  }, [lectures, lectureSearchTerm]);
+
+  const handleLectureToggle = useCallback(
+    (lectureId: string) => {
+      const currentIds = formik.values.lectures || [];
+      if (currentIds.includes(lectureId)) {
+        // Allow deselecting
+        formik.setFieldValue('lectures', currentIds.filter((id) => id !== lectureId));
+      } else {
+        // Only allow selecting if less than 5 are selected
+        if (currentIds.length < 5) {
+          formik.setFieldValue('lectures', [...currentIds, lectureId]);
+        }
+      }
+    },
+    [formik]
+  );
+
+  const handleRemoveLecture = useCallback(
+    (lectureId: string) => {
+      const currentIds = formik.values.lectures || [];
+      formik.setFieldValue(
+        'lectures',
+        currentIds.filter((id) => id !== lectureId)
       );
     },
     [formik]
@@ -481,6 +558,128 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
                 )}
                 <p className="mt-1 text-xs text-gray-500">
                   Select students to add to this class. {selectedStudents.length} student(s) selected.
+                </p>
+              </div>
+            </div>
+
+            {/* Lecture Selection Field */}
+            <div className="lg:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Lectures <span className="text-gray-500 text-xs font-normal">(Max 5)</span>
+              </label>
+              <div className="relative">
+                {/* Selected Lectures Display */}
+                {selectedLectures.length > 0 && (
+                  <div className="mb-2 flex flex-wrap gap-2">
+                    {selectedLectures.map((lecture) => (
+                      <span
+                        key={lecture.id}
+                        className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800 border border-purple-200"
+                      >
+                        {lecture.title} ({lecture.subject})
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveLecture(lecture.id)}
+                          className="ml-2 text-purple-600 hover:text-purple-800 focus:outline-none"
+                          disabled={isLoading || formik.isSubmitting}
+                        >
+                          <i className="fas fa-times text-xs"></i>
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Search Input and Dropdown */}
+                <div className="relative" ref={lectureDropdownRef}>
+                  <input
+                    type="text"
+                    placeholder="Search lectures by title, subject, or teacher..."
+                    value={lectureSearchTerm}
+                    onChange={(e) => {
+                      setLectureSearchTerm(e.target.value);
+                      setIsLectureDropdownOpen(true);
+                    }}
+                    onFocus={() => {
+                      if (selectedLectureIds.length < 5) {
+                        setIsLectureDropdownOpen(true);
+                      }
+                    }}
+                    disabled={isLoading || formik.isSubmitting || isLoadingLectures || selectedLectureIds.length >= 5}
+                    className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
+                      isLoading || formik.isSubmitting || isLoadingLectures || selectedLectureIds.length >= 5
+                        ? 'bg-gray-100 cursor-not-allowed'
+                        : 'border-gray-300 focus:ring-indigo-500 focus:border-transparent'
+                    }`}
+                  />
+                  <div className="absolute right-3 top-3 pointer-events-none">
+                    <i className="fas fa-chevron-down text-gray-400"></i>
+                  </div>
+
+                  {/* Dropdown */}
+                  {isLectureDropdownOpen && !isLoadingLectures && selectedLectureIds.length < 5 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
+                      {filteredLectures.length === 0 ? (
+                        <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                          {lectureSearchTerm.trim() ? 'No lectures found' : 'No lectures available'}
+                        </div>
+                      ) : (
+                        <ul className="py-1">
+                          {filteredLectures.map((lecture) => {
+                            const isSelected = selectedLectureIds.includes(lecture.id);
+                            return (
+                              <li
+                                key={lecture.id}
+                                className={`px-4 py-2 cursor-pointer hover:bg-purple-50 ${
+                                  isSelected ? 'bg-purple-100' : ''
+                                }`}
+                                onClick={() => {
+                                  handleLectureToggle(lecture.id);
+                                  setLectureSearchTerm('');
+                                }}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-2">
+                                    <input
+                                      type="checkbox"
+                                      checked={isSelected}
+                                      onChange={() => {}}
+                                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                                      readOnly
+                                    />
+                                    <div>
+                                      <div className="text-sm font-medium text-gray-900">
+                                        {lecture.title}
+                                      </div>
+                                      <div className="text-xs text-gray-500">
+                                        {lecture.subject} • {lecture.teacher.firstName} {lecture.teacher.lastName} • {lecture.type}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  {isSelected && (
+                                    <i className="fas fa-check text-purple-600"></i>
+                                  )}
+                                </div>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {isLoadingLectures && (
+                  <p className="mt-1 text-xs text-gray-500">Loading lectures...</p>
+                )}
+                {selectedLectureIds.length >= 5 && (
+                  <p className="mt-1 text-xs text-amber-600 flex items-center space-x-1">
+                    <i className="fas fa-exclamation-circle"></i>
+                    <span>Maximum of 5 lectures allowed. Please remove a lecture to add another.</span>
+                  </p>
+                )}
+                <p className={`mt-1 text-xs ${selectedLectureIds.length >= 5 ? 'text-gray-600' : 'text-gray-500'}`}>
+                  Select lectures to add to this class. {selectedLectures.length} of 5 lecture(s) selected.
                 </p>
               </div>
             </div>
