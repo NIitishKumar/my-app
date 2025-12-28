@@ -125,26 +125,27 @@ export const validateStudentForm = (data: Partial<CreateStudentData>): Validatio
 
   // Address validation (all optional, but validate format if provided)
   if (data.address) {
-    errors.address = {};
+    const addressErrors: Record<string, string> = {};
     if (data.address.street && data.address.street.length > VALIDATION.STREET_MAX_LENGTH) {
-      errors.address.street = `Street must not exceed ${VALIDATION.STREET_MAX_LENGTH} characters`;
+      addressErrors.street = `Street must not exceed ${VALIDATION.STREET_MAX_LENGTH} characters`;
     }
     if (data.address.city && data.address.city.length > VALIDATION.CITY_MAX_LENGTH) {
-      errors.address.city = `City must not exceed ${VALIDATION.CITY_MAX_LENGTH} characters`;
+      addressErrors.city = `City must not exceed ${VALIDATION.CITY_MAX_LENGTH} characters`;
     }
     if (data.address.state && data.address.state.length > VALIDATION.STATE_MAX_LENGTH) {
-      errors.address.state = `State must not exceed ${VALIDATION.STATE_MAX_LENGTH} characters`;
+      addressErrors.state = `State must not exceed ${VALIDATION.STATE_MAX_LENGTH} characters`;
     }
     if (data.address.zipCode && data.address.zipCode.length > VALIDATION.ZIP_CODE_MAX_LENGTH) {
-      errors.address.zipCode = `Zip code must not exceed ${VALIDATION.ZIP_CODE_MAX_LENGTH} characters`;
+      addressErrors.zipCode = `Zip code must not exceed ${VALIDATION.ZIP_CODE_MAX_LENGTH} characters`;
+    }
+    if (Object.keys(addressErrors).length > 0) {
+      errors.address = addressErrors;
     }
   }
 
-  // Enrolled At validation
-  if (!data.enrolledAt) {
-    errors.enrolledAt = 'Enrollment date is required';
-  } else {
-    const enrolledDate = new Date(data.enrolledAt);
+  // Enrolled At validation (optional - API auto-generates it)
+  if (data.enrolledAt) {
+    const enrolledDate = typeof data.enrolledAt === 'string' ? new Date(data.enrolledAt) : new Date(data.enrolledAt);
     if (isNaN(enrolledDate.getTime())) {
       errors.enrolledAt = 'Please enter a valid date';
     }
@@ -173,7 +174,7 @@ export const parseDateFromInput = (dateString: string): Date | undefined => {
 };
 
 /**
- * Get default form values
+ * Get default form values (matching API schema)
  */
 export const getDefaultStudentFormData = (): Partial<CreateStudentData> => {
   return {
@@ -184,14 +185,15 @@ export const getDefaultStudentFormData = (): Partial<CreateStudentData> => {
     age: undefined,
     gender: undefined,
     phone: '',
+    grade: undefined,
     address: {
       street: '',
       city: '',
       state: '',
       zipCode: '',
     },
-    enrolledAt: new Date(),
-    isActive: true,
+    enrolledAt: undefined, // Optional - API auto-generates
+    isActive: undefined, // Optional - defaults to true in API
   };
 };
 
@@ -220,65 +222,4 @@ export const getStudentAvatarColor = (initials: string): string => {
   return colors[index];
 };
 
-/**
- * Generate mock student data
- */
-export const generateMockStudents = (): Student[] => {
-  const firstNames = [
-    'John', 'Sarah', 'Michael', 'Emily', 'David', 'Jessica', 'James', 'Emma',
-    'William', 'Olivia', 'Robert', 'Sophia', 'Daniel', 'Isabella', 'Matthew', 'Ava',
-    'Christopher', 'Mia', 'Andrew', 'Charlotte', 'Joseph', 'Amelia', 'Joshua', 'Harper',
-    'Ryan', 'Evelyn', 'Nicholas', 'Abigail', 'Kevin', 'Elizabeth', 'Brandon', 'Sofia'
-  ];
-  
-  const lastNames = [
-    'Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis',
-    'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Wilson', 'Anderson', 'Thomas', 'Taylor',
-    'Moore', 'Jackson', 'Martin', 'Lee', 'Thompson', 'White', 'Harris', 'Clark',
-    'Lewis', 'Robinson', 'Walker', 'Young', 'Allen', 'King', 'Wright', 'Scott'
-  ];
-
-  const cities = ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego'];
-  const states = ['NY', 'CA', 'IL', 'TX', 'AZ', 'PA', 'TX', 'CA'];
-  
-  const mockStudents: Student[] = [];
-  let idCounter = 1;
-
-  // Generate 25+ students for pagination
-  for (let i = 0; i < 25; i++) {
-    const firstName = firstNames[i % firstNames.length];
-    const lastName = lastNames[Math.floor(i / firstNames.length) % lastNames.length];
-    const studentId = `STU${String(idCounter).padStart(4, '0')}`;
-    const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@student.school.com`;
-    const age = 15 + Math.floor(Math.random() * 5); // Ages 15-19
-    const gender = ['male', 'female', 'other'][Math.floor(Math.random() * 3)] as 'male' | 'female' | 'other';
-    const phone = `+1-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`;
-    const cityIndex = i % cities.length;
-    const enrolledDate = new Date(2023 + Math.floor(Math.random() * 2), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1);
-    const isActive = Math.random() > 0.15; // 85% active
-
-    mockStudents.push({
-      id: `student-${idCounter++}`,
-      firstName,
-      lastName,
-      email,
-      studentId,
-      age,
-      gender,
-      phone,
-      address: {
-        street: `${Math.floor(Math.random() * 9999) + 1} Main St`,
-        city: cities[cityIndex],
-        state: states[cityIndex],
-        zipCode: `${Math.floor(Math.random() * 90000) + 10000}`,
-      },
-      enrolledAt: enrolledDate,
-      isActive,
-      createdAt: enrolledDate,
-      updatedAt: enrolledDate,
-    });
-  }
-
-  return mockStudents;
-};
 

@@ -2,6 +2,7 @@
  * Lectures Domain Types
  */
 
+// Domain Types (used in the application)
 export interface LectureTeacher {
   firstName: string;
   lastName: string;
@@ -33,8 +34,8 @@ export interface Lecture {
   type: 'lecture' | 'lab' | 'seminar' | 'tutorial';
   materials: LectureMaterial[];
   isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface CreateLectureData {
@@ -44,60 +45,77 @@ export interface CreateLectureData {
   teacher: LectureTeacher;
   schedule: LectureSchedule;
   duration: number;
-  type: 'lecture' | 'lab' | 'seminar' | 'tutorial';
-  materials: LectureMaterial[];
-  isActive: boolean;
+  type?: 'lecture' | 'lab' | 'seminar' | 'tutorial'; // Optional, defaults to 'lecture'
+  materials?: LectureMaterial[];
+  isActive?: boolean; // Optional, defaults to true
 }
 
 export interface UpdateLectureData extends Partial<CreateLectureData> {
   id: string;
 }
 
-// API DTOs
-export interface LectureTeacherDTO {
-  first_name: string;
-  last_name: string;
+// API Response Types (camelCase with _id)
+export interface LectureTeacherApiDTO {
+  firstName: string;
+  lastName: string;
   email: string;
-  teacher_id: string;
+  teacherId: string;
 }
 
-export interface LectureScheduleDTO {
-  day_of_week: string;
-  start_time: string;
-  end_time: string;
+export interface LectureScheduleApiDTO {
+  dayOfWeek: string;
+  startTime: string;
+  endTime: string;
   room?: string;
 }
 
-export interface LectureMaterialDTO {
+export interface LectureMaterialApiDTO {
   name: string;
   type: string;
   url: string;
 }
 
-export interface LectureDTO {
-  id: string;
+export interface LectureApiDTO {
+  _id: string;
   title: string;
   description?: string;
   subject: string;
-  teacher: LectureTeacherDTO;
-  schedule: LectureScheduleDTO;
+  teacher: LectureTeacherApiDTO;
+  schedule: LectureScheduleApiDTO;
   duration: number;
   type: string;
-  materials: LectureMaterialDTO[];
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  materials: LectureMaterialApiDTO[];
+  isActive?: boolean;
+  createdAt?: string; // ISO date string
+  updatedAt?: string; // ISO date string
 }
 
-export interface CreateLectureDTO {
-  title: string;
-  description?: string;
-  subject: string;
-  teacher: LectureTeacherDTO;
-  schedule: LectureScheduleDTO;
-  duration: number;
-  type: string;
-  materials: LectureMaterialDTO[];
-  is_active: boolean;
+// API Response Wrappers
+export interface LecturesApiResponse {
+  success: boolean;
+  count: number;
+  data: LectureApiDTO[];
 }
 
+export interface LectureApiResponse {
+  success: boolean;
+  data: LectureApiDTO;
+  message?: string;
+}
+
+export interface CreateLectureApiResponse {
+  success: boolean;
+  message: string;
+  data: LectureApiDTO;
+}
+
+export interface UpdateLectureApiResponse {
+  success: boolean;
+  message: string;
+  data: LectureApiDTO;
+}
+
+export interface DeleteLectureApiResponse {
+  success: boolean;
+  message: string;
+}

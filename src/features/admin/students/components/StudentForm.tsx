@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { GENDER_OPTIONS } from '../constants/students.constants';
+import { GENDER_OPTIONS, GRADE_OPTIONS } from '../constants/students.constants';
 import { validateStudentForm, formatDateForInput, parseDateFromInput, getDefaultStudentFormData } from '../utils/students.utils';
 import type { CreateStudentData, Student } from '../types/students.types';
 import type { ValidationErrors } from '../utils/students.utils';
@@ -28,13 +28,14 @@ export const StudentForm = ({ initialData, onSubmit, onCancel, isLoading }: Stud
           age: initialData.age,
           gender: initialData.gender,
           phone: initialData.phone,
+          grade: initialData.grade,
           address: initialData.address || {
             street: '',
             city: '',
             state: '',
             zipCode: '',
           },
-          enrolledAt: initialData.enrolledAt,
+          enrolledAt: initialData.enrolledAt ? (typeof initialData.enrolledAt === 'string' ? initialData.enrolledAt : formatDateForInput(initialData.enrolledAt)) : undefined,
           isActive: initialData.isActive,
         }
       : defaultData
@@ -75,8 +76,17 @@ export const StudentForm = ({ initialData, onSubmit, onCancel, isLoading }: Stud
       return;
     }
 
-    // Submit
-    onSubmit(formData as CreateStudentData);
+    // Submit - convert enrolledAt to string if it's a Date
+    const submitData: CreateStudentData = {
+      ...formData,
+      enrolledAt: formData.enrolledAt
+        ? typeof formData.enrolledAt === 'string'
+          ? formData.enrolledAt
+          : formatDateForInput(formData.enrolledAt)
+        : undefined,
+    } as CreateStudentData;
+    
+    onSubmit(submitData);
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
   };
@@ -119,7 +129,9 @@ export const StudentForm = ({ initialData, onSubmit, onCancel, isLoading }: Stud
     <div className="max-w-4xl mx-auto">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-bold text-gray-900">Add / Edit Student</h3>
+          <h3 className="text-lg font-bold text-gray-900">
+            {initialData ? 'Edit Student' : 'Add Student'}
+          </h3>
           <p className="text-sm text-gray-600 mt-1">Enter student information below</p>
         </div>
 
@@ -258,13 +270,14 @@ export const StudentForm = ({ initialData, onSubmit, onCancel, isLoading }: Stud
                   value={formData.studentId || ''}
                   onChange={(e) => handleFieldChange('studentId', e.target.value)}
                   onBlur={() => setTouched((prev) => ({ ...prev, studentId: true }))}
+                  disabled={!!initialData}
                   className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
                     isFieldInvalid('studentId')
                       ? 'border-red-500 bg-red-50 focus:ring-red-500'
                       : isFieldValid('studentId')
                       ? 'border-green-500 bg-green-50 focus:ring-green-500'
                       : 'border-gray-300 focus:ring-indigo-500 focus:border-transparent'
-                  }`}
+                  } ${initialData ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                   required
                 />
                 {isFieldInvalid('studentId') && (
@@ -273,7 +286,26 @@ export const StudentForm = ({ initialData, onSubmit, onCancel, isLoading }: Stud
                     <span>{getFieldError('studentId')}</span>
                   </p>
                 )}
-                <p className="mt-1 text-xs text-gray-500">Unique student identifier</p>
+                <p className="mt-1 text-xs text-gray-500">Unique student identifier {initialData && '(cannot be updated)'}</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Grade
+                </label>
+                <select
+                  value={formData.grade || ''}
+                  onChange={(e) => handleFieldChange('grade', e.target.value || undefined)}
+                  onBlur={() => setTouched((prev) => ({ ...prev, grade: true }))}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                >
+                  <option value="">Select grade</option>
+                  {GRADE_OPTIONS.map((grade) => (
+                    <option key={grade} value={grade}>
+                      {grade}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -408,14 +440,13 @@ export const StudentForm = ({ initialData, onSubmit, onCancel, isLoading }: Stud
           {/* Enrollment Section */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Enrolled At <span className="text-red-500">*</span>
+              Enrolled At
             </label>
             <input
               type="date"
-              value={formatDateForInput(formData.enrolledAt)}
+              value={formData.enrolledAt ? (typeof formData.enrolledAt === 'string' ? formData.enrolledAt : formatDateForInput(formData.enrolledAt)) : ''}
               onChange={(e) => {
-                const date = parseDateFromInput(e.target.value);
-                handleFieldChange('enrolledAt', date);
+                handleFieldChange('enrolledAt', e.target.value || undefined);
               }}
               onBlur={() => setTouched((prev) => ({ ...prev, enrolledAt: true }))}
               className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
@@ -423,7 +454,6 @@ export const StudentForm = ({ initialData, onSubmit, onCancel, isLoading }: Stud
                   ? 'border-red-500 bg-red-50 focus:ring-red-500'
                   : 'border-gray-300 focus:ring-indigo-500 focus:border-transparent'
               }`}
-              required
             />
             {isFieldInvalid('enrolledAt') && (
               <p className="mt-1 text-xs text-red-600 flex items-center space-x-1">
@@ -431,12 +461,13 @@ export const StudentForm = ({ initialData, onSubmit, onCancel, isLoading }: Stud
                 <span>{getFieldError('enrolledAt')}</span>
               </p>
             )}
+            <p className="mt-1 text-xs text-gray-500">Optional - will be auto-generated by API if not provided</p>
           </div>
 
           {/* Status Section */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              Status <span className="text-red-500">*</span>
+              Status
             </label>
             <div className="flex items-center space-x-6">
               <label className="flex items-center space-x-2 cursor-pointer">
@@ -447,7 +478,6 @@ export const StudentForm = ({ initialData, onSubmit, onCancel, isLoading }: Stud
                   checked={formData.isActive === true}
                   onChange={() => handleFieldChange('isActive', true)}
                   className="w-4 h-4 text-indigo-600 focus:ring-2 focus:ring-indigo-500"
-                  required
                 />
                 <span className="text-sm text-gray-700">Active</span>
               </label>
@@ -459,11 +489,11 @@ export const StudentForm = ({ initialData, onSubmit, onCancel, isLoading }: Stud
                   checked={formData.isActive === false}
                   onChange={() => handleFieldChange('isActive', false)}
                   className="w-4 h-4 text-indigo-600 focus:ring-2 focus:ring-indigo-500"
-                  required
                 />
                 <span className="text-sm text-gray-700">Inactive</span>
               </label>
             </div>
+            <p className="mt-1 text-xs text-gray-500">Optional - defaults to Active if not provided</p>
           </div>
 
           {/* Form Tips */}
@@ -473,7 +503,7 @@ export const StudentForm = ({ initialData, onSubmit, onCancel, isLoading }: Stud
               <div>
                 <p className="text-sm font-medium text-blue-900">Form Tips</p>
                 <p className="text-xs text-blue-700 mt-1">
-                  All fields marked with <span className="text-red-500">*</span> are required. Email and Student ID must be unique.
+                  Required fields: First Name, Last Name, Email, Student ID. Email and Student ID must be unique. Enrolled At and Status are optional (auto-generated by API).
                 </p>
               </div>
             </div>
@@ -527,7 +557,7 @@ export const StudentForm = ({ initialData, onSubmit, onCancel, isLoading }: Stud
             ) : (
               <>
                 <i className="fas fa-save"></i>
-                <span>Save Student</span>
+                <span>{initialData ? 'Update Student' : 'Create Student'}</span>
               </>
             )}
           </button>

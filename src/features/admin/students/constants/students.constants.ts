@@ -16,6 +16,14 @@ export const GENDER_OPTIONS = ['male', 'female', 'other'] as const;
 
 export type Gender = typeof GENDER_OPTIONS[number];
 
+// Grade options
+export const GRADE_OPTIONS = [
+  '9th',
+  '10th',
+  '11th',
+  '12th',
+] as const;
+
 // Validation constants
 export const VALIDATION = {
   AGE_MIN: 5,

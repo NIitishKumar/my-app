@@ -71,8 +71,8 @@ const validationSchema = yup.object({
     .required('Duration is required')
     .min(VALIDATION.DURATION_MIN, `Duration must be at least ${VALIDATION.DURATION_MIN} minutes`)
     .max(VALIDATION.DURATION_MAX, `Duration must not exceed ${VALIDATION.DURATION_MAX} minutes`),
-  type: yup.string().oneOf([...LECTURE_TYPE_OPTIONS], 'Invalid lecture type').required('Lecture type is required'),
-  isActive: yup.boolean().required(),
+  type: yup.string().oneOf([...LECTURE_TYPE_OPTIONS], 'Invalid lecture type'),
+  isActive: yup.boolean(),
 });
 
 export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: LectureFormProps) => {

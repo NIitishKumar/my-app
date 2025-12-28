@@ -9,7 +9,7 @@ import { useUpdateLecture } from '../hooks/useUpdateLecture';
 import { useDeleteLecture } from '../hooks/useDeleteLecture';
 import { LectureTable } from '../components/LectureTable';
 import { LectureForm } from '../components/LectureForm';
-import { generateMockLectures, filterLectures } from '../utils/lectures.utils';
+import { filterLectures } from '../utils/lectures.utils';
 import type { Lecture, CreateLectureData } from '../types/lectures.types';
 
 const ITEMS_PER_PAGE = 10;
@@ -22,12 +22,8 @@ export const LecturesPage = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Use mock data for now
-  const mockLectures = useMemo(() => generateMockLectures(), []);
-  const { data: apiLectures, isLoading, error } = useLectures();
-  
-  // Use mock data if API data is not available
-  const allLectures = apiLectures && apiLectures.length > 0 ? apiLectures : mockLectures;
+  const { data: lectures, isLoading, error } = useLectures();
+  const allLectures = lectures || [];
 
   const createLecture = useCreateLecture();
   const updateLecture = useUpdateLecture();
@@ -119,7 +115,7 @@ export const LecturesPage = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  if (isLoading && !mockLectures.length) {
+  if (isLoading && allLectures.length === 0) {
     return (
       <div className="p-4 lg:p-6">
         <div className="text-center">Loading lectures...</div>
@@ -127,10 +123,10 @@ export const LecturesPage = () => {
     );
   }
 
-  if (error && !mockLectures.length) {
+  if (error && allLectures.length === 0) {
     return (
       <div className="p-4 lg:p-6">
-        <div className="text-center text-red-600">Error loading lectures</div>
+        <div className="text-center text-red-600">Error loading lectures: {error.message || 'Unknown error'}</div>
       </div>
     );
   }

@@ -48,6 +48,15 @@ export const StudentTable = ({ students, onView, onEdit, onDelete }: StudentTabl
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               <div className="flex items-center space-x-1">
+                <span>GRADE</span>
+                <div className="flex flex-col">
+                  <i className="fas fa-chevron-up text-[8px] text-gray-400"></i>
+                  <i className="fas fa-chevron-down text-[8px] text-gray-400 -mt-1"></i>
+                </div>
+              </div>
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <div className="flex items-center space-x-1">
                 <span>AGE</span>
                 <div className="flex flex-col">
                   <i className="fas fa-chevron-up text-[8px] text-gray-400"></i>
@@ -101,6 +110,9 @@ export const StudentTable = ({ students, onView, onEdit, onDelete }: StudentTabl
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">{student.email}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-900">{student.grade || '-'}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">{student.age || '-'}</div>

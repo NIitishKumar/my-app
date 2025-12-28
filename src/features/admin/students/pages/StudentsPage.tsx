@@ -9,7 +9,7 @@ import { useUpdateStudent } from '../hooks/useUpdateStudent';
 import { useDeleteStudent } from '../hooks/useDeleteStudent';
 import { StudentTable } from '../components/StudentTable';
 import { StudentForm } from '../components/StudentForm';
-import { generateMockStudents, filterStudents } from '../utils/students.utils';
+import { filterStudents } from '../utils/students.utils';
 import type { Student, CreateStudentData } from '../types/students.types';
 
 const ITEMS_PER_PAGE = 10;
@@ -21,12 +21,8 @@ export const StudentsPage = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Use mock data for now
-  const mockStudents = useMemo(() => generateMockStudents(), []);
-  const { data: apiStudents, isLoading, error } = useStudents();
-  
-  // Use mock data if API data is not available
-  const allStudents = apiStudents && apiStudents.length > 0 ? apiStudents : mockStudents;
+  const { data: students, isLoading, error } = useStudents();
+  const allStudents = students || [];
 
   const createStudent = useCreateStudent();
   const updateStudent = useUpdateStudent();
@@ -113,7 +109,7 @@ export const StudentsPage = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  if (isLoading && !mockStudents.length) {
+  if (isLoading && allStudents.length === 0) {
     return (
       <div className="p-4 lg:p-6">
         <div className="text-center">Loading students...</div>
@@ -121,10 +117,10 @@ export const StudentsPage = () => {
     );
   }
 
-  if (error && !mockStudents.length) {
+  if (error && allStudents.length === 0) {
     return (
       <div className="p-4 lg:p-6">
-        <div className="text-center text-red-600">Error loading students</div>
+        <div className="text-center text-red-600">Error loading students: {error.message || 'Unknown error'}</div>
       </div>
     );
   }
