@@ -3,10 +3,12 @@
  * Displays comprehensive class details including students and lectures
  */
 
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useClassDetails } from '../hooks/useClassDetails';
 import { useStudentDetails } from '../../students/hooks/useStudentDetails';
 import { useLectureDetails } from '../../lectures/hooks/useLectureDetails';
+import { AttendanceTab } from '../attendance/components/AttendanceTab';
 import { formatDateForInput } from '../utils/classes.utils';
 import type { Student } from '../../students/types/students.types';
 import type { Lecture } from '../../lectures/types/lectures.types';
@@ -186,6 +188,7 @@ const LectureDetailItem = ({ lectureId }: { lectureId: string }) => {
 export const ClassDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'overview' | 'students' | 'lectures' | 'attendance'>('overview');
   const { data: classData, isLoading, error } = useClassDetails(id || '');
 
   if (isLoading) {
@@ -253,8 +256,62 @@ export const ClassDetailsPage = () => {
         </button>
       </div>
 
-      <div className="space-y-6">
-        {/* Basic Information Card */}
+      {/* Tabs */}
+      <div className="mb-6 border-b border-gray-200">
+        <nav className="flex space-x-8">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'overview'
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <i className="fas fa-info-circle mr-2"></i>
+            Overview
+          </button>
+          <button
+            onClick={() => setActiveTab('students')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'students'
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <i className="fas fa-user-graduate mr-2"></i>
+            Students ({classData.students.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('lectures')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'lectures'
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <i className="fas fa-chalkboard mr-2"></i>
+            Lectures ({classData.lectures.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('attendance')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'attendance'
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <i className="fas fa-clipboard-check mr-2"></i>
+            Attendance
+          </button>
+        </nav>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'attendance' ? (
+        <AttendanceTab classId={id || ''} className={classData.className} />
+      ) : (
+        <div className="space-y-6">
+          {/* Basic Information Card */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
             <i className="fas fa-info-circle text-indigo-600"></i>
@@ -367,45 +424,49 @@ export const ClassDetailsPage = () => {
           </div>
         </div>
 
-        {/* Students Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-            <i className="fas fa-user-graduate text-indigo-600"></i>
-            <span>Enrolled Students ({classData.students.length})</span>
-          </h2>
-          {classData.students.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <i className="fas fa-user-slash text-4xl mb-3 text-gray-400"></i>
-              <p>No students enrolled in this class.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {classData.students.map((studentId) => (
-                <StudentDetailItem key={studentId} studentId={studentId} />
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Students Section - Only show in overview or students tab */}
+        {(activeTab === 'overview' || activeTab === 'students') && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+              <i className="fas fa-user-graduate text-indigo-600"></i>
+              <span>Enrolled Students ({classData.students.length})</span>
+            </h2>
+            {classData.students.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <i className="fas fa-user-slash text-4xl mb-3 text-gray-400"></i>
+                <p>No students enrolled in this class.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {classData.students.map((studentId) => (
+                  <StudentDetailItem key={studentId} studentId={studentId} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
-        {/* Lectures Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-            <i className="fas fa-chalkboard text-indigo-600"></i>
-            <span>Assigned Lectures ({classData.lectures.length})</span>
-          </h2>
-          {classData.lectures.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <i className="fas fa-chalkboard-teacher text-4xl mb-3 text-gray-400"></i>
-              <p>No lectures assigned to this class.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {classData.lectures.map((lectureId) => (
-                <LectureDetailItem key={lectureId} lectureId={lectureId} />
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Lectures Section - Only show in overview or lectures tab */}
+        {(activeTab === 'overview' || activeTab === 'lectures') && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+              <i className="fas fa-chalkboard text-indigo-600"></i>
+              <span>Assigned Lectures ({classData.lectures.length})</span>
+            </h2>
+            {classData.lectures.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <i className="fas fa-chalkboard-teacher text-4xl mb-3 text-gray-400"></i>
+                <p>No lectures assigned to this class.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {classData.lectures.map((lectureId) => (
+                  <LectureDetailItem key={lectureId} lectureId={lectureId} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Metadata */}
         <div className="bg-gray-50 rounded-xl border border-gray-200 p-4">
@@ -420,7 +481,8 @@ export const ClassDetailsPage = () => {
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -29,4 +29,23 @@ export { formatClassName, sortClasses, filterClasses } from './utils/classes.uti
 // API
 export { classesApi } from './api/classes.api';
 
+// Attendance
+export { AttendancePage } from './attendance/pages/AttendancePage';
+export { AttendanceTab } from './attendance/components/AttendanceTab';
+export { AttendanceForm } from './attendance/components/AttendanceForm';
+export { AttendanceList } from './attendance/components/AttendanceList';
+export { AttendanceStats } from './attendance/components/AttendanceStats';
+export { useClassAttendance } from './attendance/hooks/useClassAttendance';
+export { useMarkAttendance, useUpdateAttendance, useDeleteAttendance } from './attendance/hooks/useMarkAttendance';
+export { useAttendanceStats } from './attendance/hooks/useAttendanceStats';
+export { useAttendanceByDate } from './attendance/hooks/useAttendanceByDate';
+export type {
+  AttendanceRecord,
+  StudentAttendance,
+  AttendanceStats,
+  MarkAttendanceData,
+  UpdateAttendanceData,
+  AttendanceStatus,
+} from './attendance/types/attendance.types';
+
 

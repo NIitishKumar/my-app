@@ -7,6 +7,7 @@ import { ParentLayout } from '../shared/layouts/ParentLayout';
 import { Login } from '../features/auth/pages/Login';
 import { AdminDashboard } from '../features/admin/dashboard/AdminDashboard';
 import { ClassesPage, ClassDetailsPage } from '../features/admin/classes';
+import { AttendancePage } from '../features/admin/classes/attendance/pages/AttendancePage';
 import { TeachersPage } from '../features/admin/teachers';
 import { StudentsPage } from '../features/admin/students';
 import { LecturesPage, LectureDetailsPage } from '../features/admin/lectures';
@@ -40,6 +41,7 @@ export const AppRoutes = () => {
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="classes" element={<ClassesPage />} />
         <Route path="classes/:id" element={<ClassDetailsPage />} />
+        <Route path="classes/:id/attendance" element={<AttendancePage />} />
         <Route path="teachers" element={<TeachersPage />} />
         <Route path="students" element={<StudentsPage />} />
         <Route path="lectures" element={<LecturesPage />} />
