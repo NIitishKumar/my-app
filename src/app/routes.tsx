@@ -6,7 +6,7 @@ import { StudentLayout } from '../shared/layouts/StudentLayout';
 import { ParentLayout } from '../shared/layouts/ParentLayout';
 import { Login } from '../features/auth/pages/Login';
 import { AdminDashboard } from '../features/admin/dashboard/AdminDashboard';
-import { ClassesPage } from '../features/admin/classes';
+import { ClassesPage, ClassDetailsPage } from '../features/admin/classes';
 import { TeachersPage } from '../features/admin/teachers';
 import { StudentsPage } from '../features/admin/students';
 import { LecturesPage } from '../features/admin/lectures';
@@ -39,6 +39,7 @@ export const AppRoutes = () => {
       >
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="classes" element={<ClassesPage />} />
+        <Route path="classes/:id" element={<ClassDetailsPage />} />
         <Route path="teachers" element={<TeachersPage />} />
         <Route path="students" element={<StudentsPage />} />
         <Route path="lectures" element={<LecturesPage />} />

@@ -4,6 +4,7 @@
 
 // Pages
 export { ClassesPage } from './pages/ClassesPage';
+export { ClassDetailsPage } from './pages/ClassDetailsPage';
 
 // Components
 export { ClassTable } from './components/ClassTable';

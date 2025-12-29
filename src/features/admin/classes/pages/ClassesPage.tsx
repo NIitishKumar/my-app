@@ -3,6 +3,7 @@
  */
 
 import { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useClasses } from '../hooks/useClasses';
 import { useCreateClass } from '../hooks/useCreateClass';
 import { useUpdateClass } from '../hooks/useUpdateClass';
@@ -17,6 +18,8 @@ import type { Class, CreateClassData } from '../types/classes.types';
 const ITEMS_PER_PAGE = 10;
 
 export const ClassesPage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [showForm, setShowForm] = useState(false);
   const [editingClassId, setEditingClassId] = useState<string | undefined>();
   const [editingClass, setEditingClass] = useState<Class | undefined>();
@@ -25,6 +28,21 @@ export const ClassesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const { data: allClasses = [], isLoading, error } = useClasses();
+
+  // Handle edit from navigation state
+  useEffect(() => {
+    const editClassId = (location.state as any)?.editClassId;
+    if (editClassId) {
+      const classToEdit = allClasses.find((c) => c.id === editClassId);
+      if (classToEdit) {
+        setEditingClass(classToEdit);
+        setEditingClassId(classToEdit.id);
+        setShowForm(true);
+        // Clear the state to prevent re-triggering
+        window.history.replaceState({}, document.title);
+      }
+    }
+  }, [location.state, allClasses]);
   
   // Fetch class details when editing
   const { 
@@ -163,8 +181,7 @@ export const ClassesPage = () => {
   };
 
   const handleView = (classItem: Class) => {
-    // TODO: Implement view functionality (maybe show details modal)
-    console.log('View class:', classItem);
+    navigate(`/admin/classes/${classItem.id}`);
   };
 
   const handleDelete = (id: string) => {
