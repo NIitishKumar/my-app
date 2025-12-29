@@ -20,12 +20,33 @@ import type {
 } from '../types/lectures.types';
 
 // Mapper: API DTO to Domain
-const mapTeacherApiToDomain = (api: LectureApiDTO['teacher']): LectureTeacher => {
+const mapTeacherApiToDomain = (api: LectureApiDTO['teacher'] | any): LectureTeacher => {
+  // Handle both object with teacherId and nested teacher object
+  if (typeof api === 'string') {
+    // If it's just an ID string, return empty object (will be populated separately)
+    return {
+      firstName: '',
+      lastName: '',
+      email: '',
+      teacherId: api,
+    };
+  }
+  
+  // Handle nested teacher object from API
+  if (api && typeof api === 'object') {
+    return {
+      firstName: api.firstName || '',
+      lastName: api.lastName || '',
+      email: api.email || '',
+      teacherId: api.teacherId || api.employeeId || api._id || '',
+    };
+  }
+  
   return {
-    firstName: api.firstName,
-    lastName: api.lastName,
-    email: api.email,
-    teacherId: api.teacherId,
+    firstName: '',
+    lastName: '',
+    email: '',
+    teacherId: '',
   };
 };
 
@@ -46,7 +67,17 @@ const mapMaterialApiToDomain = (api: LectureApiDTO['materials'][0]): LectureMate
   };
 };
 
-const mapLectureApiToDomain = (api: LectureApiDTO): Lecture => {
+const mapLectureApiToDomain = (api: LectureApiDTO & { classId?: string | any }): Lecture => {
+  // Extract classId - can be string ID or nested class object
+  let classId: string | undefined;
+  if (api.classId) {
+    if (typeof api.classId === 'string') {
+      classId = api.classId;
+    } else if (api.classId && typeof api.classId === 'object' && api.classId._id) {
+      classId = api.classId._id;
+    }
+  }
+  
   return {
     id: api._id,
     title: api.title,
@@ -58,6 +89,7 @@ const mapLectureApiToDomain = (api: LectureApiDTO): Lecture => {
     type: (api.type || 'lecture') as Lecture['type'],
     materials: (api.materials || []).map(mapMaterialApiToDomain),
     isActive: api.isActive ?? true,
+    classId: classId,
     createdAt: api.createdAt ? new Date(api.createdAt) : undefined,
     updatedAt: api.updatedAt ? new Date(api.updatedAt) : undefined,
   };
@@ -65,16 +97,19 @@ const mapLectureApiToDomain = (api: LectureApiDTO): Lecture => {
 
 // Mapper: Domain to API DTO (for create)
 const mapCreateLectureDataToApi = (data: CreateLectureData): Partial<LectureApiDTO> => {
-  return {
+  const payload: any = {
     title: data.title,
     description: data.description,
     subject: data.subject,
-    teacher: {
-      firstName: data.teacher.firstName,
-      lastName: data.teacher.lastName,
-      email: data.teacher.email.toLowerCase(),
-      teacherId: data.teacher.teacherId,
-    },
+    // If teacherId is provided, use it; otherwise use teacher object
+    teacher: typeof data.teacher === 'string' || data.teacherId
+      ? (data.teacherId || data.teacher)
+      : {
+          firstName: data.teacher.firstName,
+          lastName: data.teacher.lastName,
+          email: data.teacher.email.toLowerCase(),
+          teacherId: data.teacher.teacherId,
+        },
     schedule: {
       dayOfWeek: data.schedule.dayOfWeek,
       startTime: data.schedule.startTime,
@@ -86,6 +121,13 @@ const mapCreateLectureDataToApi = (data: CreateLectureData): Partial<LectureApiD
     materials: data.materials || [],
     isActive: data.isActive ?? true,
   };
+  
+  // Include classId if provided
+  if (data.classId) {
+    payload.classId = data.classId;
+  }
+  
+  return payload;
 };
 
 // Mapper: Domain to API DTO (for update - handles partial updates)
@@ -101,12 +143,17 @@ const mapUpdateLectureDataToApi = (data: Partial<CreateLectureData>): Partial<Le
   if (data.materials !== undefined) payload.materials = data.materials;
   
   if (data.teacher) {
-    payload.teacher = {
-      firstName: data.teacher.firstName,
-      lastName: data.teacher.lastName,
-      email: data.teacher.email.toLowerCase(),
-      teacherId: data.teacher.teacherId,
-    };
+    // If teacherId is provided or teacher is a string, use it; otherwise use teacher object
+    if (typeof data.teacher === 'string' || data.teacherId) {
+      payload.teacher = data.teacherId || data.teacher;
+    } else {
+      payload.teacher = {
+        firstName: data.teacher.firstName,
+        lastName: data.teacher.lastName,
+        email: data.teacher.email.toLowerCase(),
+        teacherId: data.teacher.teacherId,
+      };
+    }
   }
   
   if (data.schedule) {
@@ -116,6 +163,10 @@ const mapUpdateLectureDataToApi = (data: Partial<CreateLectureData>): Partial<Le
       endTime: data.schedule.endTime,
       room: data.schedule.room,
     };
+  }
+  
+  if (data.classId !== undefined) {
+    payload.classId = data.classId;
   }
 
   return payload;
@@ -176,13 +227,28 @@ export const lecturesApi = {
    */
   getById: async (id: string): Promise<Lecture> => {
     try {
-      const response = await httpClient.get<LectureApiResponse>(lecturesEndpoints.detail(id));
+      const response = await httpClient.get<LectureApiResponse | { success: boolean; count: number; data: LectureApiDTO[] }>(lecturesEndpoints.detail(id));
 
-      if (!response || !response.data) {
+      if (!response) {
         throw new Error('Invalid API response: missing data');
       }
 
-      return mapLectureApiToDomain(response.data);
+      // Handle wrapped response with array in data
+      let lectureData: LectureApiDTO;
+      if (Array.isArray((response as any).data)) {
+        const arrayResponse = response as { success: boolean; count: number; data: LectureApiDTO[] };
+        if (!arrayResponse.data || arrayResponse.data.length === 0) {
+          throw new Error('Lecture not found');
+        }
+        lectureData = arrayResponse.data[0];
+      } else if ((response as LectureApiResponse).data) {
+        // Standard response format
+        lectureData = (response as LectureApiResponse).data;
+      } else {
+        throw new Error('Invalid API response structure');
+      }
+
+      return mapLectureApiToDomain(lectureData);
     } catch (error) {
       console.error('Error fetching lecture by ID:', error);
       throw error;

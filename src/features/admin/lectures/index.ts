@@ -3,6 +3,7 @@
  */
 
 export { LecturesPage } from './pages/LecturesPage';
+export { LectureDetailsPage } from './pages/LectureDetailsPage';
 export { LectureForm } from './components/LectureForm';
 export { LectureTable } from './components/LectureTable';
 export { useLectures } from './hooks/useLectures';

@@ -34,6 +34,7 @@ export interface Lecture {
   type: 'lecture' | 'lab' | 'seminar' | 'tutorial';
   materials: LectureMaterial[];
   isActive: boolean;
+  classId?: string; // Optional class reference
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -42,12 +43,14 @@ export interface CreateLectureData {
   title: string;
   description?: string;
   subject: string;
-  teacher: LectureTeacher;
+  teacher: LectureTeacher | string; // Can be teacher object or teacher ID string
   schedule: LectureSchedule;
   duration: number;
   type?: 'lecture' | 'lab' | 'seminar' | 'tutorial'; // Optional, defaults to 'lecture'
   materials?: LectureMaterial[];
   isActive?: boolean; // Optional, defaults to true
+  classId?: string; // Optional class reference
+  teacherId?: string; // Optional teacher ID (used when teacher is passed as ID)
 }
 
 export interface UpdateLectureData extends Partial<CreateLectureData> {

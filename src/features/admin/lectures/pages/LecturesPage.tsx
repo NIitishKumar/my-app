@@ -3,6 +3,7 @@
  */
 
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLectures } from '../hooks/useLectures';
 import { useCreateLecture } from '../hooks/useCreateLecture';
 import { useUpdateLecture } from '../hooks/useUpdateLecture';
@@ -15,6 +16,7 @@ import type { Lecture, CreateLectureData } from '../types/lectures.types';
 const ITEMS_PER_PAGE = 10;
 
 export const LecturesPage = () => {
+  const navigate = useNavigate();
   const [showForm, setShowForm] = useState(false);
   const [editingLecture, setEditingLecture] = useState<Lecture | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
@@ -100,8 +102,7 @@ export const LecturesPage = () => {
   };
 
   const handleView = (lecture: Lecture) => {
-    // TODO: Implement view functionality (maybe show details modal)
-    console.log('View lecture:', lecture);
+    navigate(`/admin/lectures/${lecture.id}`);
   };
 
   const handleDelete = (id: string) => {

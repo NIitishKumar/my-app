@@ -4,7 +4,9 @@
 
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useTeachers } from '../../teachers/hooks/useTeachers';
+import { useClasses } from '../../classes/hooks/useClasses';
 import {
   DAY_OF_WEEK_OPTIONS,
   LECTURE_TYPE_OPTIONS,
@@ -38,28 +40,9 @@ const validationSchema = yup.object({
     .required('Subject is required')
     .min(VALIDATION.SUBJECT_MIN_LENGTH, `Subject must be at least ${VALIDATION.SUBJECT_MIN_LENGTH} characters`)
     .max(VALIDATION.SUBJECT_MAX_LENGTH, `Subject must not exceed ${VALIDATION.SUBJECT_MAX_LENGTH} characters`),
-  teacher: yup.object({
-    firstName: yup
-      .string()
-      .required('Teacher first name is required')
-      .min(VALIDATION.FIRST_NAME_MIN_LENGTH, `First name must be at least ${VALIDATION.FIRST_NAME_MIN_LENGTH} characters`)
-      .max(VALIDATION.FIRST_NAME_MAX_LENGTH, `First name must not exceed ${VALIDATION.FIRST_NAME_MAX_LENGTH} characters`),
-    lastName: yup
-      .string()
-      .required('Teacher last name is required')
-      .min(VALIDATION.LAST_NAME_MIN_LENGTH, `Last name must be at least ${VALIDATION.LAST_NAME_MIN_LENGTH} characters`)
-      .max(VALIDATION.LAST_NAME_MAX_LENGTH, `Last name must not exceed ${VALIDATION.LAST_NAME_MAX_LENGTH} characters`),
-    email: yup
-      .string()
-      .required('Teacher email is required')
-      .email('Please enter a valid email address')
-      .max(VALIDATION.EMAIL_MAX_LENGTH, `Email must not exceed ${VALIDATION.EMAIL_MAX_LENGTH} characters`),
-    teacherId: yup
-      .string()
-      .required('Teacher ID is required')
-      .min(VALIDATION.TEACHER_ID_MIN_LENGTH, `Teacher ID must be at least ${VALIDATION.TEACHER_ID_MIN_LENGTH} characters`)
-      .max(VALIDATION.TEACHER_ID_MAX_LENGTH, `Teacher ID must not exceed ${VALIDATION.TEACHER_ID_MAX_LENGTH} characters`),
-  }),
+  teacher: yup.mixed().required('Teacher is required'),
+  selectedTeacherId: yup.string().required('Please select a teacher'),
+  classId: yup.string().optional(),
   schedule: yup.object({
     dayOfWeek: yup.string().oneOf([...DAY_OF_WEEK_OPTIONS], 'Invalid day of week').required('Day of week is required'),
     startTime: yup.string().required('Start time is required'),
@@ -77,63 +60,166 @@ const validationSchema = yup.object({
 
 export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: LectureFormProps) => {
   const [showSuccess, setShowSuccess] = useState(false);
+  const [teacherSearchTerm, setTeacherSearchTerm] = useState('');
+  const [classSearchTerm, setClassSearchTerm] = useState('');
   const defaultData = getDefaultLectureFormData();
 
-  const formik = useFormik<CreateLectureData>({
-    initialValues: initialData
-      ? {
-          title: initialData.title,
-          description: initialData.description || '',
-          subject: initialData.subject,
-          teacher: {
-            firstName: initialData.teacher.firstName,
-            lastName: initialData.teacher.lastName,
-            email: initialData.teacher.email,
-            teacherId: initialData.teacher.teacherId,
-          },
-          schedule: {
-            dayOfWeek: initialData.schedule.dayOfWeek,
-            startTime: initialData.schedule.startTime,
-            endTime: initialData.schedule.endTime,
-            room: initialData.schedule.room || '',
-          },
-          duration: initialData.duration,
-          type: initialData.type,
-          materials: initialData.materials || [],
-          isActive: initialData.isActive,
-        }
-      : {
-          title: defaultData.title || '',
-          description: defaultData.description || '',
-          subject: defaultData.subject || '',
-          teacher: defaultData.teacher || {
-            firstName: '',
-            lastName: '',
-            email: '',
-            teacherId: '',
-          },
-          schedule: defaultData.schedule || {
-            dayOfWeek: 'Monday',
-            startTime: '09:00',
-            endTime: '10:00',
-            room: '',
-          },
-          duration: defaultData.duration || 60,
-          type: defaultData.type || 'lecture',
-          materials: defaultData.materials || [],
-          isActive: defaultData.isActive ?? true,
-        },
+  // Fetch teachers and classes
+  const { data: teachersResponse, isLoading: isLoadingTeachers } = useTeachers();
+  const { data: classesData, isLoading: isLoadingClasses } = useClasses();
+
+  // Extract teachers array from response (API returns { teachers: [], pagination: {} })
+  const teachers = useMemo(() => {
+    if (!teachersResponse) return [];
+    // Handle both array and object response formats
+    if (Array.isArray(teachersResponse)) {
+      return teachersResponse;
+    }
+    if (teachersResponse && typeof teachersResponse === 'object' && 'teachers' in teachersResponse) {
+      return teachersResponse.teachers;
+    }
+    if (teachersResponse && typeof teachersResponse === 'object' && 'data' in teachersResponse) {
+      return (teachersResponse as any).data || [];
+    }
+    return [];
+  }, [teachersResponse]);
+
+  const classes = useMemo(() => classesData || [], [classesData]);
+
+  // Filter teachers and classes based on search
+  const filteredTeachers = useMemo(() => {
+    if (!teacherSearchTerm.trim()) return teachers;
+    const searchLower = teacherSearchTerm.toLowerCase();
+    return teachers.filter(
+      (teacher) =>
+        teacher.firstName.toLowerCase().includes(searchLower) ||
+        teacher.lastName.toLowerCase().includes(searchLower) ||
+        teacher.email.toLowerCase().includes(searchLower) ||
+        teacher.employeeId.toLowerCase().includes(searchLower)
+    );
+  }, [teachers, teacherSearchTerm]);
+
+  const filteredClasses = useMemo(() => {
+    if (!classSearchTerm.trim()) return classes;
+    const searchLower = classSearchTerm.toLowerCase();
+    return classes.filter(
+      (classItem) =>
+        classItem.className.toLowerCase().includes(searchLower) ||
+        classItem.grade.toLowerCase().includes(searchLower) ||
+        classItem.roomNo.toLowerCase().includes(searchLower)
+    );
+  }, [classes, classSearchTerm]);
+
+  // Find selected teacher ID from initial data
+  const initialTeacherId = useMemo(() => {
+    if (!initialData || teachers.length === 0) return '';
+    // Try to find by employeeId first (most reliable)
+    const foundById = teachers.find((t) => t.employeeId === initialData.teacher.teacherId);
+    if (foundById) return foundById.id;
+    // Fallback to name matching
+    const foundByName = teachers.find(
+      (t) =>
+        t.firstName === initialData.teacher.firstName &&
+        t.lastName === initialData.teacher.lastName
+    );
+    return foundByName?.id || '';
+  }, [initialData, teachers]);
+
+  const formik = useFormik<CreateLectureData & { selectedTeacherId?: string; selectedClassId?: string }>({
+    initialValues: {
+      ...(initialData
+        ? {
+            title: initialData.title,
+            description: initialData.description || '',
+            subject: initialData.subject,
+            teacher: {
+              firstName: initialData.teacher.firstName,
+              lastName: initialData.teacher.lastName,
+              email: initialData.teacher.email,
+              teacherId: initialData.teacher.teacherId,
+            },
+            schedule: {
+              dayOfWeek: initialData.schedule.dayOfWeek,
+              startTime: initialData.schedule.startTime,
+              endTime: initialData.schedule.endTime,
+              room: initialData.schedule.room || '',
+            },
+            duration: initialData.duration,
+            type: initialData.type,
+            materials: initialData.materials || [],
+            isActive: initialData.isActive,
+            classId: initialData.classId || '',
+            selectedTeacherId: initialTeacherId,
+            selectedClassId: initialData.classId || '',
+          }
+        : {
+            title: defaultData.title || '',
+            description: defaultData.description || '',
+            subject: defaultData.subject || '',
+            teacher: defaultData.teacher || {
+              firstName: '',
+              lastName: '',
+              email: '',
+              teacherId: '',
+            },
+            schedule: defaultData.schedule || {
+              dayOfWeek: 'Monday',
+              startTime: '09:00',
+              endTime: '10:00',
+              room: '',
+            },
+            duration: defaultData.duration || 60,
+            type: defaultData.type || 'lecture',
+            materials: defaultData.materials || [],
+            isActive: defaultData.isActive ?? true,
+            classId: '',
+            selectedTeacherId: '',
+            selectedClassId: '',
+          }),
+    },
     validationSchema,
     onSubmit: (values) => {
       // Calculate duration from start and end time if not set
       if (!values.duration || values.duration === 0) {
         values.duration = calculateDuration(values.schedule.startTime, values.schedule.endTime);
       }
-      onSubmit(values);
+      // Prepare submission data - replace teacher object with teacher ID
+      const { selectedTeacherId, selectedClassId, teacher, ...rest } = values;
+      const submitData: CreateLectureData = {
+        ...rest,
+        // Pass teacher ID as string instead of teacher object
+        teacher: selectedTeacherId || '',
+        teacherId: selectedTeacherId, // Add teacherId for mapper to use
+      };
+      onSubmit(submitData);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     },
   });
+
+  // Handle teacher selection
+  const handleTeacherChange = (teacherId: string) => {
+    const selectedTeacher = teachers.find((t) => t.id === teacherId);
+    if (selectedTeacher) {
+      formik.setFieldValue('selectedTeacherId', teacherId);
+      formik.setFieldValue('teacher', {
+        firstName: selectedTeacher.firstName,
+        lastName: selectedTeacher.lastName,
+        email: selectedTeacher.email,
+        teacherId: selectedTeacher.employeeId,
+      });
+      // Clear search term
+      setTeacherSearchTerm('');
+    }
+  };
+
+  // Handle class selection
+  const handleClassChange = (classId: string) => {
+    formik.setFieldValue('selectedClassId', classId);
+    formik.setFieldValue('classId', classId);
+    // Clear search term
+    setClassSearchTerm('');
+  };
 
   // Auto-calculate duration when times change
   const handleTimeChange = (field: 'startTime' | 'endTime', value: string) => {
@@ -345,108 +431,112 @@ export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: Lect
             </div>
           </div>
 
-          {/* Teacher Information Section */}
+          {/* Teacher & Class Selection Section */}
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <h4 className="text-sm font-semibold text-gray-900 mb-3">Teacher Information</h4>
+            <h4 className="text-sm font-semibold text-gray-900 mb-3">Teacher & Class Selection</h4>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Teacher Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  First Name <span className="text-red-500">*</span>
+                  Teacher <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  name="teacher.firstName"
-                  placeholder="Enter first name"
-                  value={formik.values.teacher.firstName}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
-                    isFieldInvalid('teacher.firstName')
-                      ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                      : 'border-gray-300 focus:ring-indigo-500 focus:border-transparent'
-                  }`}
-                />
-                {isFieldInvalid('teacher.firstName') && (
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder={isLoadingTeachers ? 'Loading teachers...' : 'Search and select teacher'}
+                    value={
+                      formik.values.selectedTeacherId && !teacherSearchTerm
+                        ? `${formik.values.teacher.firstName} ${formik.values.teacher.lastName}`
+                        : teacherSearchTerm
+                    }
+                    onChange={(e) => setTeacherSearchTerm(e.target.value)}
+                    onFocus={() => {
+                      if (formik.values.selectedTeacherId) {
+                        setTeacherSearchTerm('');
+                      }
+                    }}
+                    className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
+                      isFieldInvalid('selectedTeacherId')
+                        ? 'border-red-500 bg-red-50 focus:ring-red-500'
+                        : isFieldValid('selectedTeacherId')
+                        ? 'border-green-500 bg-green-50 focus:ring-green-500'
+                        : 'border-gray-300 focus:ring-indigo-500 focus:border-transparent'
+                    }`}
+                  />
+                  {isFieldValid('selectedTeacherId') && !teacherSearchTerm && (
+                    <i className="fas fa-check-circle absolute right-3 top-3 text-green-500"></i>
+                  )}
+                  {isFieldInvalid('selectedTeacherId') && (
+                    <i className="fas fa-exclamation-circle absolute right-3 top-3 text-red-500"></i>
+                  )}
+                  {(teacherSearchTerm || !formik.values.selectedTeacherId) && filteredTeachers.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {filteredTeachers.map((teacher) => (
+                        <button
+                          key={teacher.id}
+                          type="button"
+                          onClick={() => handleTeacherChange(teacher.id)}
+                          className="w-full text-left px-4 py-2 hover:bg-indigo-50 focus:bg-indigo-50 focus:outline-none"
+                        >
+                          <div className="font-medium text-gray-900">
+                            {teacher.firstName} {teacher.lastName}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {teacher.employeeId} • {teacher.email}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {isFieldInvalid('selectedTeacherId') && (
                   <p className="mt-1 text-xs text-red-600 flex items-center space-x-1">
                     <i className="fas fa-exclamation-circle"></i>
-                    <span>{getFieldError('teacher.firstName')}</span>
+                    <span>{getFieldError('selectedTeacherId')}</span>
                   </p>
                 )}
               </div>
 
+              {/* Class Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Last Name <span className="text-red-500">*</span>
+                  Class <span className="text-gray-400">(Optional)</span>
                 </label>
-                <input
-                  type="text"
-                  name="teacher.lastName"
-                  placeholder="Enter last name"
-                  value={formik.values.teacher.lastName}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
-                    isFieldInvalid('teacher.lastName')
-                      ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                      : 'border-gray-300 focus:ring-indigo-500 focus:border-transparent'
-                  }`}
-                />
-                {isFieldInvalid('teacher.lastName') && (
-                  <p className="mt-1 text-xs text-red-600 flex items-center space-x-1">
-                    <i className="fas fa-exclamation-circle"></i>
-                    <span>{getFieldError('teacher.lastName')}</span>
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  name="teacher.email"
-                  placeholder="teacher@school.com"
-                  value={formik.values.teacher.email}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
-                    isFieldInvalid('teacher.email')
-                      ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                      : 'border-gray-300 focus:ring-indigo-500 focus:border-transparent'
-                  }`}
-                />
-                {isFieldInvalid('teacher.email') && (
-                  <p className="mt-1 text-xs text-red-600 flex items-center space-x-1">
-                    <i className="fas fa-exclamation-circle"></i>
-                    <span>{getFieldError('teacher.email')}</span>
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Teacher ID <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="teacher.teacherId"
-                  placeholder="e.g., T001"
-                  value={formik.values.teacher.teacherId}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
-                    isFieldInvalid('teacher.teacherId')
-                      ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                      : 'border-gray-300 focus:ring-indigo-500 focus:border-transparent'
-                  }`}
-                />
-                {isFieldInvalid('teacher.teacherId') && (
-                  <p className="mt-1 text-xs text-red-600 flex items-center space-x-1">
-                    <i className="fas fa-exclamation-circle"></i>
-                    <span>{getFieldError('teacher.teacherId')}</span>
-                  </p>
-                )}
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder={isLoadingClasses ? 'Loading classes...' : 'Search and select class'}
+                    value={
+                      formik.values.selectedClassId && !classSearchTerm
+                        ? classes.find((c) => c.id === formik.values.selectedClassId)?.className || ''
+                        : classSearchTerm
+                    }
+                    onChange={(e) => setClassSearchTerm(e.target.value)}
+                    onFocus={() => {
+                      if (formik.values.selectedClassId) {
+                        setClassSearchTerm('');
+                      }
+                    }}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                  {(classSearchTerm || !formik.values.selectedClassId) && filteredClasses.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {filteredClasses.map((classItem) => (
+                        <button
+                          key={classItem.id}
+                          type="button"
+                          onClick={() => handleClassChange(classItem.id)}
+                          className="w-full text-left px-4 py-2 hover:bg-indigo-50 focus:bg-indigo-50 focus:outline-none"
+                        >
+                          <div className="font-medium text-gray-900">{classItem.className}</div>
+                          <div className="text-sm text-gray-500">
+                            {classItem.grade} • Room {classItem.roomNo}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
