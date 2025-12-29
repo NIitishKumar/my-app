@@ -28,6 +28,10 @@ export const queryKeys = {
     lectures: ['admin', 'lectures'] as const,
     lecture: (id: string) => ['admin', 'lectures', id] as const,
     reports: ['admin', 'reports'] as const,
+    dashboard: {
+      quick: ['admin', 'dashboard', 'quick'] as const,
+      stats: ['admin', 'dashboard', 'stats'] as const,
+    },
   },
   teacher: {
     classes: ['teacher', 'classes'] as const,

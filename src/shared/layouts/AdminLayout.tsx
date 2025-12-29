@@ -14,11 +14,11 @@ const adminMenuItems = [
 ];
 
 const mobileBottomNav = [
-  { path: ROUTES.ADMIN_DASHBOARD, label: 'Home', icon: 'fa-home' },
-  { path: '#schedule', label: 'Schedule', icon: 'fa-calendar-alt' },
-  { path: '#attendance', label: 'Attendance', icon: 'fa-clipboard-check' },
-  { path: '#notifications', label: 'Notices', icon: 'fa-bell', badge: 3 },
-  { path: '#profile', label: 'Profile', icon: 'fa-user' },
+  { path: ROUTES.ADMIN_DASHBOARD, label: 'Dashboard', icon: 'fa-home' },
+  { path: ROUTES.ADMIN_CLASSES, label: 'Classes', icon: 'fa-desktop' },
+  { path: ROUTES.ADMIN_TEACHERS, label: 'Teachers', icon: 'fa-user' },
+  { path: ROUTES.ADMIN_STUDENTS, label: 'Students', icon: 'fa-user-graduate' },
+  { path: ROUTES.ADMIN_LECTURES, label: 'Lectures', icon: 'fa-book' },
 ];
 
 export const AdminLayout = () => {
@@ -53,14 +53,14 @@ export const AdminLayout = () => {
         {/* Mobile Bottom Navigation - Professional Design */}
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-40">
           <div className="grid grid-cols-5 px-2 py-2">
-            {mobileBottomNav.map((item, index) => (
+            {mobileBottomNav.map((item) => (
               <NavLink
-                key={index}
+                key={item.path}
                 to={item.path}
               >
                 {({ isActive }) => (
                   <div className={`flex flex-col items-center justify-center py-2 mx-1 rounded-xl relative transition-all duration-200 ${
-                    index === 1
+                    isActive 
                       ? 'text-indigo-600 bg-indigo-50' 
                       : 'text-gray-400'
                   }`}>

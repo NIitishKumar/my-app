@@ -4,6 +4,7 @@ export const API_ENDPOINTS = {
   LOGOUT: '/auth/logout',
   
   // Admin
+  ADMIN_DASHBOARD: '/dashboard',
   ADMIN_CLASSES: '/admin/classes',
   ADMIN_TEACHERS: '/admin/teachers',
   ADMIN_LECTURES: '/admin/lectures',
