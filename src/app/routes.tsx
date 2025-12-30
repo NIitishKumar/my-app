@@ -12,6 +12,9 @@ import { TeachersPage } from '../features/admin/teachers';
 import { StudentsPage } from '../features/admin/students';
 import { LecturesPage, LectureDetailsPage } from '../features/admin/lectures';
 import { TeacherDashboard } from '../features/teacher/dashboard/TeacherDashboard';
+import { TeacherClassesPage } from '../features/teacher/classes/pages/TeacherClassesPage';
+import { TeacherClassDetailPage } from '../features/teacher/classes/pages/TeacherClassDetailPage';
+import { TeacherAttendancePage } from '../features/teacher/classes/pages/TeacherAttendancePage';
 import { Attendance as TeacherAttendance } from '../features/teacher/attendance/Attendance';
 import { Queries as TeacherQueries } from '../features/teacher/queries/Queries';
 import { StudentDashboard } from '../features/student/dashboard/StudentDashboard';
@@ -59,6 +62,9 @@ export const AppRoutes = () => {
         }
       >
         <Route path="dashboard" element={<TeacherDashboard />} />
+        <Route path="classes" element={<TeacherClassesPage />} />
+        <Route path="classes/:id" element={<TeacherClassDetailPage />} />
+        <Route path="classes/:id/attendance" element={<TeacherAttendancePage />} />
         <Route path="attendance" element={<TeacherAttendance />} />
         <Route path="queries" element={<TeacherQueries />} />
         <Route index element={<Navigate to={ROUTES.TEACHER_DASHBOARD} replace />} />

@@ -6,16 +6,16 @@ import { useUIStore, useAuthStore, selectIsSidebarOpen, selectUser } from '../..
 
 const teacherMenuItems = [
   { path: ROUTES.TEACHER_DASHBOARD, label: 'Dashboard', icon: 'fa-home' },
+  { path: ROUTES.TEACHER_CLASSES, label: 'My Classes', icon: 'fa-chalkboard-teacher' },
   { path: ROUTES.TEACHER_ATTENDANCE, label: 'Attendance', icon: 'fa-clipboard-check' },
   { path: ROUTES.TEACHER_QUERIES, label: 'Queries', icon: 'fa-comments', badge: 5 },
-  { path: '#classes', label: 'My Classes', icon: 'fa-users' },
   { path: '#timetable', label: 'My Timetable', icon: 'fa-calendar-day' },
   { path: '#announcements', label: 'Announcements', icon: 'fa-bell' },
 ];
 
 const mobileBottomNav = [
   { path: ROUTES.TEACHER_DASHBOARD, label: 'Home', icon: 'fa-home' },
-  { path: '#timetable', label: 'Schedule', icon: 'fa-calendar-day' },
+  { path: ROUTES.TEACHER_CLASSES, label: 'Classes', icon: 'fa-chalkboard-teacher' },
   { path: ROUTES.TEACHER_ATTENDANCE, label: 'Attendance', icon: 'fa-clipboard-check' },
   { path: ROUTES.TEACHER_QUERIES, label: 'Queries', icon: 'fa-comments', badge: 5 },
   { path: '#profile', label: 'Profile', icon: 'fa-user' },
