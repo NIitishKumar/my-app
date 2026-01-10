@@ -22,6 +22,7 @@ export const LecturesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'lecture' | 'lab' | 'seminar' | 'tutorial'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [groupBy, setGroupBy] = useState<'none' | 'subject' | 'type' | 'teacher' | 'lectureGroup'>('none');
   const [currentPage, setCurrentPage] = useState(1);
 
   const { data: lectures, isLoading, error } = useLectures();
@@ -55,16 +56,78 @@ export const LecturesPage = () => {
     return filtered;
   }, [allLectures, searchTerm, typeFilter, statusFilter]);
 
-  // Paginate filtered lectures
+  // Group filtered lectures
+  const groupedLectures = useMemo(() => {
+    if (groupBy === 'none') {
+      return { 'All Lectures': filteredLectures };
+    }
+
+    const grouped: Record<string, Lecture[]> = {};
+
+    filteredLectures.forEach((lecture) => {
+      let groupKey: string;
+
+      switch (groupBy) {
+        case 'subject':
+          groupKey = lecture.subject || 'Uncategorized';
+          break;
+        case 'type':
+          groupKey = lecture.type.charAt(0).toUpperCase() + lecture.type.slice(1);
+          break;
+        case 'teacher':
+          groupKey = `${lecture.teacher.firstName} ${lecture.teacher.lastName}` || 'Unknown Teacher';
+          break;
+        case 'lectureGroup':
+          groupKey = lecture.lectureGroup || 'No Group';
+          break;
+        default:
+          groupKey = 'All Lectures';
+      }
+
+      if (!grouped[groupKey]) {
+        grouped[groupKey] = [];
+      }
+      grouped[groupKey].push(lecture);
+    });
+
+    // Sort group keys alphabetically
+    const sortedGroups: Record<string, Lecture[]> = {};
+    Object.keys(grouped)
+      .sort((a, b) => {
+        // Put "No Group" at the end
+        if (a === 'No Group' || a === 'Uncategorized' || a === 'Unknown Teacher') return 1;
+        if (b === 'No Group' || b === 'Uncategorized' || b === 'Unknown Teacher') return -1;
+        return a.localeCompare(b);
+      })
+      .forEach((key) => {
+        sortedGroups[key] = grouped[key];
+      });
+
+    return sortedGroups;
+  }, [filteredLectures, groupBy]);
+
+  // Flatten grouped lectures for pagination when groupBy is 'none'
+  const lecturesForPagination = useMemo(() => {
+    if (groupBy === 'none') {
+      return filteredLectures;
+    }
+    return filteredLectures;
+  }, [filteredLectures, groupBy]);
+
+  // Paginate filtered lectures (only when not grouped)
   const paginatedLectures = useMemo(() => {
+    if (groupBy !== 'none') {
+      // When grouped, we'll show all groups (paginated within each group)
+      return lecturesForPagination;
+    }
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
-    return filteredLectures.slice(startIndex, endIndex);
-  }, [filteredLectures, currentPage]);
+    return lecturesForPagination.slice(startIndex, endIndex);
+  }, [lecturesForPagination, currentPage, groupBy]);
 
-  const totalPages = Math.ceil(filteredLectures.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(lecturesForPagination.length / ITEMS_PER_PAGE);
   const startItem = (currentPage - 1) * ITEMS_PER_PAGE + 1;
-  const endItem = Math.min(currentPage * ITEMS_PER_PAGE, filteredLectures.length);
+  const endItem = Math.min(currentPage * ITEMS_PER_PAGE, lecturesForPagination.length);
 
   const handleSubmit = (data: CreateLectureData) => {
     if (editingLecture) {
@@ -197,6 +260,21 @@ export const LecturesPage = () => {
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
               </select>
+              <select
+                value={groupBy}
+                onChange={(e) => {
+                  setGroupBy(e.target.value as 'none' | 'subject' | 'type' | 'teacher' | 'lectureGroup');
+                  setCurrentPage(1);
+                }}
+                className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                title="Group lectures by"
+              >
+                <option value="none">No Grouping</option>
+                <option value="subject">Group by Subject</option>
+                <option value="type">Group by Type</option>
+                <option value="teacher">Group by Teacher</option>
+                <option value="lectureGroup">Group by Lecture Group</option>
+              </select>
               <button
                 onClick={handleAddNew}
                 className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors flex items-center space-x-2"
@@ -207,87 +285,121 @@ export const LecturesPage = () => {
             </div>
           </div>
 
-          {/* Table */}
+          {/* Table - Grouped or Ungrouped */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            {paginatedLectures && paginatedLectures.length > 0 ? (
+            {filteredLectures && filteredLectures.length > 0 ? (
               <>
-                <LectureTable
-                  lectures={paginatedLectures}
-                  onView={handleView}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                />
-                
-                {/* Pagination */}
-                <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-                  <div className="text-sm text-gray-700">
-                    Showing <span className="font-medium">{startItem}</span> to{' '}
-                    <span className="font-medium">{endItem}</span> of{' '}
-                    <span className="font-medium">{filteredLectures.length}</span> results
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      className={`px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium ${
-                        currentPage === 1
-                          ? 'text-gray-400 cursor-not-allowed bg-gray-50'
-                          : 'text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      <i className="fas fa-chevron-left"></i>
-                    </button>
-                    {totalPages > 1 && (
-                      <div className="flex items-center space-x-1">
-                        {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                          let page;
-                          if (totalPages <= 5) {
-                            page = i + 1;
-                          } else if (currentPage <= 3) {
-                            page = i + 1;
-                          } else if (currentPage >= totalPages - 2) {
-                            page = totalPages - 4 + i;
-                          } else {
-                            page = currentPage - 2 + i;
-                          }
-                          return (
-                            <button
-                              key={page}
-                              onClick={() => handlePageChange(page)}
-                              className={`px-3 py-2 text-sm font-medium rounded-lg ${
-                                currentPage === page
-                                  ? 'bg-indigo-600 text-white'
-                                  : 'text-gray-700 hover:bg-gray-50 border border-gray-300'
-                              }`}
-                            >
-                              {page}
-                            </button>
-                          );
-                        })}
+                {groupBy === 'none' ? (
+                  <>
+                    <LectureTable
+                      lectures={paginatedLectures}
+                      onView={handleView}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
+                    
+                    {/* Pagination */}
+                    {totalPages > 0 && (
+                      <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                        <div className="text-sm text-gray-700">
+                          Showing <span className="font-medium">{startItem}</span> to{' '}
+                          <span className="font-medium">{endItem}</span> of{' '}
+                          <span className="font-medium">{filteredLectures.length}</span> results
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className={`px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium ${
+                              currentPage === 1
+                                ? 'text-gray-400 cursor-not-allowed bg-gray-50'
+                                : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                          >
+                            <i className="fas fa-chevron-left"></i>
+                          </button>
+                          {totalPages > 1 && (
+                            <div className="flex items-center space-x-1">
+                              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                                let page;
+                                if (totalPages <= 5) {
+                                  page = i + 1;
+                                } else if (currentPage <= 3) {
+                                  page = i + 1;
+                                } else if (currentPage >= totalPages - 2) {
+                                  page = totalPages - 4 + i;
+                                } else {
+                                  page = currentPage - 2 + i;
+                                }
+                                return (
+                                  <button
+                                    key={page}
+                                    onClick={() => handlePageChange(page)}
+                                    className={`px-3 py-2 text-sm font-medium rounded-lg ${
+                                      currentPage === page
+                                        ? 'bg-indigo-600 text-white'
+                                        : 'text-gray-700 hover:bg-gray-50 border border-gray-300'
+                                    }`}
+                                  >
+                                    {page}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                          {totalPages === 1 && (
+                            <div className="flex items-center space-x-1">
+                              <button
+                                className="px-3 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white"
+                              >
+                                1
+                              </button>
+                            </div>
+                          )}
+                          <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className={`px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium ${
+                              currentPage === totalPages
+                                ? 'text-gray-400 cursor-not-allowed bg-gray-50'
+                                : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                          >
+                            <i className="fas fa-chevron-right"></i>
+                          </button>
+                        </div>
                       </div>
                     )}
-                    {totalPages === 1 && (
-                      <div className="flex items-center space-x-1">
-                        <button
-                          className="px-3 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white"
-                        >
-                          1
-                        </button>
+                  </>
+                ) : (
+                  <div className="divide-y divide-gray-200">
+                    {Object.entries(groupedLectures).map(([groupKey, groupLectures]) => (
+                      <div key={groupKey} className="p-6">
+                        <div className="mb-4 pb-3 border-b border-gray-200">
+                          <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                            <i className="fas fa-layer-group text-indigo-600"></i>
+                            <span>{groupKey}</span>
+                            <span className="text-sm font-normal text-gray-500">
+                              ({groupLectures.length} {groupLectures.length === 1 ? 'lecture' : 'lectures'})
+                            </span>
+                          </h3>
+                        </div>
+                        <LectureTable
+                          lectures={groupLectures}
+                          onView={handleView}
+                          onEdit={handleEdit}
+                          onDelete={handleDelete}
+                        />
                       </div>
-                    )}
-                    <button
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                      className={`px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium ${
-                        currentPage === totalPages
-                          ? 'text-gray-400 cursor-not-allowed bg-gray-50'
-                          : 'text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      <i className="fas fa-chevron-right"></i>
-                    </button>
+                    ))}
+                    <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                      <div className="text-sm text-gray-700">
+                        Total: <span className="font-medium">{filteredLectures.length}</span> lectures in{' '}
+                        <span className="font-medium">{Object.keys(groupedLectures).length}</span> group(s)
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
               </>
             ) : (
               <div className="p-6 text-center text-gray-500">

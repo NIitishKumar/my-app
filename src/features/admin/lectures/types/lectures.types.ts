@@ -35,6 +35,7 @@ export interface Lecture {
   materials: LectureMaterial[];
   isActive: boolean;
   classId?: string; // Optional class reference
+  lectureGroup?: string; // Optional lecture group identifier
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -50,6 +51,7 @@ export interface CreateLectureData {
   materials?: LectureMaterial[];
   isActive?: boolean; // Optional, defaults to true
   classId?: string; // Optional class reference
+  lectureGroup?: string; // Optional lecture group identifier
   teacherId?: string; // Optional teacher ID (used when teacher is passed as ID)
 }
 
@@ -89,6 +91,7 @@ export interface LectureApiDTO {
   type: string;
   materials: LectureMaterialApiDTO[];
   isActive?: boolean;
+  lectureGroup?: string; // Optional lecture group identifier
   createdAt?: string; // ISO date string
   updatedAt?: string; // ISO date string
 }

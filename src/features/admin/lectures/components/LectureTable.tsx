@@ -93,7 +93,14 @@ export const LectureTable = ({ lectures, onView, onEdit, onDelete }: LectureTabl
           {lectures.map((lecture) => (
             <tr key={lecture.id} className="hover:bg-gray-50 transition-colors">
               <td className="px-6 py-4">
-                <div className="text-sm font-medium text-gray-900">{lecture.title}</div>
+                <div className="flex items-center space-x-2">
+                  <div className="text-sm font-medium text-gray-900">{lecture.title}</div>
+                  {lecture.lectureGroup && (
+                    <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-100 text-purple-800">
+                      {lecture.lectureGroup}
+                    </span>
+                  )}
+                </div>
                 {lecture.description && (
                   <div className="text-xs text-gray-500 mt-1 line-clamp-1">{lecture.description}</div>
                 )}

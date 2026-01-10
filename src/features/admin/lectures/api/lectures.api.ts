@@ -90,6 +90,7 @@ const mapLectureApiToDomain = (api: LectureApiDTO & { classId?: string | any }):
     materials: (api.materials || []).map(mapMaterialApiToDomain),
     isActive: api.isActive ?? true,
     classId: classId,
+    lectureGroup: api.lectureGroup,
     createdAt: api.createdAt ? new Date(api.createdAt) : undefined,
     updatedAt: api.updatedAt ? new Date(api.updatedAt) : undefined,
   };
@@ -125,6 +126,11 @@ const mapCreateLectureDataToApi = (data: CreateLectureData): Partial<LectureApiD
   // Include classId if provided
   if (data.classId) {
     payload.classId = data.classId;
+  }
+  
+  // Include lectureGroup if provided
+  if (data.lectureGroup) {
+    payload.lectureGroup = data.lectureGroup;
   }
   
   return payload;
@@ -167,6 +173,10 @@ const mapUpdateLectureDataToApi = (data: Partial<CreateLectureData>): Partial<Le
   
   if (data.classId !== undefined) {
     payload.classId = data.classId;
+  }
+  
+  if (data.lectureGroup !== undefined) {
+    payload.lectureGroup = data.lectureGroup;
   }
 
   return payload;

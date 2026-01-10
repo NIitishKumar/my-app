@@ -149,6 +149,7 @@ export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: Lect
             materials: initialData.materials || [],
             isActive: initialData.isActive,
             classId: initialData.classId || '',
+            lectureGroup: initialData.lectureGroup || '',
             selectedTeacherId: initialTeacherId,
             selectedClassId: initialData.classId || '',
           }
@@ -173,6 +174,7 @@ export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: Lect
             materials: defaultData.materials || [],
             isActive: defaultData.isActive ?? true,
             classId: '',
+            lectureGroup: '',
             selectedTeacherId: '',
             selectedClassId: '',
           }),
@@ -427,6 +429,22 @@ export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: Lect
                     <span>{getFieldError('type')}</span>
                   </p>
                 )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Lecture Group <span className="text-gray-400">(Optional)</span>
+                </label>
+                <input
+                  type="text"
+                  name="lectureGroup"
+                  placeholder="e.g., Group A, Week 1, Module 1"
+                  value={formik.values.lectureGroup || ''}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+                <p className="mt-1 text-xs text-gray-500">Use this to group related lectures together</p>
               </div>
             </div>
           </div>

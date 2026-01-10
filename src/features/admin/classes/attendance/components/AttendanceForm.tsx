@@ -65,7 +65,7 @@ export const AttendanceForm = ({
     if (existingAttendance?.data) {
       const statuses: Record<string, AttendanceStatus> = {};
       const remarks: Record<string, string> = {};
-      existingAttendance.data.students.forEach((student) => {
+      existingAttendance?.data?.students.forEach((student) => {
         statuses[student.studentId] = student.status;
         if (student.remarks) {
           remarks[student.studentId] = student.remarks;
