@@ -27,8 +27,8 @@ export const ClassCard = ({ classData, onClick }: ClassCardProps) => {
   const subject = 'subject' in classData ? classData.subject : undefined;
   const lastAttendanceDate = 'lastAttendanceDate' in classData ? classData.lastAttendanceDate : undefined;
 
-  const getAttendanceColor = (rate?: number) => {
-    if (!rate) return 'text-gray-500';
+  const getAttendanceColor = (rate?: number | null) => {
+    if (rate == null || isNaN(rate)) return 'text-gray-500';
     if (rate >= 90) return 'text-green-600';
     if (rate >= 75) return 'text-yellow-600';
     return 'text-red-600';
@@ -92,7 +92,7 @@ export const ClassCard = ({ classData, onClick }: ClassCardProps) => {
             <span>{studentCount}</span>
           </div>
         </div>
-        {attendanceRate !== undefined && (
+        {attendanceRate != null && !isNaN(attendanceRate) && (
           <div className="bg-gray-50 rounded-lg p-3">
             <div className="text-xs text-gray-600 mb-1">Attendance</div>
             <div className={`text-lg font-semibold flex items-center space-x-1 ${getAttendanceColor(attendanceRate)}`}>

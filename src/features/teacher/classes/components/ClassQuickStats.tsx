@@ -14,8 +14,8 @@ export const ClassQuickStats = ({
   attendanceRate,
   lastAttendanceDate,
 }: ClassQuickStatsProps) => {
-  const getAttendanceColor = (rate?: number) => {
-    if (!rate) return 'text-gray-500';
+  const getAttendanceColor = (rate?: number | null) => {
+    if (rate == null || isNaN(rate)) return 'text-gray-500';
     if (rate >= 90) return 'text-green-600';
     if (rate >= 75) return 'text-yellow-600';
     return 'text-red-600';
@@ -39,7 +39,7 @@ export const ClassQuickStats = ({
         <i className="fas fa-user-graduate text-xs"></i>
         <span>{studentCount} students</span>
       </div>
-      {attendanceRate !== undefined && (
+      {attendanceRate != null && !isNaN(attendanceRate) && (
         <div className={`flex items-center space-x-1 ${getAttendanceColor(attendanceRate)}`}>
           <i className="fas fa-chart-line text-xs"></i>
           <span>{attendanceRate.toFixed(1)}%</span>

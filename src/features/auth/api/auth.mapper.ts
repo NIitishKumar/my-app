@@ -15,8 +15,12 @@ export class AuthMapper {
     return {
       id: dto.id,
       email: dto.email,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
       name: dto.name,
       role: dto.role as UserRole,
+      employeeId: dto.employeeId,
+      department: dto.department,
       avatar: dto.avatar,
       createdAt: dto.created_at || dto.createdAt
         ? new Date(dto.created_at || dto.createdAt!)
@@ -26,8 +30,14 @@ export class AuthMapper {
 
   /**
    * Map AuthResponseDTO to AuthSession domain model
+   * Handles the {success, token, user} response format
    */
   static authResponseToDomain(dto: AuthResponseDTO): AuthSession {
+    // Validate that the response was successful
+    if (!dto.success) {
+      throw new Error('Authentication failed: API returned success=false');
+    }
+
     return {
       token: dto.token,
       user: this.userToDomain(dto.user),

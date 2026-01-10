@@ -12,7 +12,6 @@ import { useMarkAttendance, useUpdateAttendance } from '../../../admin/classes/a
 import { ATTENDANCE_STATUS_OPTIONS, BULK_ACTIONS } from '../../../admin/classes/attendance/constants/attendance.constants';
 import { getTodayDateString } from '../../../admin/classes/attendance/utils/attendance.utils';
 import { useUIStore } from '../../../../store/ui.store';
-import { useAuthStore } from '../../../../store/auth.store';
 import type { MarkAttendanceData, AttendanceStatus } from '../../../admin/classes/attendance/types/attendance.types';
 
 interface TeacherAttendanceFormProps {
@@ -45,7 +44,6 @@ export const TeacherAttendanceForm = ({
   const markAttendance = useMarkAttendance();
   const updateAttendance = useUpdateAttendance();
   const addToast = useUIStore((state) => state.addToast);
-  const user = useAuthStore((state) => state.user);
 
   // Get students for this class
   const classStudents = useMemo(() => {
@@ -61,26 +59,40 @@ export const TeacherAttendanceForm = ({
 
   // Initialize student statuses from existing attendance or default to 'present'
   useEffect(() => {
-    if (existingAttendance?.data) {
+    if (existingAttendance) {
       const statuses: Record<string, AttendanceStatus> = {};
       const remarks: Record<string, string> = {};
-      existingAttendance?.data?.students?.forEach((student) => {
+      existingAttendance.students?.forEach((student) => {
         statuses[student.studentId] = student.status;
         if (student.remarks) {
           remarks[student.studentId] = student.remarks;
         }
       });
-      setStudentStatuses(statuses);
-      setStudentRemarks(remarks);
-    } else if (classStudents.length > 0 && Object.keys(studentStatuses).length === 0) {
-      // Initialize all students as 'present' by default
-      const defaultStatuses: Record<string, AttendanceStatus> = {};
-      classStudents.forEach((student) => {
-        defaultStatuses[student.id] = 'present';
-      });
-      setStudentStatuses(defaultStatuses);
+      // Use setTimeout to avoid cascading renders warning
+      setTimeout(() => {
+        setStudentStatuses(statuses);
+        setStudentRemarks(remarks);
+      }, 0);
+    } else if (classStudents.length > 0) {
+      // Initialize all students as 'present' by default if not already initialized
+      const currentStatusKeys = Object.keys(studentStatuses);
+      const studentIds = classStudents.map((s) => s.id);
+      const needsInitialization = studentIds.some((id) => !currentStatusKeys.includes(id));
+      
+      if (needsInitialization) {
+        const defaultStatuses: Record<string, AttendanceStatus> = { ...studentStatuses };
+        classStudents.forEach((student) => {
+          if (!defaultStatuses[student.id]) {
+            defaultStatuses[student.id] = 'present';
+          }
+        });
+        setTimeout(() => {
+          setStudentStatuses(defaultStatuses);
+        }, 0);
+      }
     }
-  }, [existingAttendance?.data, classStudents]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existingAttendance, classStudents]);
 
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
     setStudentStatuses((prev) => ({
@@ -139,12 +151,14 @@ export const TeacherAttendanceForm = ({
     };
 
     try {
-      if (existingAttendance?.data) {
+      if (existingAttendance) {
         // Update existing attendance
         await updateAttendance.mutateAsync({
-          recordId: existingAttendance.data.id,
-          classId,
-          ...data,
+          recordId: existingAttendance.id,
+          classId: data.classId,
+          date: data.date,
+          lectureId: data.lectureId,
+          students: data.students,
         });
         addToast({
           type: 'success',
@@ -161,10 +175,30 @@ export const TeacherAttendanceForm = ({
         });
       }
       onSuccess?.();
-    } catch (error) {
+    } catch (error: unknown) {
+      // Enhanced error handling
+      let errorMessage = 'Failed to mark attendance';
+      
+      if (error && typeof error === 'object' && 'status' in error) {
+        const apiError = error as { status?: number; message?: string };
+        if (apiError.status === 403) {
+          errorMessage = 'You are not assigned to this class. Cannot mark attendance.';
+        } else if (apiError.status === 422) {
+          errorMessage = apiError.message || 'Invalid data. Please check all fields.';
+        } else if (apiError.status === 404) {
+          errorMessage = 'Class not found. Please refresh and try again.';
+        } else if (apiError.status === 409) {
+          errorMessage = 'Attendance already marked for this date. Please update instead.';
+        } else if (apiError.message) {
+          errorMessage = apiError.message;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
       addToast({
         type: 'error',
-        message: `Error: ${error instanceof Error ? error.message : 'Failed to mark attendance'}`,
+        message: errorMessage,
         duration: 5000,
       });
     }
@@ -405,7 +439,7 @@ export const TeacherAttendanceForm = ({
             ) : (
               <>
                 <i className="fas fa-save"></i>
-                <span>{existingAttendance?.data ? 'Update Attendance' : 'Mark Attendance'}</span>
+                <span>{existingAttendance ? 'Update Attendance' : 'Mark Attendance'}</span>
               </>
             )}
           </button>

@@ -137,8 +137,29 @@ export const teacherClassesApi = {
         return [];
       }
 
-      return classesData.map(mapTeacherClassToDomain);
-    } catch (error) {
+      // Validate each class object has required fields
+      const validClasses = classesData.filter((cls) => {
+        return cls && 
+               cls._id && 
+               cls.className && 
+               cls.grade &&
+               typeof cls.enrolled === 'number' &&
+               typeof cls.capacity === 'number';
+      });
+
+      if (validClasses.length !== classesData.length) {
+        console.warn(`${classesData.length - validClasses.length} classes were filtered out due to missing required fields`);
+      }
+
+      return validClasses.map(mapTeacherClassToDomain);
+    } catch (error: any) {
+      // Handle specific error cases
+      if (error?.status === 403) {
+        throw new Error('You are not assigned to any classes. Please contact your administrator.');
+      }
+      if (error?.status === 401) {
+        throw new Error('Your session has expired. Please login again.');
+      }
       console.error('Error fetching teacher classes:', error);
       throw error;
     }
@@ -180,8 +201,22 @@ export const teacherClassesApi = {
         throw new Error('Invalid API response: missing data');
       }
 
+      // Validate required fields
+      if (!response.data._id || !response.data.className || !response.data.grade) {
+        throw new Error('Invalid class data: missing required fields');
+      }
+
       return mapTeacherClassToDomain(response.data);
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.status === 403) {
+        throw new Error('You are not assigned to this class.');
+      }
+      if (error?.status === 404) {
+        throw new Error('Class not found.');
+      }
+      if (error?.status === 401) {
+        throw new Error('Your session has expired. Please login again.');
+      }
       console.error('Error fetching class details:', error);
       throw error;
     }

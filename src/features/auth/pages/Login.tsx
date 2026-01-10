@@ -47,9 +47,6 @@ export const Login = () => {
           <p className="mt-2 text-center text-sm text-gray-600">
             Sign in to your account
           </p>
-          <p className="mt-1 text-center text-xs text-blue-600 font-medium">
-            🔧 Dev Mode: Mock Authentication Enabled
-          </p>
         </div>
 
         {/* Quick Login Buttons */}

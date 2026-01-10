@@ -44,8 +44,11 @@ export const teacherService = {
 
   markAttendance: async (data: MarkAttendanceData): Promise<AttendanceRecord> => {
     const dto = TeacherMapper.markAttendanceToDTO(data);
+    // Note: class_id is included in the DTO, but we also need it in the URL path
+    // The API expects: POST /attendance/classes/{classId}/attendance
+    const endpoint = `/attendance/classes/${data.classId}/attendance`;
     const response = await httpClient.post<AttendanceRecordDTO>(
-      API_ENDPOINTS.TEACHER_ATTENDANCE,
+      endpoint,
       dto
     );
     return TeacherMapper.attendanceRecordToDomain(response);

@@ -52,8 +52,8 @@ export class TeacherMapper {
   }
 
   static markAttendanceToDTO(data: MarkAttendanceData): MarkAttendanceDTO {
+    // Note: class_id is not included in the request body as it's in the URL path
     return {
-      class_id: data.classId,
       date: data.date,
       students: data.students.map((s) => ({
         student_id: s.studentId,

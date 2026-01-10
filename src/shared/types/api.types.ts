@@ -20,6 +20,7 @@ export interface ApiError {
   message: string;
   code: string;
   status: number;
+  originalMessage?: string; // Original error message for debugging
 }
 
 export interface ListParams {

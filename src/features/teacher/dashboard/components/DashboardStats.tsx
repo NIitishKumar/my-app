@@ -19,8 +19,9 @@ export const DashboardStats = () => {
   // Calculate overall attendance rate
   const overallAttendanceRate = useMemo(() => {
     if (classes.length === 0) return 0;
-    const totalRate = classes.reduce((sum, cls) => sum + (cls.attendanceRate || 0), 0);
-    return totalRate / classes.length;
+    const totalRate = classes.reduce((sum, cls) => sum + (cls.attendanceRate ?? 0), 0);
+    const average = totalRate / classes.length;
+    return isNaN(average) ? 0 : average;
   }, [classes]);
 
   // Get today's date
@@ -71,7 +72,9 @@ export const DashboardStats = () => {
     },
     {
       label: 'Overall Attendance',
-      value: `${overallAttendanceRate.toFixed(1)}%`,
+      value: overallAttendanceRate != null && !isNaN(overallAttendanceRate) 
+        ? `${overallAttendanceRate.toFixed(1)}%`
+        : 'N/A',
       icon: 'fa-chart-line',
       color: 'green',
       bgColor: 'bg-green-50',

@@ -83,11 +83,39 @@ class HttpClient {
       const status = error.response?.status || 500;
       const message = error.response?.data?.message || error.message || 'An error occurred';
       const code = error.response?.data?.code || error.code || 'UNKNOWN_ERROR';
+      
+      // Enhanced error messages based on status code
+      let userMessage = message;
+      switch (status) {
+        case 401:
+          userMessage = 'Your session has expired. Please login again.';
+          break;
+        case 403:
+          userMessage = error.response?.data?.message || 'You do not have permission to access this resource.';
+          break;
+        case 404:
+          userMessage = error.response?.data?.message || 'The requested resource was not found.';
+          break;
+        case 409:
+          userMessage = error.response?.data?.message || 'This record already exists.';
+          break;
+        case 422:
+          userMessage = error.response?.data?.message || 'Please check your input data and try again.';
+          break;
+        case 500:
+          userMessage = 'Server error. Please try again later.';
+          break;
+        case 503:
+          userMessage = 'Service temporarily unavailable. Please try again later.';
+          break;
+      }
 
       return {
-        message,
+        message: userMessage,
         code,
         status,
+        // Include original error for debugging
+        originalMessage: message,
       };
     }
 

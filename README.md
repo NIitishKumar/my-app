@@ -71,3 +71,5 @@ export default defineConfig([
   },
 ])
 ```
+
+    -d '{"email":"NITISHKUMAR.NG746@GMAIL.COM","password":"Teacher@123"}'

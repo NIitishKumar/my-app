@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://my-app-ujzz.onrender.com/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -27,11 +27,26 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    const message = error.response?.data?.message || error.message;
+    
+    if (status === 401) {
+      // Unauthorized - clear auth and redirect to login
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      // Use replace instead of href to avoid history entry
+      window.location.replace('/login');
+    } else if (status === 403) {
+      // Forbidden - log but don't redirect (component will handle)
+      console.error('403 Forbidden:', message);
+    } else if (status === 404) {
+      // Not found - component will handle
+      console.error('404 Not Found:', message);
+    } else if (status >= 500) {
+      // Server error
+      console.error('Server Error:', message);
     }
+    
     return Promise.reject(error);
   }
 );

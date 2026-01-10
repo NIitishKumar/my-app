@@ -106,7 +106,11 @@ export const attendanceApi = {
       }
 
       return mapAttendanceRecordApiToDomain(response.data);
-    } catch (error) {
+    } catch (error: any) {
+      // Return null for 404 (no attendance record found for date)
+      if (error?.status === 404) {
+        return null;
+      }
       console.error('Error fetching attendance by date:', error);
       throw error;
     }

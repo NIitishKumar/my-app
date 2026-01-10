@@ -6,6 +6,7 @@
 import { useState, useMemo } from 'react';
 import { useTeacherClasses } from '../hooks/useTeacherClasses';
 import { ClassCard } from './ClassCard';
+import { ClassCardSkeleton } from '../../../../shared/components/SkeletonLoader';
 import type { TeacherClass } from '../types/teacher-classes.types';
 
 interface ClassesListProps {
@@ -77,8 +78,8 @@ export const ClassesList = ({ onClassSelect }: ClassesListProps) => {
         case 'students':
           return b.enrolled - a.enrolled;
         case 'attendance':
-          const rateA = a.attendanceRate || 0;
-          const rateB = b.attendanceRate || 0;
+          const rateA = (a.attendanceRate != null && !isNaN(a.attendanceRate)) ? a.attendanceRate : 0;
+          const rateB = (b.attendanceRate != null && !isNaN(b.attendanceRate)) ? b.attendanceRate : 0;
           return rateB - rateA;
         case 'recent':
           const dateA = a.lastAttendanceDate?.getTime() || 0;
@@ -94,17 +95,56 @@ export const ClassesList = ({ onClassSelect }: ClassesListProps) => {
 
   if (isLoading) {
     return (
-      <div className="p-6 text-center">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-        <p className="mt-2 text-gray-600">Loading classes...</p>
+      <div className="space-y-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 animate-pulse">
+          {/* Filter skeleton */}
+          <div className="h-10 bg-gray-200 rounded mb-4"></div>
+          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <ClassCardSkeleton key={i} />
+          ))}
+        </div>
       </div>
     );
   }
 
   if (error) {
+    const errorStatus = (error as any)?.status;
+    
+    if (errorStatus === 403) {
+      return (
+        <div className="p-6 text-center">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-8">
+            <i className="fas fa-info-circle text-yellow-600 text-4xl mb-4"></i>
+            <h3 className="text-lg font-semibold text-yellow-900 mb-2">
+              No Classes Assigned
+            </h3>
+            <p className="text-yellow-800 mb-2">
+              You don't have any classes assigned yet.
+            </p>
+            <p className="text-sm text-yellow-700">
+              Please contact your administrator to get classes assigned to you.
+            </p>
+          </div>
+        </div>
+      );
+    }
+    
     return (
       <div className="p-6 text-center text-red-600">
-        Error loading classes: {error instanceof Error ? error.message : 'Unknown error'}
+        <i className="fas fa-exclamation-circle text-4xl mb-3 text-red-400"></i>
+        <p className="font-medium">Error loading classes</p>
+        <p className="text-sm mt-1">
+          {error instanceof Error ? error.message : 'Failed to load classes. Please try again.'}
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+        >
+          Retry
+        </button>
       </div>
     );
   }

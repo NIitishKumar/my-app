@@ -41,12 +41,19 @@ export const useAuthStore = create<AuthStore>()(
       isHydrated: false,
 
       // Auth actions
-      login: (user, token) =>
+      login: (user, token) => {
+        // Save to Zustand state (auto-persisted via persist middleware)
         set({
           user,
           token,
           isAuthenticated: true,
-        }),
+        });
+        
+        // Also save to legacy localStorage keys for backward compatibility
+        // with axios interceptors and authService.getSession()
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+      },
 
       logout: () => {
         set({

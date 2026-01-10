@@ -12,10 +12,10 @@ export const AttendanceChart = () => {
   // Calculate attendance data for chart
   const chartData = useMemo(() => {
     return classes
-      .filter((cls) => cls.attendanceRate !== undefined)
+      .filter((cls) => cls.attendanceRate != null && !isNaN(cls.attendanceRate))
       .map((cls) => ({
         name: cls.className,
-        rate: cls.attendanceRate || 0,
+        rate: cls.attendanceRate ?? 0,
       }))
       .sort((a, b) => b.rate - a.rate)
       .slice(0, 5); // Top 5 classes
@@ -70,7 +70,9 @@ export const AttendanceChart = () => {
             <div key={item.name}>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-medium text-gray-700">{item.name}</span>
-                <span className="text-sm font-semibold text-gray-900">{item.rate.toFixed(1)}%</span>
+                <span className="text-sm font-semibold text-gray-900">
+                  {item.rate != null && !isNaN(item.rate) ? item.rate.toFixed(1) + '%' : 'N/A'}
+                </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
                 <div

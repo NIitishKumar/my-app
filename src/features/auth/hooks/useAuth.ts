@@ -45,8 +45,9 @@ export const useLogin = () => {
           navigate(ROUTES.LOGIN);
       }
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Login error:', error);
+      // Error will be handled by the component that calls the mutation
     },
   });
 };

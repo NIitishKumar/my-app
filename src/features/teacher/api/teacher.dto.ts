@@ -28,7 +28,6 @@ export interface AttendanceRecordDTO {
 }
 
 export interface MarkAttendanceDTO {
-  class_id: string;
   date: string;
   students: {
     student_id: string;

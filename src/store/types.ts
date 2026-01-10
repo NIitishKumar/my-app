@@ -9,8 +9,14 @@ import type { UserRole } from '../shared/constants';
 export interface User {
   id: string;
   email: string;
+  firstName?: string;
+  lastName?: string;
   name: string;
   role: UserRole;
+  employeeId?: string;
+  department?: string;
+  avatar?: string;
+  createdAt?: Date;
 }
 
 // Modal types for UI store
