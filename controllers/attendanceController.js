@@ -167,7 +167,7 @@ const getAttendanceByLecture = async (req, res) => {
 const createAttendance = async (req, res) => {
   try {
     const { classId } = req.params;
-    const { date, lecture_id, students, submitted_by } = req.body;
+    const { date, lecture_id, students } = req.body;
     const db = getDatabase();
 
     if (!ObjectId.isValid(classId)) {
@@ -334,7 +334,7 @@ const createAttendance = async (req, res) => {
       className: classData.className,
       date: new Date(date),
       students: validatedStudents,
-      submittedBy: submitted_by ? new ObjectId(submitted_by) : null,
+      submittedBy: new ObjectId(req.user.id), // Use authenticated user ID
       submittedAt: new Date(),
       createdAt: new Date(),
       updatedAt: new Date()
@@ -368,7 +368,7 @@ const createAttendance = async (req, res) => {
 const updateAttendance = async (req, res) => {
   try {
     const { classId, recordId } = req.params;
-    const { date, lecture_id, students, submitted_by } = req.body;
+    const { date, students } = req.body;
     const db = getDatabase();
 
     if (!ObjectId.isValid(classId) || !ObjectId.isValid(recordId)) {
@@ -437,11 +437,6 @@ const updateAttendance = async (req, res) => {
         });
       }
       updateData.date = new Date(date);
-    }
-
-    if (submitted_by) {
-      updateData.submittedBy = new ObjectId(submitted_by);
-      updateData.submittedAt = new Date();
     }
 
     const result = await db.collection('attendance').updateOne(

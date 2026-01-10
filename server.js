@@ -8,6 +8,8 @@ const teacherRoutes = require('./routes/teacherRoutes');
 const simpleLectureRoutes = require('./routes/simpleLectureRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
+const authRoutes = require('./routes/authRoutes');
+const teacherPortalRoutes = require('./routes/teacherPortalRoutes');
 require('dotenv').config();
 
 const app = express();
@@ -53,6 +55,8 @@ app.use('/api/teachers', teacherRoutes);
 app.use('/api/simple-lectures', simpleLectureRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/teacher', teacherPortalRoutes);
 
 async function startServer() {
   try {

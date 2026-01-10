@@ -4,18 +4,74 @@ const { getDatabase, ObjectId } = require('../db');
 const createLecture = async (req, res) => {
   try {
     const db = getDatabase();
+    const { classId, ...restOfBody } = req.body;
+
     const lectureData = {
-      ...req.body,
+      ...restOfBody,
       createdAt: new Date(),
       updatedAt: new Date()
     };
 
+    // Validate classId if provided
+    if (classId) {
+      if (!ObjectId.isValid(classId)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid class ID'
+        });
+      }
+
+      // Check if class exists
+      const classData = await db.collection('classes').findOne({
+        _id: new ObjectId(classId)
+      });
+
+      if (!classData) {
+        return res.status(404).json({
+          success: false,
+          message: 'Class not found'
+        });
+      }
+
+      lectureData.classId = new ObjectId(classId);
+    }
+
     const result = await db.collection('lectures').insertOne(lectureData);
+
+    // If classId is provided, add lecture to the class's lectures array
+    if (classId) {
+      await db.collection('classes').updateOne(
+        { _id: new ObjectId(classId) },
+        {
+          $push: { lectures: result.insertedId },
+          $set: { updatedAt: new Date() }
+        }
+      );
+    }
+
+    // Populate teacher and class for response
+    const populatedLecture = { ...lectureData, _id: result.insertedId };
+
+    if (lectureData.teacher) {
+      const teacher = await db.collection('teachers').findOne({
+        _id: typeof lectureData.teacher === 'string' ? new ObjectId(lectureData.teacher) : lectureData.teacher,
+        isActive: true
+      });
+      populatedLecture.teacher = teacher;
+    }
+
+    if (lectureData.classId) {
+      const classData = await db.collection('classes').findOne({
+        _id: lectureData.classId,
+        isActive: true
+      });
+      populatedLecture.classId = classData;
+    }
 
     res.status(201).json({
       success: true,
       message: 'Lecture created successfully',
-      data: { _id: result.insertedId, ...lectureData }
+      data: populatedLecture
     });
   } catch (error) {
     res.status(500).json({
@@ -132,6 +188,7 @@ const getLectureById = async (req, res) => {
 const updateLecture = async (req, res) => {
   try {
     const { id } = req.params;
+    const { classId, ...restOfBody } = req.body;
     const db = getDatabase();
 
     if (!ObjectId.isValid(id)) {
@@ -141,14 +198,70 @@ const updateLecture = async (req, res) => {
       });
     }
 
+    // Get current lecture to check for classId changes
+    const currentLecture = await db.collection('lectures').findOne({
+      _id: new ObjectId(id)
+    });
+
+    if (!currentLecture) {
+      return res.status(404).json({
+        success: false,
+        message: 'Lecture not found'
+      });
+    }
+
     const updateData = {
-      ...req.body,
+      ...restOfBody,
       updatedAt: new Date()
     };
 
     // Remove fields that shouldn't be updated
     delete updateData._id;
     delete updateData.createdAt;
+
+    // Handle classId change
+    if (classId !== undefined && classId !== null) {
+      if (!ObjectId.isValid(classId)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid class ID'
+        });
+      }
+
+      // Check if new class exists
+      const classData = await db.collection('classes').findOne({
+        _id: new ObjectId(classId)
+      });
+
+      if (!classData) {
+        return res.status(404).json({
+          success: false,
+          message: 'Class not found'
+        });
+      }
+
+      // Remove lecture from old class if classId is changing
+      if (currentLecture.classId && currentLecture.classId.toString() !== classId) {
+        await db.collection('classes').updateOne(
+          { _id: currentLecture.classId },
+          {
+            $pull: { lectures: new ObjectId(id) },
+            $set: { updatedAt: new Date() }
+          }
+        );
+      }
+
+      // Add lecture to new class if not already there
+      await db.collection('classes').updateOne(
+        { _id: new ObjectId(classId) },
+        {
+          $addToSet: { lectures: new ObjectId(id) },
+          $set: { updatedAt: new Date() }
+        }
+      );
+
+      updateData.classId = new ObjectId(classId);
+    }
 
     const result = await db.collection('lectures').updateOne(
       { _id: new ObjectId(id) },
@@ -210,6 +323,29 @@ const deleteLecture = async (req, res) => {
         success: false,
         message: 'Invalid lecture ID'
       });
+    }
+
+    // Get lecture before deleting to remove from class
+    const lecture = await db.collection('lectures').findOne({
+      _id: new ObjectId(id)
+    });
+
+    if (!lecture) {
+      return res.status(404).json({
+        success: false,
+        message: 'Lecture not found'
+      });
+    }
+
+    // Remove lecture from class if it has a classId
+    if (lecture.classId) {
+      await db.collection('classes').updateOne(
+        { _id: lecture.classId },
+        {
+          $pull: { lectures: new ObjectId(id) },
+          $set: { updatedAt: new Date() }
+        }
+      );
     }
 
     const result = await db.collection('lectures').deleteOne({ _id: new ObjectId(id) });
