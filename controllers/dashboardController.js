@@ -1,4 +1,4 @@
-const { getDatabase } = require('../db');
+const { getDatabase, ObjectId } = require('../db');
 
 // Get complete dashboard statistics
 const getDashboardStats = async (req, res) => {
