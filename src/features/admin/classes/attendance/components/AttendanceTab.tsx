@@ -10,7 +10,6 @@ import { useAttendanceStats } from '../hooks/useAttendanceStats';
 import { AttendanceStats } from './AttendanceStats';
 import { AttendanceList } from './AttendanceList';
 import { formatAttendanceDate, sortByDate } from '../utils/attendance.utils';
-import type { AttendanceRecord } from '../types/attendance.types';
 
 interface AttendanceTabProps {
   classId: string;

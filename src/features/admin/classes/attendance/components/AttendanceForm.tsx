@@ -14,8 +14,6 @@ import { ATTENDANCE_STATUS_OPTIONS, BULK_ACTIONS } from '../constants/attendance
 import { getTodayDateString, formatDateForInput, isAttendanceMarked } from '../utils/attendance.utils';
 import { useUIStore } from '../../../../../store/ui.store';
 import type { MarkAttendanceData, AttendanceStatus } from '../types/attendance.types';
-import type { Student } from '../../../students/types/students.types';
-import type { Lecture } from '../../../lectures/types/lectures.types';
 
 interface AttendanceFormProps {
   classId: string;
