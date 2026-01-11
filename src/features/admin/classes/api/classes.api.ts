@@ -53,19 +53,6 @@ const mapScheduleToDTO = (schedule: ClassSchedule): ClassScheduleDTO => ({
 });
 
 
-const _mapCreateClassToDTO = (data: CreateClassData): CreateClassDTO => ({
-  class_name: data.className,
-  subjects: data.subjects,
-  grade: data.grade,
-  room_no: data.roomNo,
-  capacity: data.capacity,
-  enrolled: data.enrolled || 0,
-  students: data.students || [],
-  class_head: mapClassHeadToDTO(data.classHead),
-  lectures: data.lectures || [],
-  schedule: mapScheduleToDTO(data.schedule),
-  is_active: data.isActive,
-});
 
 // Mapper for actual API response (camelCase with _id)
 const mapClassHeadApiToDomain = (api: ClassHeadApiDTO | null | undefined): ClassHead => {
