@@ -10,6 +10,11 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
 const authRoutes = require('./routes/authRoutes');
 const teacherPortalRoutes = require('./routes/teacherPortalRoutes');
+const teacherAttendanceRoutes = require('./routes/teacherAttendanceRoutes');
+const adminAttendanceRoutes = require('./routes/adminAttendanceRoutes');
+const statisticsRoutes = require('./routes/statisticsRoutes');
+const exportRoutes = require('./routes/exportRoutes');
+const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 require('dotenv').config();
 
 const app = express();
@@ -57,6 +62,16 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/teacher', teacherPortalRoutes);
+app.use('/api/teacher', teacherAttendanceRoutes);
+app.use('/api/admin', adminAttendanceRoutes);
+app.use('/api/attendance', statisticsRoutes);
+app.use('/api/admin', exportRoutes);
+
+// 404 handler - must be after all routes
+app.use(notFoundHandler);
+
+// Error handling middleware - must be last
+app.use(errorHandler);
 
 async function startServer() {
   try {

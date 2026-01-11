@@ -1,27 +1,11 @@
 const { getDatabase, ObjectId } = require('../db');
-
-// Helper function to validate status
-const isValidStatus = (status) => {
-  return ['present', 'absent', 'late', 'excused'].includes(status);
-};
-
-// Helper function to validate date format (YYYY-MM-DD)
-const isValidDateFormat = (dateString) => {
-  if (!dateString) return false;
-  const regex = /^\d{4}-\d{2}-\d{2}$/;
-  if (!regex.test(dateString)) return false;
-
-  const date = new Date(dateString);
-  return date instanceof Date && !isNaN(date);
-};
-
-// Helper function to check if date is in the future
-const isFutureDate = (dateString) => {
-  const inputDate = new Date(dateString);
-  const today = new Date();
-  today.setHours(23, 59, 59, 999);
-  return inputDate > today;
-};
+const {
+  isValidStatus,
+  isValidDateFormat,
+  isFutureDate,
+  isTooOldForUpdate,
+  isTooOldForDeletion
+} = require('../schemas/attendanceSchema');
 
 // Get all attendance records for a class with optional filters
 const getClassAttendance = async (req, res) => {
@@ -302,8 +286,11 @@ const createAttendance = async (req, res) => {
       validatedStudents.push({
         studentId: new ObjectId(student.student_id),
         studentName: `${studentData.firstName} ${studentData.lastName}`,
+        studentIdNumber: studentData.studentId || null,
         status: student.status,
-        remarks: student.remarks || null
+        remarks: student.remarks || null,
+        markedAt: new Date(),
+        markedBy: new ObjectId(req.user.id)
       });
     }
 
@@ -333,9 +320,12 @@ const createAttendance = async (req, res) => {
       classId: new ObjectId(classId),
       className: classData.className,
       date: new Date(date),
+      type: lecture_id ? 'lecture' : 'date',
       students: validatedStudents,
       submittedBy: new ObjectId(req.user.id), // Use authenticated user ID
       submittedAt: new Date(),
+      isLocked: false,
+      version: 1,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -358,8 +348,11 @@ const createAttendance = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error creating attendance record',
-      error: error.message
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'Error creating attendance record',
+        details: error.message
+      }
     });
   }
 };
@@ -368,13 +361,16 @@ const createAttendance = async (req, res) => {
 const updateAttendance = async (req, res) => {
   try {
     const { classId, recordId } = req.params;
-    const { date, students } = req.body;
+    const { date, students, version } = req.body;
     const db = getDatabase();
 
     if (!ObjectId.isValid(classId) || !ObjectId.isValid(recordId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid class ID or record ID'
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid class ID or record ID'
+        }
       });
     }
 
@@ -387,7 +383,56 @@ const updateAttendance = async (req, res) => {
     if (!existingAttendance) {
       return res.status(404).json({
         success: false,
-        message: 'Attendance record not found'
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Attendance record not found'
+        }
+      });
+    }
+
+    // Check if record is locked
+    if (existingAttendance.isLocked) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Cannot update locked attendance record'
+        }
+      });
+    }
+
+    // Check if date is too old for update (30 days)
+    const attendanceDate = new Date(existingAttendance.date);
+    if (isTooOldForUpdate(attendanceDate)) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Cannot update attendance records older than 30 days'
+        }
+      });
+    }
+
+    // Optimistic locking: Check version
+    if (version !== undefined && existingAttendance.version !== version) {
+      return res.status(409).json({
+        success: false,
+        error: {
+          code: 'VERSION_CONFLICT',
+          message: 'Record was modified by another user. Please refresh and try again.'
+        }
+      });
+    }
+
+    // Authorization: Only original submitter or admin can update
+    if (req.user.role !== 'ADMIN' &&
+        existingAttendance.submittedBy.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'You can only update attendance records you submitted'
+        }
       });
     }
 
@@ -403,7 +448,10 @@ const updateAttendance = async (req, res) => {
         if (!isValidStatus(student.status)) {
           return res.status(400).json({
             success: false,
-            message: `Invalid status. Must be: present, absent, late, or excused`
+            error: {
+              code: 'VALIDATION_ERROR',
+              message: `Invalid status. Must be: present, absent, late, or excused`
+            }
           });
         }
 
@@ -417,8 +465,11 @@ const updateAttendance = async (req, res) => {
           studentName: studentData ?
             `${studentData.firstName} ${studentData.lastName}` :
             existingAttendance.students.find(s => s.studentId.toString() === student.student_id)?.studentName || 'Unknown',
+          studentIdNumber: studentData?.studentId || null,
           status: student.status,
-          remarks: student.remarks || null
+          remarks: student.remarks || null,
+          markedAt: new Date(),
+          markedBy: new ObjectId(req.user.id)
         });
       }
     }
@@ -426,6 +477,7 @@ const updateAttendance = async (req, res) => {
     // Build update data
     const updateData = {
       students: validatedStudents,
+      version: existingAttendance.version + 1,
       updatedAt: new Date()
     };
 
@@ -433,9 +485,23 @@ const updateAttendance = async (req, res) => {
       if (!isValidDateFormat(date)) {
         return res.status(400).json({
           success: false,
-          message: 'Invalid date format. Use YYYY-MM-DD'
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid date format. Use YYYY-MM-DD'
+          }
         });
       }
+
+      if (isFutureDate(date)) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Cannot set attendance date to future'
+          }
+        });
+      }
+
       updateData.date = new Date(date);
     }
 
@@ -447,7 +513,10 @@ const updateAttendance = async (req, res) => {
     if (result.matchedCount === 0) {
       return res.status(404).json({
         success: false,
-        message: 'Attendance record not found'
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Attendance record not found'
+        }
       });
     }
 
@@ -464,8 +533,11 @@ const updateAttendance = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error updating attendance record',
-      error: error.message
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'Error updating attendance record',
+        details: error.message
+      }
     });
   }
 };
@@ -479,8 +551,78 @@ const deleteAttendance = async (req, res) => {
     if (!ObjectId.isValid(classId) || !ObjectId.isValid(recordId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid class ID or record ID'
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid class ID or record ID'
+        }
       });
+    }
+
+    // Get the record first to check permissions
+    const record = await db.collection('attendance').findOne({
+      _id: new ObjectId(recordId),
+      classId: new ObjectId(classId)
+    });
+
+    if (!record) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Attendance record not found'
+        }
+      });
+    }
+
+    // Check if record is locked
+    if (record.isLocked) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Cannot delete locked attendance record'
+        }
+      });
+    }
+
+    // Check if date is too old for deletion (7 days)
+    const attendanceDate = new Date(record.date);
+    if (isTooOldForDeletion(attendanceDate)) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Cannot delete attendance records older than 7 days'
+        }
+      });
+    }
+
+    // Authorization: Teachers can only delete if submitted in last 24 hours
+    if (req.user.role === 'TEACHER') {
+      // Check if teacher is the original submitter
+      if (record.submittedBy.toString() !== req.user.id) {
+        return res.status(403).json({
+          success: false,
+          error: {
+            code: 'FORBIDDEN',
+            message: 'You can only delete attendance records you submitted'
+          }
+        });
+      }
+
+      // Check if submitted within last 24 hours
+      const twentyFourHoursAgo = new Date();
+      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+
+      if (new Date(record.submittedAt) < twentyFourHoursAgo) {
+        return res.status(403).json({
+          success: false,
+          error: {
+            code: 'FORBIDDEN',
+            message: 'Teachers can only delete attendance records within 24 hours of submission'
+          }
+        });
+      }
     }
 
     const result = await db.collection('attendance').deleteOne({
@@ -491,7 +633,10 @@ const deleteAttendance = async (req, res) => {
     if (result.deletedCount === 0) {
       return res.status(404).json({
         success: false,
-        message: 'Attendance record not found'
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Attendance record not found'
+        }
       });
     }
 
@@ -502,8 +647,11 @@ const deleteAttendance = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error deleting attendance record',
-      error: error.message
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'Error deleting attendance record',
+        details: error.message
+      }
     });
   }
 };
