@@ -8,12 +8,8 @@ import type {
   Class,
   CreateClassData,
   UpdateClassData,
-  ClassDTO,
-  CreateClassDTO,
   ClassHead,
-  ClassHeadDTO,
   ClassSchedule,
-  ClassScheduleDTO,
   ClassApiDTO,
   ClassesApiResponse,
   ClassApiResponse,
@@ -23,39 +19,23 @@ import type {
   CreateClassApiResponse,
 } from '../types/classes.types';
 
-// Mapper functions
-const mapClassHeadToDomain = (dto: ClassHeadDTO): ClassHead => ({
-  firstName: dto.first_name,
-  lastName: dto.last_name,
-  email: dto.email,
-  employeeId: dto.employee_id,
-});
-
-const mapClassHeadToDTO = (head: ClassHead): ClassHeadDTO => ({
-  first_name: head.firstName,
-  last_name: head.lastName,
-  email: head.email,
-  employee_id: head.employeeId,
-});
-
-const mapScheduleToDomain = (dto: ClassScheduleDTO): ClassSchedule => ({
-  academicYear: dto.academic_year,
-  semester: dto.semester as 'Fall' | 'Spring' | 'Summer' | 'Winter',
-  startDate: new Date(dto.start_date),
-  endDate: new Date(dto.end_date),
-});
-
-const mapScheduleToDTO = (schedule: ClassSchedule): ClassScheduleDTO => ({
-  academic_year: schedule.academicYear,
-  semester: schedule.semester,
-  start_date: schedule.startDate.toISOString().split('T')[0],
-  end_date: schedule.endDate.toISOString().split('T')[0],
-});
-
 
 
 // Mapper for actual API response (camelCase with _id)
 const mapClassHeadApiToDomain = (api: ClassHeadApiDTO | null | undefined): ClassHead => {
+  if (!api) {
+    return {
+      firstName: '',
+      lastName: '',
+      email: '',
+      employeeId: '',
+    };
+  }
+  return {
+    firstName: api.firstName || '',
+    lastName: api.lastName || '',
+    email: api.email || '',
+    employeeId: api.employeeId || '',
   };
 };
 
