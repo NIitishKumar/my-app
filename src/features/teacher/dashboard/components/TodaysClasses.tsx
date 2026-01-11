@@ -6,7 +6,6 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTeacherClasses } from '../../classes/hooks/useTeacherClasses';
-import { ClassCard } from '../../classes/components/ClassCard';
 
 export const TodaysClasses = () => {
   const navigate = useNavigate();

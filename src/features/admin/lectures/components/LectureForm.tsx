@@ -709,7 +709,7 @@ export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: Lect
                 Add Material
               </button>
             </div>
-            {formik.values.materials.length > 0 && (
+            {formik.values.materials && formik.values.materials.length > 0 && (
               <div className="space-y-3">
                 {formik.values.materials.map((material, index) => (
                   <div key={index} className="grid grid-cols-1 lg:grid-cols-4 gap-3 p-3 bg-white border border-gray-200 rounded-lg">

@@ -61,7 +61,7 @@ export const useMarkAttendance = () => {
 
       return { previousRecords };
     },
-    onError: (error, newData, context) => {
+    onError: (_error, newData, context) => {
       // Rollback on error
       if (context?.previousRecords) {
         queryClient.setQueryData(attendanceQueryKeys.list(), context.previousRecords);

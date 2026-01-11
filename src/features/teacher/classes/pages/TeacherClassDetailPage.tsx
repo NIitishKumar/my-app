@@ -10,8 +10,6 @@ import { useStudentDetails } from '../../../admin/students/hooks/useStudentDetai
 import { useLectureDetails } from '../../../admin/lectures/hooks/useLectureDetails';
 import { TeacherAttendanceTab } from '../components/TeacherAttendanceTab';
 import { formatDateForInput } from '../../../admin/classes/utils/classes.utils';
-import type { Student } from '../../../admin/students/types/students.types';
-import type { Lecture } from '../../../admin/lectures/types/lectures.types';
 
 // Component to fetch and display a single student
 const StudentDetailItem = ({ studentId }: { studentId: string }) => {
@@ -304,7 +302,7 @@ export const TeacherClassDetailPage = () => {
 
       {/* Tab Content */}
       {activeTab === 'attendance' ? (
-        <TeacherAttendanceTab classId={id || ''} className={classData.className} />
+        <TeacherAttendanceTab classId={id || ''} />
       ) : activeTab === 'statistics' ? (
         <div className="space-y-6">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">

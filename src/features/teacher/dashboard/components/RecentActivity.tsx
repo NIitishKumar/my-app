@@ -6,7 +6,6 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTeacherClasses } from '../../classes/hooks/useTeacherClasses';
-import { useClassAttendance } from '../../../admin/classes/attendance/hooks/useClassAttendance';
 import { formatAttendanceDate, sortByDate } from '../../../admin/classes/attendance/utils/attendance.utils';
 
 export const RecentActivity = () => {

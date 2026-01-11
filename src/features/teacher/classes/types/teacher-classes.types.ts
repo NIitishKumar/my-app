@@ -2,7 +2,7 @@
  * Teacher Classes Domain Types
  */
 
-import type { Class, ClassSchedule, ClassHead } from '../../../admin/classes/types/classes.types';
+import type { Class } from '../../../admin/classes/types/classes.types';
 
 // Extended class type for teacher view with additional context
 export interface TeacherClass extends Class {

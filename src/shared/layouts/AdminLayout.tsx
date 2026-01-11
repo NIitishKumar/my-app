@@ -13,7 +13,7 @@ const adminMenuItems = [
   { path: '#subjects', label: 'Subjects', icon: 'fa-book-open' },
 ];
 
-const mobileBottomNav = [
+const mobileBottomNav: Array<{ path: string; label: string; icon: string; badge?: number }> = [
   { path: ROUTES.ADMIN_DASHBOARD, label: 'Dashboard', icon: 'fa-home' },
   { path: ROUTES.ADMIN_CLASSES, label: 'Classes', icon: 'fa-desktop' },
   { path: ROUTES.ADMIN_TEACHERS, label: 'Teachers', icon: 'fa-user' },

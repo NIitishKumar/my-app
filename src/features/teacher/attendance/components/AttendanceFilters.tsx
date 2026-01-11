@@ -8,14 +8,13 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { useClasses } from '../../../admin/classes/hooks/useClasses';
 import { ATTENDANCE_STATUS_OPTIONS } from '../constants/attendance.constants';
-import type { AttendanceFilters as AttendanceFiltersType, AttendanceStatus } from '../types/attendance.types';
+import type { AttendanceFilters as AttendanceFiltersType } from '../types/attendance.types';
 import type { Class } from '../../../admin/classes/types/classes.types';
 
 interface AttendanceFiltersProps {
   filters: AttendanceFiltersType;
   onFiltersChange: (filters: AttendanceFiltersType) => void;
   onReset: () => void;
-  showLectureFilter?: boolean;
   showStatusFilter?: boolean;
 }
 
@@ -23,7 +22,6 @@ export const AttendanceFilters = ({
   filters,
   onFiltersChange,
   onReset,
-  showLectureFilter = true,
   showStatusFilter = true,
 }: AttendanceFiltersProps) => {
   const { data: classes = [] } = useClasses();

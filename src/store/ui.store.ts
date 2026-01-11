@@ -66,8 +66,8 @@ export const useUIStore = create<UIStore>((set) => ({
   closeSidebar: () => set({ isSidebarOpen: false }),
 
   // Modal actions
-  openModal: (modal, data = null) =>
-    set({ activeModal: modal, modalData: data }),
+  openModal: (modal, data) =>
+    set({ activeModal: modal, modalData: data || null }),
   closeModal: () => set({ activeModal: null, modalData: null }),
 
   // Theme actions

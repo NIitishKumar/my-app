@@ -21,7 +21,7 @@ export { useAttendanceByDate } from './hooks/useAttendanceByDate';
 export type {
   AttendanceRecord,
   StudentAttendance,
-  AttendanceStats,
+  AttendanceStats as AttendanceStatsType,
   MarkAttendanceData,
   UpdateAttendanceData,
   AttendanceStatus,

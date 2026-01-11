@@ -19,7 +19,7 @@ export const useDeleteAttendance = () => {
   return useMutation({
     mutationFn: ({ classId, recordId }: DeleteAttendanceParams) =>
       attendanceApi.delete(classId, recordId),
-    onMutate: async ({ classId, recordId }) => {
+    onMutate: async ({ recordId }) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: attendanceQueryKeys.all });
 
@@ -41,7 +41,7 @@ export const useDeleteAttendance = () => {
 
       return { previousRecords };
     },
-    onError: (error, variables, context) => {
+    onError: (_error, _variables, context) => {
       // Rollback on error
       if (context?.previousRecords) {
         queryClient.setQueryData(attendanceQueryKeys.list(), context.previousRecords);

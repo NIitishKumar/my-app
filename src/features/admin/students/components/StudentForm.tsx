@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { GENDER_OPTIONS, GRADE_OPTIONS } from '../constants/students.constants';
-import { validateStudentForm, formatDateForInput, parseDateFromInput, getDefaultStudentFormData } from '../utils/students.utils';
+import { validateStudentForm, formatDateForInput, getDefaultStudentFormData } from '../utils/students.utils';
 import type { CreateStudentData, Student } from '../types/students.types';
 import type { ValidationErrors } from '../utils/students.utils';
 

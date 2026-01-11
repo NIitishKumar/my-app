@@ -11,7 +11,7 @@ import type {
   TeacherClassesApiResponse,
   TeacherClassApiResponse,
 } from '../types/teacher-classes.types';
-import type { Class, ClassHead, ClassSchedule } from '../../../admin/classes/types/classes.types';
+import type { ClassHead, ClassSchedule } from '../../../admin/classes/types/classes.types';
 
 // Mapper functions
 const mapClassHeadToDomain = (dto: TeacherClassDTO['classHead']): ClassHead | null => {
@@ -85,19 +85,6 @@ const mapTeacherClassToDomain = (dto: TeacherClassDTO): TeacherClass => {
   };
 };
 
-const mapToClassSummary = (dto: TeacherClassDTO): ClassSummary => {
-  return {
-    id: dto._id,
-    className: dto.className,
-    grade: dto.grade,
-    studentCount: dto.enrolled,
-    attendanceRate: dto.attendanceRate,
-    roomNo: dto.roomNo,
-    isActive: dto.isActive,
-    lastAttendanceDate: dto.lastAttendanceDate ? new Date(dto.lastAttendanceDate) : undefined,
-    subject: dto.subject,
-  };
-};
 
 // API functions
 export const teacherClassesApi = {

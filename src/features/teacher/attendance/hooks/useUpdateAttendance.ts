@@ -50,7 +50,7 @@ export const useUpdateAttendance = () => {
 
       return { previousRecord };
     },
-    onError: (error, updatedData, context) => {
+    onError: (_error, updatedData, context) => {
       // Rollback on error
       if (context?.previousRecord && updatedData.date) {
         queryClient.setQueryData(

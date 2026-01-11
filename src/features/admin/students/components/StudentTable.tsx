@@ -4,7 +4,6 @@
 
 import type { Student } from '../types/students.types';
 import { StudentAvatar } from './StudentAvatar';
-import { getStudentInitials } from '../utils/students.utils';
 
 interface StudentTableProps {
   students: Student[];
@@ -89,8 +88,7 @@ export const StudentTable = ({ students, onView, onEdit, onDelete }: StudentTabl
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {students.map((student) => {
-            const initials = getStudentInitials(student.firstName, student.lastName);
-            
+            //             
             return (
               <tr key={student.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4 whitespace-nowrap">

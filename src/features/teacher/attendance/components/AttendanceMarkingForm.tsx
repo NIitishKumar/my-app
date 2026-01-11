@@ -3,7 +3,7 @@
  * Form to mark attendance for a class with date/lecture-based options
  */
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { useClasses } from '../../../admin/classes/hooks/useClasses';
@@ -18,7 +18,6 @@ import {
   ATTENDANCE_TYPE_OPTIONS,
   BULK_ACTIONS,
   VALIDATION,
-  STORAGE_KEYS,
 } from '../constants/attendance.constants';
 import { 
   getTodayDateString, 
@@ -89,7 +88,7 @@ export const AttendanceMarkingForm = ({
     const term = searchTerm.toLowerCase();
     return classStudents.filter(
       (student) =>
-        student.name.toLowerCase().includes(term) ||
+        `${student.firstName} ${student.lastName}`.toLowerCase().includes(term) ||
         student.studentId?.toLowerCase().includes(term)
     );
   }, [classStudents, searchTerm]);
@@ -553,7 +552,7 @@ export const AttendanceMarkingForm = ({
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-gray-900">{student.name}</p>
+                        <p className="font-medium text-gray-900">{student.firstName} {student.lastName}</p>
                         {student.studentId && (
                           <p className="text-sm text-gray-500">ID: {student.studentId}</p>
                         )}

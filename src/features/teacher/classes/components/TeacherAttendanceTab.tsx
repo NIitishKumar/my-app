@@ -10,18 +10,15 @@ import { useAttendanceStats } from '../../../admin/classes/attendance/hooks/useA
 import { AttendanceStats } from '../../../admin/classes/attendance/components/AttendanceStats';
 import { AttendanceList } from '../../../admin/classes/attendance/components/AttendanceList';
 import { formatAttendanceDate, sortByDate } from '../../../admin/classes/attendance/utils/attendance.utils';
-import type { AttendanceRecord } from '../../../admin/classes/attendance/types/attendance.types';
-
 interface TeacherAttendanceTabProps {
   classId: string;
-  className?: string;
 }
 
-export const TeacherAttendanceTab = ({ classId, className }: TeacherAttendanceTabProps) => {
+export const TeacherAttendanceTab = ({ classId }: TeacherAttendanceTabProps) => {
   const navigate = useNavigate();
   const [activeView, setActiveView] = useState<'summary' | 'records'>('summary');
   const { data: allRecords = [], isLoading } = useClassAttendance(classId);
-  const { stats } = useAttendanceStats(classId);
+  useAttendanceStats(classId);
 
   // Get recent records (last 5)
   const recentRecords = sortByDate(allRecords, false).slice(0, 5);

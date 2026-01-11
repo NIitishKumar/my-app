@@ -5,8 +5,6 @@
 
 import { useMemo } from 'react';
 import { useTeacherClasses } from '../../classes/hooks/useTeacherClasses';
-import { useClassAttendance } from '../../../admin/classes/attendance/hooks/useClassAttendance';
-import { calculateAttendanceStats } from '../../../admin/classes/attendance/utils/attendance.utils';
 
 export const DashboardStats = () => {
   const { data: classes = [], isLoading: isLoadingClasses } = useTeacherClasses();

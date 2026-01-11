@@ -196,7 +196,7 @@ export const mapMarkAttendanceToDTO = (
   const dto: MarkAttendanceRequestDTO = {
     date: data.date,
     students: data.students.map((student) => {
-      const studentDto: { studentId: string; status: string; remarks?: string } = {
+      const studentDto: { studentId: string; status: 'present' | 'absent' | 'late' | 'excused'; remarks?: string } = {
         studentId: student.studentId,
         status: student.status,
       };
@@ -234,7 +234,7 @@ export const mapUpdateAttendanceToDTO = (
   
   if (data.students !== undefined) {
     dto.students = data.students.map((student) => {
-      const studentDto: { studentId: string; status: string; remarks?: string } = {
+      const studentDto: { studentId: string; status: 'present' | 'absent' | 'late' | 'excused'; remarks?: string } = {
         studentId: student.studentId,
         status: student.status,
       };

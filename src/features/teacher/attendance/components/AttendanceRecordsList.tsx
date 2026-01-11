@@ -7,7 +7,7 @@ import { useState, useMemo } from 'react';
 import { useAttendanceRecords } from '../hooks/useAttendanceRecords';
 import { useDeleteAttendance } from '../hooks/useDeleteAttendance';
 import { AttendanceFilters } from './AttendanceFilters';
-import { formatAttendanceDate, getStatusColorClass, exportToExcel, exportToCSV } from '../utils/attendance.utils';
+import { formatAttendanceDate, exportToExcel, exportToCSV } from '../utils/attendance.utils';
 import { ATTENDANCE_STATUS_OPTIONS } from '../constants/attendance.constants';
 import { useUIStore } from '../../../../store/ui.store';
 import type { AttendanceRecord, AttendanceFilters as AttendanceFiltersType } from '../types/attendance.types';

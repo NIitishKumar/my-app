@@ -3,7 +3,7 @@
  */
 
 import type { Lecture, CreateLectureData } from '../types/lectures.types';
-import { VALIDATION } from '../constants/lectures.constants';
+// import { VALIDATION } from '../constants/lectures.constants';
 
 /**
  * Format lecture display name
