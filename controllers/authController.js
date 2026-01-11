@@ -50,12 +50,15 @@ const login = async (req, res) => {
       });
     }
 
+    // Determine role - check if teacher has role field set to ADMIN
+    const userRole = teacher.role === 'ADMIN' ? 'ADMIN' : 'TEACHER';
+
     // Create JWT token
     const token = jwt.sign(
       {
         id: teacher._id.toString(),
         email: teacher.email,
-        role: 'TEACHER',
+        role: userRole,
         employeeId: teacher.employeeId
       },
       JWT_SECRET,
@@ -72,7 +75,7 @@ const login = async (req, res) => {
         firstName: teacher.firstName,
         lastName: teacher.lastName,
         name: `${teacher.firstName} ${teacher.lastName}`,
-        role: 'TEACHER',
+        role: userRole,
         employeeId: teacher.employeeId,
         department: teacher.department
       }
@@ -111,6 +114,9 @@ const getCurrentUser = async (req, res) => {
       });
     }
 
+    // Determine role
+    const userRole = teacher.role === 'ADMIN' ? 'ADMIN' : 'TEACHER';
+
     res.status(200).json({
       success: true,
       data: {
@@ -119,7 +125,7 @@ const getCurrentUser = async (req, res) => {
         firstName: teacher.firstName,
         lastName: teacher.lastName,
         name: `${teacher.firstName} ${teacher.lastName}`,
-        role: 'TEACHER',
+        role: userRole,
         employeeId: teacher.employeeId,
         department: teacher.department,
         phone: teacher.phone,
