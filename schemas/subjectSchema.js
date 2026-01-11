@@ -142,14 +142,28 @@ class SubjectSchema {
         throw new Error(validation.errors.join(', '));
       }
 
-      // Check if all classes exist
+      // Check if all classes exist (optional validation - just warn if not found)
       const db = getDatabase();
-      const existingClasses = await db.collection('classes')
-        .find({ _id: { $in: subjectData.classes }, isActive: true })
-        .toArray();
+      const classObjectIds = subjectData.classes.map(id =>
+        typeof id === 'string' ? new ObjectId(id) : id
+      );
 
-      if (existingClasses.length !== subjectData.classes.length) {
-        throw new Error('One or more class IDs are invalid or inactive');
+      try {
+        const existingClasses = await db.collection('classes')
+          .find({ _id: { $in: classObjectIds } })
+          .toArray();
+
+        if (existingClasses.length !== subjectData.classes.length) {
+          // Find which class IDs are invalid
+          const existingIds = existingClasses.map(c => c._id.toString());
+          const invalidIds = subjectData.classes
+            .map(id => typeof id === 'string' ? id : id.toString())
+            .filter(id => !existingIds.includes(id));
+
+          console.warn(`Warning: The following class IDs were not found in database: ${invalidIds.join(', ')}`);
+        }
+      } catch (err) {
+        console.warn('Warning: Could not validate class IDs:', err.message);
       }
 
       // Sanitize data
@@ -340,15 +354,26 @@ class SubjectSchema {
         }
 
         const db = getDatabase();
-        const existingClasses = await db.collection('classes')
-          .find({
-            _id: { $in: updateData.classes },
-            isActive: true
-          })
-          .toArray();
+        const classObjectIds = updateData.classes.map(id =>
+          typeof id === 'string' ? new ObjectId(id) : id
+        );
 
-        if (existingClasses.length !== updateData.classes.length) {
-          throw new Error('One or more class IDs are invalid or inactive');
+        try {
+          const existingClasses = await db.collection('classes')
+            .find({ _id: { $in: classObjectIds } })
+            .toArray();
+
+          if (existingClasses.length !== updateData.classes.length) {
+            // Find which class IDs are invalid
+            const existingIds = existingClasses.map(c => c._id.toString());
+            const invalidIds = updateData.classes
+              .map(id => typeof id === 'string' ? id : id.toString())
+              .filter(id => !existingIds.includes(id));
+
+            console.warn(`Warning: The following class IDs were not found in database: ${invalidIds.join(', ')}`);
+          }
+        } catch (err) {
+          console.warn('Warning: Could not validate class IDs:', err.message);
         }
       }
 
