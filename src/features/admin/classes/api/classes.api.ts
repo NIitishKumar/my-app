@@ -52,7 +52,7 @@ const mapScheduleToDTO = (schedule: ClassSchedule): ClassScheduleDTO => ({
   end_date: schedule.endDate.toISOString().split('T')[0],
 });
 
-const mapClassToDomain = (dto: ClassDTO): Class => ({
+const _mapClassToDomain = (dto: ClassDTO): Class => ({
   id: dto.id,
   className: dto.class_name,
   subjects: dto.subjects,
@@ -69,7 +69,7 @@ const mapClassToDomain = (dto: ClassDTO): Class => ({
   updatedAt: new Date(dto.updated_at),
 });
 
-const mapCreateClassToDTO = (data: CreateClassData): CreateClassDTO => ({
+const _mapCreateClassToDTO = (data: CreateClassData): CreateClassDTO => ({
   class_name: data.className,
   subjects: data.subjects,
   grade: data.grade,
