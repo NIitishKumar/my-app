@@ -17,11 +17,11 @@ interface AttendanceTabProps {
   className?: string;
 }
 
-export const AttendanceTab = ({ classId, className }: AttendanceTabProps) => {
+export const AttendanceTab = ({ classId }: AttendanceTabProps) => {
   const navigate = useNavigate();
   const [activeView, setActiveView] = useState<'summary' | 'records'>('summary');
   const { data: allRecords = [], isLoading } = useClassAttendance(classId);
-  const { stats } = useAttendanceStats(classId);
+  useAttendanceStats(classId);
 
   // Get recent records (last 5)
   const recentRecords = sortByDate(allRecords, false).slice(0, 5);

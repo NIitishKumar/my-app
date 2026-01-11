@@ -151,7 +151,8 @@ const mapUpdateLectureDataToApi = (data: Partial<CreateLectureData>): Partial<Le
   if (data.teacher) {
     // If teacherId is provided or teacher is a string, use it; otherwise use teacher object
     if (typeof data.teacher === 'string' || data.teacherId) {
-      payload.teacher = data.teacherId || data.teacher;
+      // For update, teacher can be passed as ID string in the API
+      (payload as any).teacherId = data.teacherId || data.teacher;
     } else {
       payload.teacher = {
         firstName: data.teacher.firstName,
@@ -172,7 +173,7 @@ const mapUpdateLectureDataToApi = (data: Partial<CreateLectureData>): Partial<Le
   }
   
   if (data.classId !== undefined) {
-    payload.classId = data.classId;
+    (payload as any).classId = data.classId;
   }
   
   if (data.lectureGroup !== undefined) {

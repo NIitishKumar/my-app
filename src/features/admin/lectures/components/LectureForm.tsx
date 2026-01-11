@@ -15,7 +15,7 @@ import {
   TIME_OPTIONS,
   VALIDATION,
 } from '../constants/lectures.constants';
-import { formatDateForInput, getDefaultLectureFormData, calculateDuration } from '../utils/lectures.utils';
+import { getDefaultLectureFormData, calculateDuration } from '../utils/lectures.utils';
 import type { CreateLectureData, Lecture, LectureMaterial } from '../types/lectures.types';
 
 interface LectureFormProps {
@@ -91,7 +91,7 @@ export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: Lect
     if (!teacherSearchTerm.trim()) return teachers;
     const searchLower = teacherSearchTerm.toLowerCase();
     return teachers.filter(
-      (teacher) =>
+      (teacher: any) =>
         teacher.firstName.toLowerCase().includes(searchLower) ||
         teacher.lastName.toLowerCase().includes(searchLower) ||
         teacher.email.toLowerCase().includes(searchLower) ||
@@ -118,7 +118,7 @@ export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: Lect
     if (foundById) return foundById.id;
     // Fallback to name matching
     const foundByName = teachers.find(
-      (t) =>
+      (t: any) =>
         t.firstName === initialData.teacher.firstName &&
         t.lastName === initialData.teacher.lastName
     );
@@ -201,7 +201,7 @@ export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: Lect
 
   // Handle teacher selection
   const handleTeacherChange = (teacherId: string) => {
-    const selectedTeacher = teachers.find((t) => t.id === teacherId);
+    const selectedTeacher = teachers.find((t: any) => t.id === teacherId);
     if (selectedTeacher) {
       formik.setFieldValue('selectedTeacherId', teacherId);
       formik.setFieldValue('teacher', {
@@ -242,16 +242,16 @@ export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: Lect
       type: 'document',
       url: '',
     };
-    formik.setFieldValue('materials', [...formik.values.materials, newMaterial]);
+    formik.setFieldValue('materials', [...(formik.values.materials || []), newMaterial]);
   };
 
   const handleRemoveMaterial = (index: number) => {
-    const newMaterials = formik.values.materials.filter((_, i) => i !== index);
+    const newMaterials = (formik.values.materials || []).filter((_, i) => i !== index);
     formik.setFieldValue('materials', newMaterials);
   };
 
   const handleMaterialChange = (index: number, field: keyof LectureMaterial, value: string) => {
-    const newMaterials = [...formik.values.materials];
+    const newMaterials = [...(formik.values.materials || [])];
     newMaterials[index] = { ...newMaterials[index], [field]: value };
     formik.setFieldValue('materials', newMaterials);
   };
@@ -463,7 +463,7 @@ export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: Lect
                     type="text"
                     placeholder={isLoadingTeachers ? 'Loading teachers...' : 'Search and select teacher'}
                     value={
-                      formik.values.selectedTeacherId && !teacherSearchTerm
+                      formik.values.selectedTeacherId && !teacherSearchTerm && typeof formik.values.teacher !== 'string'
                         ? `${formik.values.teacher.firstName} ${formik.values.teacher.lastName}`
                         : teacherSearchTerm
                     }
@@ -489,7 +489,7 @@ export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: Lect
                   )}
                   {(teacherSearchTerm || !formik.values.selectedTeacherId) && filteredTeachers.length > 0 && (
                     <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                      {filteredTeachers.map((teacher) => (
+                      {filteredTeachers.map((teacher: any) => (
                         <button
                           key={teacher.id}
                           type="button"

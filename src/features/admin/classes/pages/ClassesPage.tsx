@@ -136,7 +136,7 @@ export const ClassesPage = () => {
     } else {
       console.log('Creating new class');
       createClass.mutate(data, {
-        onSuccess: (result, variables, context) => {
+        onSuccess: (result) => {
           console.log('Class created successfully:', result);
           // Show success toast message (use API message if available)
           addToast({

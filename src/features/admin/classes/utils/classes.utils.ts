@@ -2,7 +2,7 @@
  * Classes Utility Functions
  */
 
-import type { Class, CreateClassData, ClassSchedule } from '../types/classes.types';
+import type { Class, CreateClassData } from '../types/classes.types';
 import { VALIDATION } from '../constants/classes.constants';
 
 /**

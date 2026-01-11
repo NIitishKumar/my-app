@@ -4,7 +4,7 @@
 
 import type { Class } from '../types/classes.types';
 import { TeacherAvatar } from './TeacherAvatar';
-import { getTeacherInitials, getTeacherPrefix, getTeacherNameWithoutPrefix } from '../utils/classes.utils';
+import { getTeacherInitials } from '../utils/classes.utils';
 
 interface ClassTableProps {
   classes: Class[];
@@ -14,18 +14,6 @@ interface ClassTableProps {
 }
 
 export const ClassTable = ({ classes, onView, onEdit, onDelete }: ClassTableProps) => {
-  const formatTeacherName = (classItem: Class): string => {
-    const initials = getTeacherInitials(classItem.classHead.firstName, classItem.classHead.lastName);
-    const fullName = `${classItem.classHead.firstName} ${classItem.classHead.lastName}`;
-    // Determine prefix based on name or use a default
-    let prefix = 'Mr.';
-    if (fullName.includes('Dr.')) prefix = 'Dr.';
-    else if (fullName.includes('Ms.')) prefix = 'Ms.';
-    else if (fullName.includes('Mrs.')) prefix = 'Mrs.';
-    
-    return `${initials} ${prefix} ${classItem.classHead.firstName} ${classItem.classHead.lastName}`;
-  };
-
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
@@ -85,7 +73,7 @@ export const ClassTable = ({ classes, onView, onEdit, onDelete }: ClassTableProp
           {classes.map((classItem) => {
             const initials = getTeacherInitials(classItem.classHead.firstName, classItem.classHead.lastName);
             let prefix = 'Mr.';
-            const fullName = `${classItem.classHead.firstName} ${classItem.classHead.lastName}`;
+            // const fullName = `${classItem.classHead.firstName} ${classItem.classHead.lastName}`;
             if (classItem.classHead.firstName === 'Sarah' && classItem.classHead.lastName === 'Miller') prefix = 'Dr.';
             else if (classItem.classHead.firstName === 'Emily' && classItem.classHead.lastName === 'Davis') prefix = 'Ms.';
             

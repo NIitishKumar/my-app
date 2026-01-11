@@ -10,8 +10,6 @@ import { useStudentDetails } from '../../students/hooks/useStudentDetails';
 import { useLectureDetails } from '../../lectures/hooks/useLectureDetails';
 import { AttendanceTab } from '../attendance/components/AttendanceTab';
 import { formatDateForInput } from '../utils/classes.utils';
-import type { Student } from '../../students/types/students.types';
-import type { Lecture } from '../../lectures/types/lectures.types';
 
 // Component to fetch and display a single student
 const StudentDetailItem = ({ studentId }: { studentId: string }) => {
