@@ -4,7 +4,6 @@
  */
 
 import { useAttendanceStats } from '../hooks/useAttendanceStats';
-import type { AttendanceStats as AttendanceStatsType } from '../types/attendance.types';
 
 interface AttendanceStatsProps {
   classId: string;

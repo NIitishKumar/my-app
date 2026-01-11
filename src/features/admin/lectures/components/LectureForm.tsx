@@ -114,7 +114,7 @@ export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: Lect
   const initialTeacherId = useMemo(() => {
     if (!initialData || teachers.length === 0) return '';
     // Try to find by employeeId first (most reliable)
-    const foundById = teachers.find((t) => t.employeeId === initialData.teacher.teacherId);
+    const foundById = teachers.find((t: any) => t.employeeId === initialData.teacher.teacherId);
     if (foundById) return foundById.id;
     // Fallback to name matching
     const foundByName = teachers.find(
