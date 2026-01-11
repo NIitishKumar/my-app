@@ -21,13 +21,11 @@ const { auditMiddleware } = require('../utils/auditLog');
 // Apply authentication to all routes
 router.use(authenticateToken);
 
-// Apply admin verification to all routes
-router.use(verifyAdmin);
-
 // All routes are prefixed with /subjects when mounted
 // So GET /api/admin/subjects becomes router.get('/')
 
 // GET / - List all subjects (with pagination, search, filtering)
+// Accessible by all authenticated users (ADMIN, TEACHER, PARENT, STUDENT)
 router.get('/',
   validateSubjectQuery,
   readRateLimiter,
@@ -35,6 +33,7 @@ router.get('/',
 );
 
 // GET /:id - Get single subject by ID
+// Accessible by all authenticated users (ADMIN, TEACHER, PARENT, STUDENT)
 router.get('/:id',
   validateObjectId('id'),
   readRateLimiter,
@@ -42,7 +41,9 @@ router.get('/:id',
 );
 
 // POST / - Create new subject
+// Admin only
 router.post('/',
+  verifyAdmin,
   validateSubjectCreation,
   mutateRateLimiter,
   auditMiddleware('create'),
@@ -50,7 +51,9 @@ router.post('/',
 );
 
 // PUT /:id - Update subject
+// Admin only
 router.put('/:id',
+  verifyAdmin,
   validateObjectId('id'),
   validateSubjectUpdate,
   mutateRateLimiter,
@@ -59,7 +62,9 @@ router.put('/:id',
 );
 
 // DELETE /:id - Delete subject
+// Admin only
 router.delete('/:id',
+  verifyAdmin,
   validateObjectId('id'),
   mutateRateLimiter,
   auditMiddleware('delete'),
