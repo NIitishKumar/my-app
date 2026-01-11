@@ -52,22 +52,6 @@ const mapScheduleToDTO = (schedule: ClassSchedule): ClassScheduleDTO => ({
   end_date: schedule.endDate.toISOString().split('T')[0],
 });
 
-const _mapClassToDomain = (dto: ClassDTO): Class => ({
-  id: dto.id,
-  className: dto.class_name,
-  subjects: dto.subjects,
-  grade: dto.grade,
-  roomNo: dto.room_no,
-  capacity: dto.capacity,
-  enrolled: dto.enrolled,
-  students: dto.students,
-  classHead: mapClassHeadToDomain(dto.class_head),
-  lectures: dto.lectures,
-  schedule: mapScheduleToDomain(dto.schedule),
-  isActive: dto.is_active,
-  createdAt: new Date(dto.created_at),
-  updatedAt: new Date(dto.updated_at),
-});
 
 const _mapCreateClassToDTO = (data: CreateClassData): CreateClassDTO => ({
   class_name: data.className,
@@ -85,20 +69,6 @@ const _mapCreateClassToDTO = (data: CreateClassData): CreateClassDTO => ({
 
 // Mapper for actual API response (camelCase with _id)
 const mapClassHeadApiToDomain = (api: ClassHeadApiDTO | null | undefined): ClassHead => {
-  // Provide default values instead of throwing error
-  if (!api) {
-    return {
-      firstName: '',
-      lastName: '',
-      email: '',
-      employeeId: '',
-    };
-  }
-  return {
-    firstName: api.firstName || '',
-    lastName: api.lastName || '',
-    email: api.email || '',
-    employeeId: api.employeeId || '',
   };
 };
 
