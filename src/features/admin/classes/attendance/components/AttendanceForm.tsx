@@ -7,11 +7,10 @@ import { useState, useMemo, useEffect } from 'react';
 import { useClassDetails } from '../../hooks/useClassDetails';
 import { useStudents } from '../../../students/hooks/useStudents';
 import { useLectures } from '../../../lectures/hooks/useLectures';
-import { useStudentDetails } from '../../../students/hooks/useStudentDetails';
 import { useAttendanceByDate } from '../hooks/useAttendanceByDate';
 import { useMarkAttendance, useUpdateAttendance } from '../hooks/useMarkAttendance';
 import { ATTENDANCE_STATUS_OPTIONS, BULK_ACTIONS } from '../constants/attendance.constants';
-import { getTodayDateString, formatDateForInput, isAttendanceMarked } from '../utils/attendance.utils';
+import { getTodayDateString } from '../utils/attendance.utils';
 import { useUIStore } from '../../../../../store/ui.store';
 import type { MarkAttendanceData, AttendanceStatus } from '../types/attendance.types';
 
