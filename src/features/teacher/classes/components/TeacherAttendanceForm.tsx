@@ -151,7 +151,7 @@ export const TeacherAttendanceForm = ({
     };
 
     try {
-      if (existingAttendance) {
+      if (existingAttendance?.id) {
         // Update existing attendance
         await updateAttendance.mutateAsync({
           recordId: existingAttendance.id,

@@ -29,16 +29,16 @@ export const attendanceApi = {
     filters?: AttendanceFilters
   ): Promise<AttendanceRecord[]> => {
     try {
-      // Build query params
+      // Build query params (camelCase as per API docs)
       const params = new URLSearchParams();
       if (filters?.startDate) {
-        params.append('start_date', filters.startDate.toISOString().split('T')[0]);
+        params.append('startDate', filters.startDate.toISOString().split('T')[0]);
       }
       if (filters?.endDate) {
-        params.append('end_date', filters.endDate.toISOString().split('T')[0]);
+        params.append('endDate', filters.endDate.toISOString().split('T')[0]);
       }
       if (filters?.lectureId) {
-        params.append('lecture_id', filters.lectureId);
+        params.append('lectureId', filters.lectureId);
       }
       if (filters?.status) {
         params.append('status', filters.status);
@@ -181,17 +181,34 @@ export const attendanceApi = {
       const { recordId, ...updateData } = data;
       const classId = updateData.classId || '';
 
-      // Convert to DTO format if needed
-      const payload: any = {};
+      if (!recordId) {
+        throw new Error('recordId is required for updating attendance');
+      }
+
+      if (!classId) {
+        throw new Error('classId is required for updating attendance');
+      }
+
+      // Convert to API format (camelCase as per API docs)
+      const payload: {
+        date?: string;
+        students?: Array<{
+          studentId: string;
+          status: string;
+          remarks?: string;
+        }>;
+        lectureId?: string;
+        version?: number;
+      } = {};
       if (updateData.date) {
         payload.date = updateData.date;
       }
       if (updateData.lectureId !== undefined) {
-        payload.lecture_id = updateData.lectureId;
+        payload.lectureId = updateData.lectureId;
       }
       if (updateData.students) {
         payload.students = updateData.students.map((student) => ({
-          student_id: student.studentId,
+          studentId: student.studentId,
           status: student.status,
           remarks: student.remarks,
         }));

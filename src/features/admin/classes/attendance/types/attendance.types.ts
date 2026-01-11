@@ -90,14 +90,13 @@ export interface AttendanceRecordDTO {
 }
 
 export interface MarkAttendanceDTO {
-  class_id: string;
   date: string;
-  lecture_id?: string;
   students: {
-    student_id: string;
+    studentId: string;
     status: 'present' | 'absent' | 'late' | 'excused';
     remarks?: string;
   }[];
+  lectureId?: string;
 }
 
 // Actual API Response Types (camelCase with _id)

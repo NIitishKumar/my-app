@@ -15,7 +15,7 @@ import { TeacherDashboard } from '../features/teacher/dashboard/TeacherDashboard
 import { TeacherClassesPage } from '../features/teacher/classes/pages/TeacherClassesPage';
 import { TeacherClassDetailPage } from '../features/teacher/classes/pages/TeacherClassDetailPage';
 import { TeacherAttendancePage } from '../features/teacher/classes/pages/TeacherAttendancePage';
-import { Attendance as TeacherAttendance } from '../features/teacher/attendance/Attendance';
+import { AttendancePage as TeacherAttendance } from '../features/teacher/attendance';
 import { Queries as TeacherQueries } from '../features/teacher/queries/Queries';
 import { StudentDashboard } from '../features/student/dashboard/StudentDashboard';
 import { Exams } from '../features/student/exams/Exams';

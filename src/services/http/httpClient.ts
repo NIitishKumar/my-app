@@ -5,7 +5,7 @@
 
 import { AxiosError, type AxiosResponse } from 'axios';
 import { apiClient } from '../api';
-import type { ApiError } from '../../shared/types/api.types';
+import type { ApiError, BackendErrorResponse } from '../../shared/types/api.types';
 
 class HttpClient {
   /**
@@ -77,12 +77,56 @@ class HttpClient {
 
   /**
    * Handle error response
+   * Supports both backend error format and standard axios errors
    */
   private handleError(error: unknown): ApiError {
     if (error instanceof AxiosError) {
       const status = error.response?.status || 500;
-      const message = error.response?.data?.message || error.message || 'An error occurred';
-      const code = error.response?.data?.code || error.code || 'UNKNOWN_ERROR';
+      const responseData = error.response?.data;
+      
+      // Check if response follows backend error format
+      if (responseData && typeof responseData === 'object' && 'success' in responseData && responseData.success === false) {
+        const backendError = responseData as BackendErrorResponse;
+        const errorInfo = backendError.error;
+        
+        // Enhanced error messages based on status code
+        let userMessage = errorInfo.message;
+        switch (status) {
+          case 401:
+            userMessage = 'Your session has expired. Please login again.';
+            break;
+          case 403:
+            userMessage = errorInfo.message || 'You do not have permission to access this resource.';
+            break;
+          case 404:
+            userMessage = errorInfo.message || 'The requested resource was not found.';
+            break;
+          case 409:
+            userMessage = errorInfo.message || 'This record already exists.';
+            break;
+          case 422:
+            userMessage = errorInfo.message || 'Please check your input data and try again.';
+            break;
+          case 500:
+            userMessage = 'Server error. Please try again later.';
+            break;
+          case 503:
+            userMessage = 'Service temporarily unavailable. Please try again later.';
+            break;
+        }
+
+        return {
+          message: userMessage,
+          code: errorInfo.code,
+          status,
+          originalMessage: errorInfo.message,
+          details: errorInfo.details,
+        };
+      }
+      
+      // Fallback to standard error handling
+      const message = responseData?.message || error.message || 'An error occurred';
+      const code = responseData?.code || error.code || 'UNKNOWN_ERROR';
       
       // Enhanced error messages based on status code
       let userMessage = message;
@@ -91,16 +135,16 @@ class HttpClient {
           userMessage = 'Your session has expired. Please login again.';
           break;
         case 403:
-          userMessage = error.response?.data?.message || 'You do not have permission to access this resource.';
+          userMessage = responseData?.message || 'You do not have permission to access this resource.';
           break;
         case 404:
-          userMessage = error.response?.data?.message || 'The requested resource was not found.';
+          userMessage = responseData?.message || 'The requested resource was not found.';
           break;
         case 409:
-          userMessage = error.response?.data?.message || 'This record already exists.';
+          userMessage = responseData?.message || 'This record already exists.';
           break;
         case 422:
-          userMessage = error.response?.data?.message || 'Please check your input data and try again.';
+          userMessage = responseData?.message || 'Please check your input data and try again.';
           break;
         case 500:
           userMessage = 'Server error. Please try again later.';
@@ -114,8 +158,8 @@ class HttpClient {
         message: userMessage,
         code,
         status,
-        // Include original error for debugging
         originalMessage: message,
+        details: responseData?.details,
       };
     }
 

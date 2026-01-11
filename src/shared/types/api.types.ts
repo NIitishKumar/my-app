@@ -21,6 +21,35 @@ export interface ApiError {
   code: string;
   status: number;
   originalMessage?: string; // Original error message for debugging
+  details?: Array<{
+    field: string;
+    message: string;
+  }>;
+}
+
+/**
+ * Backend Error Response Format
+ * Matches the backend API error structure
+ */
+export interface BackendErrorResponse {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    details?: Array<{
+      field: string;
+      message: string;
+    }>;
+  };
+}
+
+/**
+ * Backend Success Response Format
+ */
+export interface BackendSuccessResponse<T> {
+  success: true;
+  data: T;
+  message?: string;
 }
 
 export interface ListParams {

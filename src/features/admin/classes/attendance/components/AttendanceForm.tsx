@@ -62,10 +62,10 @@ export const AttendanceForm = ({
 
   // Initialize student statuses from existing attendance or default to 'present'
   useEffect(() => {
-    if (existingAttendance?.data) {
+    if (existingAttendance) {
       const statuses: Record<string, AttendanceStatus> = {};
       const remarks: Record<string, string> = {};
-      existingAttendance?.data?.students.forEach((student) => {
+      existingAttendance.students.forEach((student) => {
         statuses[student.studentId] = student.status;
         if (student.remarks) {
           remarks[student.studentId] = student.remarks;
@@ -81,7 +81,7 @@ export const AttendanceForm = ({
       });
       setStudentStatuses(defaultStatuses);
     }
-  }, [existingAttendance?.data, classStudents]);
+  }, [existingAttendance, classStudents]);
 
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
     setStudentStatuses((prev) => ({
@@ -140,11 +140,10 @@ export const AttendanceForm = ({
     };
 
     try {
-      if (existingAttendance?.data) {
+      if (existingAttendance?.id) {
         // Update existing attendance
         await updateAttendance.mutateAsync({
-          recordId: existingAttendance.data.id,
-          classId,
+          recordId: existingAttendance.id,
           ...data,
         });
         addToast({
@@ -406,7 +405,7 @@ export const AttendanceForm = ({
             ) : (
               <>
                 <i className="fas fa-save"></i>
-                <span>{existingAttendance?.data ? 'Update Attendance' : 'Mark Attendance'}</span>
+                <span>{existingAttendance ? 'Update Attendance' : 'Mark Attendance'}</span>
               </>
             )}
           </button>

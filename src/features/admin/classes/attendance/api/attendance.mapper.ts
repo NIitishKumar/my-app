@@ -44,14 +44,13 @@ export const mapStudentAttendanceToDTO = (model: StudentAttendance): StudentAtte
 });
 
 export const mapMarkAttendanceToDTO = (data: MarkAttendanceData): MarkAttendanceDTO => ({
-  class_id: data.classId,
   date: data.date,
-  lecture_id: data.lectureId,
   students: data.students.map((student) => ({
-    student_id: student.studentId,
+    studentId: student.studentId,
     status: student.status,
     remarks: student.remarks,
   })),
+  lectureId: data.lectureId,
 });
 
 // Map API Response (camelCase with _id) to Domain Model
@@ -69,7 +68,7 @@ export const mapAttendanceRecordApiToDomain = (api: AttendanceRecordApiDTO): Att
   date: new Date(api.date),
   lectureId: api.lectureId,
   lectureTitle: api.lectureTitle,
-  students: api.students.map(mapStudentAttendanceApiToDomain),
+  students: (api.students || []).map(mapStudentAttendanceApiToDomain),
   submittedBy: api.submittedBy,
   submittedAt: api.submittedAt ? new Date(api.submittedAt) : undefined,
   createdAt: new Date(api.createdAt),
