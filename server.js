@@ -67,7 +67,7 @@ app.use('/api/teacher', teacherAttendanceRoutes);
 app.use('/api/admin', adminAttendanceRoutes);
 app.use('/api/attendance', statisticsRoutes);
 app.use('/api/admin', exportRoutes);
-app.use('/api/admin/subjects', subjectRoutes);
+app.use('/api/subjects', subjectRoutes);
 
 // 404 handler - must be after all routes
 app.use(notFoundHandler);
