@@ -237,7 +237,10 @@ const createAttendance = async (req, res) => {
     // Validate students and populate names
     const validatedStudents = [];
     for (const student of students) {
-      if (!student.student_id) {
+      // Support both student_id and studentId for flexibility
+      const studentId = student.student_id || student.studentId;
+
+      if (!studentId) {
         return res.status(400).json({
           success: false,
           message: 'Each student must have student_id'
@@ -247,33 +250,33 @@ const createAttendance = async (req, res) => {
       if (!isValidStatus(student.status)) {
         return res.status(400).json({
           success: false,
-          message: `Invalid status for student ${student.student_id}. Must be: present, absent, late, or excused`
+          message: `Invalid status for student ${studentId}. Must be: present, absent, late, or excused`
         });
       }
 
-      if (!ObjectId.isValid(student.student_id)) {
+      if (!ObjectId.isValid(studentId)) {
         return res.status(400).json({
           success: false,
-          message: `Invalid student ID: ${student.student_id}`
+          message: `Invalid student ID: ${studentId}`
         });
       }
 
       // Check if student exists and is enrolled in this class
       const studentData = await db.collection('students').findOne({
-        _id: new ObjectId(student.student_id)
+        _id: new ObjectId(studentId)
       });
 
       if (!studentData) {
         return res.status(404).json({
           success: false,
-          message: `Student not found: ${student.student_id}`
+          message: `Student not found: ${studentId}`
         });
       }
 
       // Check if student is enrolled in this class
       const classStudents = classData.students || [];
       const isEnrolled = classStudents.some(s =>
-        s.toString() === student.student_id
+        s.toString() === studentId
       );
 
       if (!isEnrolled) {
@@ -284,7 +287,7 @@ const createAttendance = async (req, res) => {
       }
 
       validatedStudents.push({
-        studentId: new ObjectId(student.student_id),
+        studentId: new ObjectId(studentId),
         studentName: `${studentData.firstName} ${studentData.lastName}`,
         studentIdNumber: studentData.studentId || null,
         status: student.status,
@@ -445,6 +448,19 @@ const updateAttendance = async (req, res) => {
 
       validatedStudents = [];
       for (const student of students) {
+        // Support both student_id and studentId for flexibility
+        const studentId = student.student_id || student.studentId;
+
+        if (!studentId) {
+          return res.status(400).json({
+            success: false,
+            error: {
+              code: 'VALIDATION_ERROR',
+              message: 'Each student must have student_id or studentId'
+            }
+          });
+        }
+
         if (!isValidStatus(student.status)) {
           return res.status(400).json({
             success: false,
@@ -457,14 +473,14 @@ const updateAttendance = async (req, res) => {
 
         // Get student name
         const studentData = await db.collection('students').findOne({
-          _id: new ObjectId(student.student_id)
+          _id: new ObjectId(studentId)
         });
 
         validatedStudents.push({
-          studentId: new ObjectId(student.student_id),
+          studentId: new ObjectId(studentId),
           studentName: studentData ?
             `${studentData.firstName} ${studentData.lastName}` :
-            existingAttendance.students.find(s => s.studentId.toString() === student.student_id)?.studentName || 'Unknown',
+            existingAttendance.students.find(s => s.studentId.toString() === studentId)?.studentName || 'Unknown',
           studentIdNumber: studentData?.studentId || null,
           status: student.status,
           remarks: student.remarks || null,
