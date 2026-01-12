@@ -12,6 +12,10 @@ import { TeachersPage } from '../features/admin/teachers';
 import { StudentsPage } from '../features/admin/students';
 import { LecturesPage, LectureDetailsPage } from '../features/admin/lectures';
 import { SubjectsPage, SubjectDetailsPage } from '../features/admin/subjects';
+import { NoticesPage } from '../features/admin/notices/pages/NoticesPage';
+import { ExamsPage } from '../features/admin/exams/pages/ExamsPage';
+import { ReportsPage } from '../features/admin/reports/pages/ReportsPage';
+import { SettingsPage } from '../features/admin/settings/pages/SettingsPage';
 import { TeacherDashboard } from '../features/teacher/dashboard/TeacherDashboard';
 import { TeacherClassesPage } from '../features/teacher/classes/pages/TeacherClassesPage';
 import { TeacherClassDetailPage } from '../features/teacher/classes/pages/TeacherClassDetailPage';
@@ -55,6 +59,10 @@ export const AppRoutes = () => {
         <Route path="lectures/:id" element={<LectureDetailsPage />} />
         <Route path="subjects" element={<SubjectsPage />} />
         <Route path="subjects/:id" element={<SubjectDetailsPage />} />
+        <Route path="notices" element={<NoticesPage />} />
+        <Route path="exams" element={<ExamsPage />} />
+        <Route path="reports" element={<ReportsPage />} />
+        <Route path="settings" element={<SettingsPage />} />
         <Route index element={<Navigate to={ROUTES.ADMIN_DASHBOARD} replace />} />
       </Route>
 

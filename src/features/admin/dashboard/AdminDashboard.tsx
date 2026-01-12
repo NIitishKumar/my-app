@@ -1,4 +1,6 @@
+import { useNavigate } from 'react-router-dom';
 import { useQuickStats, useDashboardStats } from './hooks/useDashboard';
+import { ROUTES } from '../../../shared/constants';
 
 /**
  * Format number with commas
@@ -48,6 +50,7 @@ const formatTimeRange = (startTime: string, endTime: string): string => {
 };
 
 export const AdminDashboard = () => {
+  const navigate = useNavigate();
   const { data: quickStats, isLoading: isLoadingQuick, error: quickError } = useQuickStats();
   const { data: dashboardStats, isLoading: isLoadingStats, error: statsError } = useDashboardStats();
 
@@ -100,13 +103,71 @@ export const AdminDashboard = () => {
   ] : [];
 
   const quickActions = [
-    { title: 'Add Class', icon: 'fa-chalkboard', bgColor: 'bg-indigo-100', hoverColor: 'hover:border-indigo-300 hover:bg-indigo-50', iconColor: 'text-indigo-600', groupHover: 'group-hover:bg-indigo-200' },
-    { title: 'Add Teacher', icon: 'fa-user-plus', bgColor: 'bg-purple-100', hoverColor: 'hover:border-purple-300 hover:bg-purple-50', iconColor: 'text-purple-600', groupHover: 'group-hover:bg-purple-200' },
-    { title: 'Create Notice', icon: 'fa-bullhorn', bgColor: 'bg-cyan-100', hoverColor: 'hover:border-cyan-300 hover:bg-cyan-50', iconColor: 'text-cyan-600', groupHover: 'group-hover:bg-cyan-200' },
-    { title: 'Schedule Exam', icon: 'fa-calendar-plus', bgColor: 'bg-green-100', hoverColor: 'hover:border-green-300 hover:bg-green-50', iconColor: 'text-green-600', groupHover: 'group-hover:bg-green-200' },
-    { title: 'Generate Report', icon: 'fa-file-invoice', bgColor: 'bg-orange-100', hoverColor: 'hover:border-orange-300 hover:bg-orange-50', iconColor: 'text-orange-600', groupHover: 'group-hover:bg-orange-200' },
-    { title: 'Settings', icon: 'fa-cog', bgColor: 'bg-red-100', hoverColor: 'hover:border-red-300 hover:bg-red-50', iconColor: 'text-red-600', groupHover: 'group-hover:bg-red-200' },
+    { 
+      title: 'Add Class', 
+      icon: 'fa-chalkboard', 
+      bgColor: 'bg-indigo-100', 
+      hoverColor: 'hover:border-indigo-300 hover:bg-indigo-50', 
+      iconColor: 'text-indigo-600', 
+      groupHover: 'group-hover:bg-indigo-200',
+      route: ROUTES.ADMIN_CLASSES,
+      openForm: true,
+    },
+    { 
+      title: 'Add Teacher', 
+      icon: 'fa-user-plus', 
+      bgColor: 'bg-purple-100', 
+      hoverColor: 'hover:border-purple-300 hover:bg-purple-50', 
+      iconColor: 'text-purple-600', 
+      groupHover: 'group-hover:bg-purple-200',
+      route: ROUTES.ADMIN_TEACHERS,
+      openForm: true,
+    },
+    { 
+      title: 'Create Notice', 
+      icon: 'fa-bullhorn', 
+      bgColor: 'bg-cyan-100', 
+      hoverColor: 'hover:border-cyan-300 hover:bg-cyan-50', 
+      iconColor: 'text-cyan-600', 
+      groupHover: 'group-hover:bg-cyan-200',
+      route: ROUTES.ADMIN_NOTICES,
+    },
+    { 
+      title: 'Schedule Exam', 
+      icon: 'fa-calendar-plus', 
+      bgColor: 'bg-green-100', 
+      hoverColor: 'hover:border-green-300 hover:bg-green-50', 
+      iconColor: 'text-green-600', 
+      groupHover: 'group-hover:bg-green-200',
+      route: ROUTES.ADMIN_EXAMS,
+    },
+    { 
+      title: 'Generate Report', 
+      icon: 'fa-file-invoice', 
+      bgColor: 'bg-orange-100', 
+      hoverColor: 'hover:border-orange-300 hover:bg-orange-50', 
+      iconColor: 'text-orange-600', 
+      groupHover: 'group-hover:bg-orange-200',
+      route: ROUTES.ADMIN_REPORTS,
+    },
+    { 
+      title: 'Settings', 
+      icon: 'fa-cog', 
+      bgColor: 'bg-red-100', 
+      hoverColor: 'hover:border-red-300 hover:bg-red-50', 
+      iconColor: 'text-red-600', 
+      groupHover: 'group-hover:bg-red-200',
+      route: ROUTES.ADMIN_SETTINGS,
+    },
   ];
+
+  const handleQuickActionClick = (action: typeof quickActions[0]) => {
+    if (action.openForm) {
+      navigate(action.route, { state: { openForm: true } });
+    } else {
+      navigate(action.route);
+    }
+  };
 
   // Build recent activities from API data
   const recentActivities = dashboardStats ? [
@@ -230,7 +291,8 @@ export const AdminDashboard = () => {
           {quickActions.map((action, index) => (
             <button
               key={index}
-              className={`flex flex-col items-center justify-center p-4 border-2 border-gray-200 rounded-xl ${action.hoverColor} transition-all group`}
+              onClick={() => handleQuickActionClick(action)}
+              className={`flex flex-col items-center justify-center p-4 border-2 border-gray-200 rounded-xl ${action.hoverColor} transition-all group cursor-pointer`}
             >
               <div className={`w-12 h-12 ${action.bgColor} rounded-xl flex items-center justify-center mb-2 ${action.groupHover} transition-colors`}>
                 <i className={`fas ${action.icon} ${action.iconColor} text-xl`}></i>

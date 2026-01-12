@@ -43,6 +43,18 @@ export const ClassesPage = () => {
       }
     }
   }, [location.state, allClasses]);
+
+  // Handle openForm from navigation state (for Quick Actions)
+  useEffect(() => {
+    const shouldOpenForm = (location.state as any)?.openForm;
+    if (shouldOpenForm) {
+      setEditingClass(undefined);
+      setEditingClassId(undefined);
+      setShowForm(true);
+      // Clear the state to prevent re-triggering
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
   
   // Fetch class details when editing
   const { 
