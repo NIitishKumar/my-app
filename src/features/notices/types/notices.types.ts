@@ -50,9 +50,9 @@ export interface NoticeApiDTO {
   priority: string;
   status: string;
   publishAt: string;
-  expiresAt?: string;
-  attachmentUrl?: string;
-  attachmentName?: string;
+  expiresAt?: string | null;
+  attachmentUrl?: string | null;
+  attachmentName?: string | null;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
