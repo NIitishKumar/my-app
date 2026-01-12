@@ -505,67 +505,89 @@ export const TeacherAttendanceForm = ({
                   <p>No students found matching "{searchTerm}"</p>
                 </div>
               ) : (
-                filteredStudents.map((student) => (
-                <div
-                  key={student.id}
-                  className="p-4 border border-gray-200 rounded-lg hover:border-indigo-300 transition-colors"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h4 className="text-sm font-semibold text-gray-900">
-                        {student.firstName} {student.lastName}
-                      </h4>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {student.studentId} • {student.email}
-                      </p>
+                filteredStudents.map((student) => {
+                  const hasExistingAttendance = existingAttendance !== null && existingAttendance !== undefined;
+                  
+                  return (
+                    <div
+                      key={student.id}
+                      className={`p-4 border rounded-lg transition-colors ${
+                        hasExistingAttendance
+                          ? 'border-indigo-300 bg-indigo-50/30'
+                          : 'border-gray-200 hover:border-indigo-300'
+                      }`}
+                    >
+                      {hasExistingAttendance && (
+                        <div className="mb-2 flex items-center text-xs text-indigo-600 font-medium">
+                          <i className="fas fa-check-circle mr-1"></i>
+                          <span>Attendance already marked</span>
+                        </div>
+                      )}
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="text-sm font-semibold text-gray-900">
+                            {student.firstName} {student.lastName}
+                          </h4>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {student.studentId} • {student.email}
+                          </p>
+                        </div>
+                        <div className="ml-4 flex items-center space-x-2 flex-wrap gap-2">
+                          {ATTENDANCE_STATUS_OPTIONS.map((option) => {
+                            const isSelected = studentStatuses[student.id] === option.value;
+                            const colorClasses = {
+                              green: isSelected ? 'bg-green-100 border-2 border-green-500' : 'bg-gray-50 border border-gray-200 hover:bg-gray-100',
+                              red: isSelected ? 'bg-red-100 border-2 border-red-500' : 'bg-gray-50 border border-gray-200 hover:bg-gray-100',
+                              yellow: isSelected ? 'bg-yellow-100 border-2 border-yellow-500' : 'bg-gray-50 border border-gray-200 hover:bg-gray-100',
+                              blue: isSelected ? 'bg-blue-100 border-2 border-blue-500' : 'bg-gray-50 border border-gray-200 hover:bg-gray-100',
+                            };
+                            return (
+                              <label
+                                key={option.value}
+                                className={`flex items-center space-x-1 px-2 py-1 rounded transition-colors ${
+                                  hasExistingAttendance
+                                    ? 'cursor-not-allowed opacity-60'
+                                    : `cursor-pointer ${colorClasses[option.color as keyof typeof colorClasses]}`
+                                }`}
+                              >
+                                <input
+                                  type="radio"
+                                  name={`status-${student.id}`}
+                                  value={option.value}
+                                  checked={isSelected}
+                                  onChange={() => handleStatusChange(student.id, option.value as AttendanceStatus)}
+                                  disabled={hasExistingAttendance}
+                                  className="w-3 h-3 text-indigo-600 focus:ring-indigo-500 disabled:cursor-not-allowed"
+                                />
+                                <span className="text-xs font-medium">{option.label}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <input
+                          type="text"
+                          placeholder="Remarks (optional)"
+                          value={studentRemarks[student.id] || ''}
+                          onChange={(e) => handleRemarksChange(student.id, e.target.value)}
+                          maxLength={VALIDATION.REMARKS_MAX_LENGTH}
+                          disabled={hasExistingAttendance}
+                          className={`w-full px-3 py-1.5 text-xs border rounded focus:outline-none focus:ring-1 focus:ring-indigo-500 ${
+                            hasExistingAttendance
+                              ? 'border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed'
+                              : 'border-gray-300'
+                          }`}
+                        />
+                        {studentRemarks[student.id] && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            {studentRemarks[student.id].length}/{VALIDATION.REMARKS_MAX_LENGTH} characters
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <div className="ml-4 flex items-center space-x-2 flex-wrap gap-2">
-                      {ATTENDANCE_STATUS_OPTIONS.map((option) => {
-                        const isSelected = studentStatuses[student.id] === option.value;
-                        const colorClasses = {
-                          green: isSelected ? 'bg-green-100 border-2 border-green-500' : 'bg-gray-50 border border-gray-200 hover:bg-gray-100',
-                          red: isSelected ? 'bg-red-100 border-2 border-red-500' : 'bg-gray-50 border border-gray-200 hover:bg-gray-100',
-                          yellow: isSelected ? 'bg-yellow-100 border-2 border-yellow-500' : 'bg-gray-50 border border-gray-200 hover:bg-gray-100',
-                          blue: isSelected ? 'bg-blue-100 border-2 border-blue-500' : 'bg-gray-50 border border-gray-200 hover:bg-gray-100',
-                        };
-                        return (
-                          <label
-                            key={option.value}
-                            className={`flex items-center space-x-1 px-2 py-1 rounded cursor-pointer transition-colors ${
-                              colorClasses[option.color as keyof typeof colorClasses]
-                            }`}
-                          >
-                            <input
-                              type="radio"
-                              name={`status-${student.id}`}
-                              value={option.value}
-                              checked={isSelected}
-                              onChange={() => handleStatusChange(student.id, option.value as AttendanceStatus)}
-                              className="w-3 h-3 text-indigo-600 focus:ring-indigo-500"
-                            />
-                            <span className="text-xs font-medium">{option.label}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  <div className="mt-3">
-                    <input
-                      type="text"
-                      placeholder="Remarks (optional)"
-                      value={studentRemarks[student.id] || ''}
-                      onChange={(e) => handleRemarksChange(student.id, e.target.value)}
-                      maxLength={VALIDATION.REMARKS_MAX_LENGTH}
-                      className="w-full px-3 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                    />
-                    {studentRemarks[student.id] && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        {studentRemarks[student.id].length}/{VALIDATION.REMARKS_MAX_LENGTH} characters
-                      </p>
-                    )}
-                  </div>
-                </div>
-                ))
+                  );
+                })
               )}
             </div>
           )}

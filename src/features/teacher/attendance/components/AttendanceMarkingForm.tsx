@@ -526,14 +526,23 @@ export const AttendanceMarkingForm = ({
             const status = studentStatuses[student.id] || 'present';
             const statusOption = ATTENDANCE_STATUS_OPTIONS.find((opt) => opt.value === status);
             const isSelected = selectedStudents.has(student.id);
+            const hasExistingAttendance = existingAttendance !== null && existingAttendance !== undefined;
 
             return (
               <div
                 key={student.id}
                 className={`border rounded-lg p-4 ${
-                  isSelected ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200'
+                  hasExistingAttendance
+                    ? 'border-indigo-300 bg-indigo-50/30'
+                    : isSelected ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200'
                 }`}
               >
+                {hasExistingAttendance && (
+                  <div className="mb-2 flex items-center text-xs text-indigo-600 font-medium">
+                    <i className="fas fa-check-circle mr-1"></i>
+                    <span>Attendance already marked</span>
+                  </div>
+                )}
                 <div className="flex items-center space-x-4">
                   <input
                     type="checkbox"
@@ -560,7 +569,10 @@ export const AttendanceMarkingForm = ({
                       <select
                         value={status}
                         onChange={(e) => handleStatusChange(student.id, e.target.value as AttendanceStatus)}
-                        className={`rounded-md border-2 ${statusOption?.borderColor} focus:border-indigo-500 focus:ring-indigo-500`}
+                        disabled={hasExistingAttendance}
+                        className={`rounded-md border-2 ${statusOption?.borderColor} focus:border-indigo-500 focus:ring-indigo-500 ${
+                          hasExistingAttendance ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''
+                        }`}
                       >
                         {ATTENDANCE_STATUS_OPTIONS.map((option) => (
                           <option key={option.value} value={option.value}>
@@ -588,7 +600,10 @@ export const AttendanceMarkingForm = ({
                           placeholder="Enter remarks (optional)"
                           maxLength={VALIDATION.REMARKS_MAX_LENGTH}
                           rows={2}
-                          className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                          disabled={hasExistingAttendance}
+                          className={`mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 ${
+                            hasExistingAttendance ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                          }`}
                         />
                       )}
                       {studentRemarks[student.id] && (
