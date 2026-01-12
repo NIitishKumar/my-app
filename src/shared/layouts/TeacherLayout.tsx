@@ -9,6 +9,7 @@ const teacherMenuItems = [
   { path: ROUTES.TEACHER_CLASSES, label: 'My Classes', icon: 'fa-chalkboard-teacher' },
   { path: ROUTES.TEACHER_ATTENDANCE, label: 'Attendance', icon: 'fa-clipboard-check' },
   { path: ROUTES.TEACHER_QUERIES, label: 'Queries', icon: 'fa-comments', badge: 5 },
+  { path: ROUTES.TEACHER_SUBJECTS, label: 'Subjects', icon: 'fa-book-open' },
   { path: '#timetable', label: 'My Timetable', icon: 'fa-calendar-day' },
   { path: '#announcements', label: 'Announcements', icon: 'fa-bell' },
 ];

@@ -10,6 +10,7 @@ const studentMenuItems = [
   { path: '#attendance', label: 'Attendance', icon: 'fa-clipboard-check' },
   { path: ROUTES.STUDENT_EXAMS, label: 'Exam Schedule', icon: 'fa-file-alt' },
   { path: ROUTES.STUDENT_RECORDS, label: 'Academic Records', icon: 'fa-chart-line' },
+  { path: ROUTES.STUDENT_SUBJECTS, label: 'Subjects', icon: 'fa-book-open' },
   { path: '#teachers', label: 'My Teachers', icon: 'fa-chalkboard-teacher' },
   { path: ROUTES.STUDENT_NOTIFICATIONS, label: 'Notices', icon: 'fa-bell' },
 ];

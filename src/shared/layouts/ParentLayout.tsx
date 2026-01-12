@@ -8,6 +8,7 @@ const parentMenuItems = [
   { path: ROUTES.PARENT_DASHBOARD, label: 'Dashboard', icon: 'fa-home' },
   { path: ROUTES.PARENT_ATTENDANCE, label: 'Attendance', icon: 'fa-clipboard-check' },
   { path: ROUTES.PARENT_RECORDS, label: 'Academic Performance', icon: 'fa-chart-line' },
+  { path: ROUTES.PARENT_SUBJECTS, label: 'Subjects', icon: 'fa-book-open' },
   { path: '#teachers', label: 'Teachers', icon: 'fa-chalkboard-teacher' },
   { path: '#queries', label: 'Raise Query', icon: 'fa-comments' },
   { path: '#notices', label: 'Notices', icon: 'fa-bell' },

@@ -8,12 +8,16 @@ export const API_ENDPOINTS = {
   ADMIN_CLASSES: '/admin/classes',
   ADMIN_TEACHERS: '/admin/teachers',
   ADMIN_LECTURES: '/admin/lectures',
+  ADMIN_SUBJECTS: '/admin/subjects',
   ADMIN_REPORTS: '/admin/reports',
   
   // Teacher
   TEACHER_CLASSES: '/teacher/classes',
   TEACHER_ATTENDANCE: '/teacher/attendance',
   TEACHER_QUERIES: '/teacher/queries',
+  
+  // Subjects (for teachers, students, parents - view only)
+  SUBJECTS: '/subjects',
   
   // Student
   STUDENT_EXAMS: '/student/exams',
