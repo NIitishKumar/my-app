@@ -11,6 +11,7 @@ const adminMenuItems = [
   { path: ROUTES.ADMIN_STUDENTS, label: 'Students', icon: 'fa-user-graduate' },
   { path: ROUTES.ADMIN_LECTURES, label: 'Lectures', icon: 'fa-book' },
   { path: ROUTES.ADMIN_SUBJECTS, label: 'Subjects', icon: 'fa-book-open' },
+  { path: ROUTES.ADMIN_NOTICES, label: 'Notices', icon: 'fa-bullhorn' },
 ];
 
 const mobileBottomNav: Array<{ path: string; label: string; icon: string; badge?: number }> = [
