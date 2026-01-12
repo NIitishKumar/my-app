@@ -97,18 +97,41 @@ export const attendanceApi = {
    */
   getByDate: async (classId: string, date: string): Promise<AttendanceRecord | null> => {
     try {
-      const response = await httpClient.get<AttendanceRecordApiResponse>(
-        attendanceEndpoints.byDate(classId, date)
-      );
+      const response = await httpClient.get<
+        AttendanceRecordsApiResponse | AttendanceRecordApiResponse | AttendanceRecordApiDTO
+      >(attendanceEndpoints.byDate(classId, date));
 
-      if (!response || !response.data) {
+      if (!response) {
         return null;
       }
 
-      return mapAttendanceRecordApiToDomain(response.data);
-    } catch (error: any) {
+      // Handle array response format (AttendanceRecordsApiResponse)
+      if (typeof response === 'object' && 'data' in response && Array.isArray(response.data)) {
+        const recordsResponse = response as AttendanceRecordsApiResponse;
+        if (recordsResponse.data && recordsResponse.data.length > 0) {
+          return mapAttendanceRecordApiToDomain(recordsResponse.data[0]);
+        }
+        return null;
+      }
+
+      // Handle single object response format (AttendanceRecordApiResponse)
+      if (typeof response === 'object' && 'data' in response && !Array.isArray(response.data)) {
+        const recordResponse = response as AttendanceRecordApiResponse;
+        if (recordResponse.data) {
+          return mapAttendanceRecordApiToDomain(recordResponse.data);
+        }
+        return null;
+      }
+
+      // Handle direct object response (AttendanceRecordApiDTO)
+      if (typeof response === 'object' && '_id' in response) {
+        return mapAttendanceRecordApiToDomain(response as AttendanceRecordApiDTO);
+      }
+
+      return null;
+    } catch (error: unknown) {
       // Return null for 404 (no attendance record found for date)
-      if (error?.status === 404) {
+      if (error && typeof error === 'object' && 'status' in error && (error as { status: number }).status === 404) {
         return null;
       }
       console.error('Error fetching attendance by date:', error);

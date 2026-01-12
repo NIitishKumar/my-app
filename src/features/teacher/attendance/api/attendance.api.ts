@@ -126,24 +126,54 @@ export const getAttendanceByDate = async (
   date: string
 ): Promise<AttendanceRecord | null> => {
   try {
-    const response = await httpClient.get<AttendanceRecordApiResponse>(
-      attendanceEndpoints.byDate(classId, date)
-    );
+    const response = await httpClient.get<
+      AttendanceRecordsApiResponse | AttendanceRecordApiResponse | AttendanceRecordApiDTO
+    >(attendanceEndpoints.byDate(classId, date));
 
-    // Backend returns { success: true, data: {...} | null }
-    if (response.success && response.data) {
-      // Ensure data has required fields before mapping
-      const data = response.data;
-      if (!data || !data._id || !data.classId) {
-        console.warn('Invalid attendance record data:', data);
-        return null;
+    if (!response) {
+      return null;
+    }
+
+    // Handle array response format (AttendanceRecordsApiResponse)
+    if (typeof response === 'object' && 'data' in response && Array.isArray(response.data)) {
+      const recordsResponse = response as AttendanceRecordsApiResponse;
+      if (recordsResponse.data && recordsResponse.data.length > 0) {
+        const data = recordsResponse.data[0];
+        if (!data || !data._id || !data.classId) {
+          console.warn('Invalid attendance record data:', data);
+          return null;
+        }
+        if (!data.students) {
+          data.students = [];
+        }
+        return mapAttendanceRecordApiToDomain(data);
       }
-      
-      // Ensure students field exists and is an array
+      return null;
+    }
+
+    // Handle single object response format (AttendanceRecordApiResponse)
+    if (typeof response === 'object' && 'data' in response && !Array.isArray(response.data)) {
+      const recordResponse = response as AttendanceRecordApiResponse;
+      if (recordResponse.data) {
+        const data = recordResponse.data;
+        if (!data || !data._id || !data.classId) {
+          console.warn('Invalid attendance record data:', data);
+          return null;
+        }
+        if (!data.students) {
+          data.students = [];
+        }
+        return mapAttendanceRecordApiToDomain(data);
+      }
+      return null;
+    }
+
+    // Handle direct object response (AttendanceRecordApiDTO)
+    if (typeof response === 'object' && '_id' in response) {
+      const data = response as AttendanceRecordApiDTO;
       if (!data.students) {
         data.students = [];
       }
-      
       return mapAttendanceRecordApiToDomain(data);
     }
 

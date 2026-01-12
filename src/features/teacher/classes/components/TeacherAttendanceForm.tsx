@@ -3,14 +3,19 @@
  * Adapted attendance form for teachers (auto-fills teacher ID)
  */
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useTeacherClassDetails } from '../hooks/useTeacherClassDetails';
 import { useStudents } from '../../../admin/students/hooks/useStudents';
 import { useLectures } from '../../../admin/lectures/hooks/useLectures';
 import { useAttendanceByDate } from '../../../admin/classes/attendance/hooks/useAttendanceByDate';
 import { useMarkAttendance, useUpdateAttendance } from '../../../admin/classes/attendance/hooks/useMarkAttendance';
-import { ATTENDANCE_STATUS_OPTIONS, BULK_ACTIONS } from '../../../admin/classes/attendance/constants/attendance.constants';
+import { ATTENDANCE_STATUS_OPTIONS, BULK_ACTIONS, VALIDATION } from '../../../admin/classes/attendance/constants/attendance.constants';
 import { getTodayDateString } from '../../../admin/classes/attendance/utils/attendance.utils';
+import { 
+  saveDraftToLocalStorage, 
+  loadDraftFromLocalStorage, 
+  clearDraft
+} from '../../../teacher/attendance/utils/attendance.utils';
 import { useUIStore } from '../../../../store/ui.store';
 import type { MarkAttendanceData, AttendanceStatus } from '../../../admin/classes/attendance/types/attendance.types';
 
@@ -36,6 +41,9 @@ export const TeacherAttendanceForm = ({
   );
   const [studentStatuses, setStudentStatuses] = useState<Record<string, AttendanceStatus>>({});
   const [studentRemarks, setStudentRemarks] = useState<Record<string, string>>({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const initialStatusesRef = useRef<Record<string, AttendanceStatus>>({});
 
   const { data: classData, isLoading: isLoadingClass } = useTeacherClassDetails(classId);
   const { data: allStudents = [], isLoading: isLoadingStudents } = useStudents();
@@ -57,6 +65,47 @@ export const TeacherAttendanceForm = ({
     return allLectures.filter((lecture) => classData.lectures.includes(lecture.id));
   }, [classData, allLectures]);
 
+  // Filter students by search term
+  const filteredStudents = useMemo(() => {
+    if (!searchTerm.trim()) return classStudents;
+    const term = searchTerm.toLowerCase();
+    return classStudents.filter(
+      (student) =>
+        `${student.firstName} ${student.lastName}`.toLowerCase().includes(term) ||
+        student.studentId?.toLowerCase().includes(term) ||
+        student.email?.toLowerCase().includes(term)
+    );
+  }, [classStudents, searchTerm]);
+
+  // Calculate status summary
+  const statusSummary = useMemo(() => {
+    const summary = { present: 0, absent: 0, late: 0, excused: 0 };
+    classStudents.forEach((student) => {
+      const status = studentStatuses[student.id] || 'present';
+      summary[status]++;
+    });
+    return summary;
+  }, [classStudents, studentStatuses]);
+
+  // Load draft from localStorage on mount and when class/date changes
+  useEffect(() => {
+    if (classId && selectedDate) {
+      const draft = loadDraftFromLocalStorage(classId, selectedDate);
+      if (draft?.students && !existingAttendance) {
+        const statuses: Record<string, AttendanceStatus> = {};
+        const remarks: Record<string, string> = {};
+        (draft.students as Array<{ studentId: string; status: AttendanceStatus; remarks?: string }>).forEach((s) => {
+          statuses[s.studentId] = s.status;
+          if (s.remarks) remarks[s.studentId] = s.remarks;
+        });
+        setStudentStatuses(statuses);
+        setStudentRemarks(remarks);
+        initialStatusesRef.current = statuses;
+        return;
+      }
+    }
+  }, [classId, selectedDate, existingAttendance]);
+
   // Initialize student statuses from existing attendance or default to 'present'
   useEffect(() => {
     if (existingAttendance) {
@@ -68,31 +117,83 @@ export const TeacherAttendanceForm = ({
           remarks[student.studentId] = student.remarks;
         }
       });
-      // Use setTimeout to avoid cascading renders warning
-      setTimeout(() => {
-        setStudentStatuses(statuses);
-        setStudentRemarks(remarks);
-      }, 0);
-    } else if (classStudents.length > 0) {
-      // Initialize all students as 'present' by default if not already initialized
-      const currentStatusKeys = Object.keys(studentStatuses);
-      const studentIds = classStudents.map((s) => s.id);
-      const needsInitialization = studentIds.some((id) => !currentStatusKeys.includes(id));
-      
-      if (needsInitialization) {
-        const defaultStatuses: Record<string, AttendanceStatus> = { ...studentStatuses };
-        classStudents.forEach((student) => {
-          if (!defaultStatuses[student.id]) {
-            defaultStatuses[student.id] = 'present';
-          }
-        });
-        setTimeout(() => {
-          setStudentStatuses(defaultStatuses);
-        }, 0);
-      }
+      setStudentStatuses(statuses);
+      setStudentRemarks(remarks);
+      initialStatusesRef.current = statuses;
+      clearDraft(classId, selectedDate);
+      setHasUnsavedChanges(false);
+    } else if (classStudents.length > 0 && Object.keys(studentStatuses).length === 0) {
+      // Initialize all students as 'present' by default
+      const defaultStatuses: Record<string, AttendanceStatus> = {};
+      classStudents.forEach((student) => {
+        defaultStatuses[student.id] = 'present';
+      });
+      setStudentStatuses(defaultStatuses);
+      initialStatusesRef.current = defaultStatuses;
+      setHasUnsavedChanges(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [existingAttendance, classStudents]);
+
+  // Auto-save draft every 30 seconds
+  useEffect(() => {
+    if (!classId || !selectedDate || classStudents.length === 0 || existingAttendance) return;
+    
+    const interval = setInterval(() => {
+      const draftData: Partial<MarkAttendanceData> = {
+        classId,
+        date: selectedDate,
+        lectureId: selectedLectureId,
+        students: classStudents.map((s) => ({
+          studentId: s.id,
+          status: studentStatuses[s.id] || 'present',
+          remarks: studentRemarks[s.id],
+        })),
+      };
+      saveDraftToLocalStorage(classId, selectedDate, draftData);
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [classId, selectedDate, selectedLectureId, studentStatuses, studentRemarks, classStudents, existingAttendance]);
+
+  // Detect unsaved changes
+  useEffect(() => {
+    const hasChanges = JSON.stringify(studentStatuses) !== JSON.stringify(initialStatusesRef.current) ||
+      Object.keys(studentRemarks).some(key => studentRemarks[key]?.trim());
+    setHasUnsavedChanges(hasChanges);
+  }, [studentStatuses, studentRemarks]);
+
+  // Unsaved changes warning on beforeunload
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+      return e.returnValue;
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  // Keyboard shortcuts (Ctrl+S / Cmd+S to save)
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        // Submit will be handled by the form button click
+        const submitButton = document.querySelector('[data-attendance-submit]') as HTMLButtonElement;
+        if (submitButton && !submitButton.disabled) {
+          submitButton.click();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
 
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
     setStudentStatuses((prev) => ({
@@ -102,13 +203,23 @@ export const TeacherAttendanceForm = ({
   };
 
   const handleRemarksChange = (studentId: string, remarks: string) => {
-    setStudentRemarks((prev) => ({
-      ...prev,
-      [studentId]: remarks,
-    }));
+    if (remarks.length <= VALIDATION.REMARKS_MAX_LENGTH) {
+      setStudentRemarks((prev) => ({
+        ...prev,
+        [studentId]: remarks,
+      }));
+    }
   };
 
   const handleBulkAction = (action: string) => {
+    // Confirmation for destructive actions
+    if (action === BULK_ACTIONS.MARK_ALL_ABSENT || action === BULK_ACTIONS.CLEAR_ALL) {
+      const actionName = action === BULK_ACTIONS.MARK_ALL_ABSENT ? 'mark all students as absent' : 'clear all attendance';
+      if (!window.confirm(`Are you sure you want to ${actionName}? This action cannot be undone.`)) {
+        return;
+      }
+    }
+
     const newStatuses = { ...studentStatuses };
     classStudents.forEach((student) => {
       switch (action) {
@@ -174,6 +285,9 @@ export const TeacherAttendanceForm = ({
           duration: 3000,
         });
       }
+      clearDraft(classId, selectedDate);
+      setHasUnsavedChanges(false);
+      initialStatusesRef.current = studentStatuses;
       onSuccess?.();
     } catch (error: unknown) {
       // Enhanced error handling
@@ -291,9 +405,42 @@ export const TeacherAttendanceForm = ({
           </div>
         )}
 
+        {/* Status Summary Bar */}
+        {classStudents.length > 0 && (
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <div className="flex flex-wrap items-center gap-4">
+              <span className="text-sm font-medium text-gray-700">Summary:</span>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center space-x-1">
+                  <span className="w-3 h-3 rounded-full bg-green-500"></span>
+                  <span className="text-sm text-gray-700">Present: {statusSummary.present}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <span className="w-3 h-3 rounded-full bg-red-500"></span>
+                  <span className="text-sm text-gray-700">Absent: {statusSummary.absent}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <span className="w-3 h-3 rounded-full bg-yellow-500"></span>
+                  <span className="text-sm text-gray-700">Late: {statusSummary.late}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <span className="w-3 h-3 rounded-full bg-blue-500"></span>
+                  <span className="text-sm text-gray-700">Excused: {statusSummary.excused}</span>
+                </div>
+              </div>
+              {hasUnsavedChanges && (
+                <span className="ml-auto text-xs text-amber-600 font-medium flex items-center">
+                  <i className="fas fa-circle text-xs mr-1"></i>
+                  Unsaved changes
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Bulk Actions */}
         {classStudents.length > 0 && (
-          <div className="flex items-center space-x-2 pb-4 border-b border-gray-200">
+          <div className="flex flex-wrap items-center gap-2 pb-4 border-b border-gray-200">
             <span className="text-sm font-medium text-gray-700">Bulk Actions:</span>
             <button
               type="button"
@@ -319,6 +466,27 @@ export const TeacherAttendanceForm = ({
           </div>
         )}
 
+        {/* Search */}
+        {classStudents.length > 0 && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Search Students
+            </label>
+            <input
+              type="text"
+              placeholder="Search by name, ID, or email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+            {searchTerm && (
+              <p className="mt-1 text-xs text-gray-500">
+                Showing {filteredStudents.length} of {classStudents.length} students
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Students List */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -331,7 +499,13 @@ export const TeacherAttendanceForm = ({
             </div>
           ) : (
             <div className="space-y-3 max-h-96 overflow-y-auto">
-              {classStudents.map((student) => (
+              {filteredStudents.length === 0 && searchTerm ? (
+                <div className="text-center py-8 text-gray-500">
+                  <i className="fas fa-search text-4xl mb-3 text-gray-400"></i>
+                  <p>No students found matching "{searchTerm}"</p>
+                </div>
+              ) : (
+                filteredStudents.map((student) => (
                 <div
                   key={student.id}
                   className="p-4 border border-gray-200 rounded-lg hover:border-indigo-300 transition-colors"
@@ -381,17 +555,24 @@ export const TeacherAttendanceForm = ({
                       placeholder="Remarks (optional)"
                       value={studentRemarks[student.id] || ''}
                       onChange={(e) => handleRemarksChange(student.id, e.target.value)}
+                      maxLength={VALIDATION.REMARKS_MAX_LENGTH}
                       className="w-full px-3 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
                     />
+                    {studentRemarks[student.id] && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {studentRemarks[student.id].length}/{VALIDATION.REMARKS_MAX_LENGTH} characters
+                      </p>
+                    )}
                   </div>
                 </div>
-              ))}
+                ))
+              )}
             </div>
           )}
         </div>
 
         {/* Form Actions */}
-        <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t border-gray-200 sticky bottom-0 bg-white pb-2 -mb-2">
           {onCancel && (
             <button
               type="button"
