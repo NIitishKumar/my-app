@@ -19,7 +19,7 @@ export const useCreateNotice = () => {
       // Check if offline
       if (!navigator.onLine) {
         // Save to draft store
-        const draftId = saveDraft({
+        saveDraft({
           title: data.title,
           description: data.description,
           audience: data.audience,

@@ -2,7 +2,6 @@
  * SubjectSidebar Component
  */
 
-import { useState } from 'react';
 import { useClasses } from '../../classes/hooks/useClasses';
 
 interface SubjectSidebarProps {

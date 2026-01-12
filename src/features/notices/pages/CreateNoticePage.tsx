@@ -12,7 +12,7 @@ import { useNoticeDraft } from '../hooks/useNoticeDraft';
 import { useNoticesStore } from '../../../store/notices.store';
 import { ROUTES } from '../../../shared/constants';
 import { useState, useEffect } from 'react';
-import type { CreateNoticeData } from '../types/notices.types';
+import type { CreateNoticeData, Notice } from '../types/notices.types';
 
 export const CreateNoticePage = () => {
   const navigate = useNavigate();

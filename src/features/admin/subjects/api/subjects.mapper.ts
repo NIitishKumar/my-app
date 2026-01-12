@@ -7,10 +7,6 @@ import type {
   Subject,
   CreateSubjectData,
   SubjectApiDTO,
-  SubjectsApiResponse,
-  SubjectApiResponse,
-  CreateSubjectApiResponse,
-  UpdateSubjectApiResponse,
 } from '../types/subjects.types';
 
 /**

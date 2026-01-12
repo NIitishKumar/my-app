@@ -7,7 +7,6 @@ import { useNavigate } from 'react-router-dom';
 import { NoticeTable } from '../components/NoticeTable';
 import { useNotices } from '../hooks/useNotices';
 import { useDeleteNotice } from '../hooks/useDeleteNotice';
-import { useNoticeDraft } from '../hooks/useNoticeDraft';
 import { useNoticesStore, selectDrafts } from '../../../store/notices.store';
 import { ROUTES } from '../../../shared/constants';
 import { filterNotices } from '../utils/notices.utils';
@@ -30,7 +29,6 @@ export const NoticesListPage = () => {
 
   const { data: notices = [], isLoading, error } = useNotices(filters);
   const deleteNotice = useDeleteNotice();
-  const { getAllDrafts } = useNoticeDraft();
   
   // Get drafts from store - use selector to get stable reference and avoid infinite loop
   const rawDrafts = useNoticesStore(selectDrafts);

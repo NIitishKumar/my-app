@@ -2,7 +2,7 @@
  * NoticePreview Component
  */
 
-import { getPriorityBadgeColor, getAudienceBadgeColor, formatDateTimeForInput } from '../../utils/notices.utils';
+import { getPriorityBadgeColor, getAudienceBadgeColor } from '../../utils/notices.utils';
 import type { CreateNoticeData } from '../../types/notices.types';
 
 interface NoticePreviewProps {

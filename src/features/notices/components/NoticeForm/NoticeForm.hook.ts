@@ -10,11 +10,11 @@ import type { CreateNoticeData, Notice } from '../../types/notices.types';
 import type { NoticeFormValues } from './NoticeForm.types';
 
 export const useNoticeForm = (
-  initialData?: Notice,
+  initialData: Notice | undefined,
   onSubmit: (data: CreateNoticeData) => void,
-  onSaveDraft?: (data: CreateNoticeData) => void,
-  isLoading?: boolean,
-  onFormDataChange?: (data: Partial<CreateNoticeData>) => void
+  onSaveDraft: ((data: CreateNoticeData) => void) | undefined = undefined,
+  _isLoading: boolean | undefined = undefined,
+  onFormDataChange: ((data: Partial<CreateNoticeData>) => void) | undefined = undefined
 ) => {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 

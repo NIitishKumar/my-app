@@ -5,7 +5,6 @@
 
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useClasses } from '../../admin/classes/hooks/useClasses';
-import type { Class } from '../../admin/classes/types/classes.types';
 
 interface ClassSelectorProps {
   selectedClassIds: string[];

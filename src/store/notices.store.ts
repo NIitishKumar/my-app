@@ -34,7 +34,7 @@ interface NoticesState {
 }
 
 interface NoticesActions {
-  saveDraft: (draft: Omit<NoticeDraft, 'id' | 'createdAt' | 'updatedAt'> & { publishAt?: Date; expiresAt?: Date }) => string;
+  saveDraft: (draft: Omit<NoticeDraft, 'id' | 'createdAt' | 'updatedAt' | 'publishAt' | 'expiresAt'> & { publishAt?: Date; expiresAt?: Date }) => string;
   getDraft: (id: string) => NoticeDraftWithDates | undefined;
   deleteDraft: (id: string) => void;
   clearDrafts: () => void;

@@ -8,7 +8,6 @@ import { validateSubjectForm, getDefaultSubjectFormData, formatPrice, parsePrice
 import { useClasses } from '../../classes/hooks/useClasses';
 import type { CreateSubjectData, Subject } from '../types/subjects.types';
 import type { ValidationErrors } from '../utils/subjects.utils';
-import { VALIDATION } from '../constants/subjects.constants';
 
 interface SubjectFormProps {
   initialData?: Subject;
