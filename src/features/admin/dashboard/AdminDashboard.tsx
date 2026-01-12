@@ -130,7 +130,7 @@ export const AdminDashboard = () => {
       hoverColor: 'hover:border-cyan-300 hover:bg-cyan-50', 
       iconColor: 'text-cyan-600', 
       groupHover: 'group-hover:bg-cyan-200',
-      route: ROUTES.ADMIN_NOTICES,
+      route: ROUTES.ADMIN_NOTICES_CREATE,
     },
     { 
       title: 'Schedule Exam', 

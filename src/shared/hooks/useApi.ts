@@ -28,6 +28,13 @@ export const queryKeys = {
     lectures: ['admin', 'lectures'] as const,
     lecture: (id: string) => ['admin', 'lectures', id] as const,
     reports: ['admin', 'reports'] as const,
+    notices: {
+      all: ['admin', 'notices'] as const,
+      lists: () => [...queryKeys.admin.notices.all, 'list'] as const,
+      list: (filters?: string) => [...queryKeys.admin.notices.lists(), { filters }] as const,
+      details: () => [...queryKeys.admin.notices.all, 'detail'] as const,
+      detail: (id: string) => [...queryKeys.admin.notices.details(), id] as const,
+    },
     dashboard: {
       quick: ['admin', 'dashboard', 'quick'] as const,
       stats: ['admin', 'dashboard', 'stats'] as const,

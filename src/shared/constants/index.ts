@@ -16,6 +16,7 @@ export const ROUTES = {
   ADMIN_LECTURES: '/admin/lectures',
   ADMIN_SUBJECTS: '/admin/subjects',
   ADMIN_NOTICES: '/admin/notices',
+  ADMIN_NOTICES_CREATE: '/admin/notices/create',
   ADMIN_EXAMS: '/admin/exams',
   ADMIN_REPORTS: '/admin/reports',
   ADMIN_SETTINGS: '/admin/settings',
