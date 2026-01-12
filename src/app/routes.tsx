@@ -12,7 +12,7 @@ import { TeachersPage } from '../features/admin/teachers';
 import { StudentsPage } from '../features/admin/students';
 import { LecturesPage, LectureDetailsPage } from '../features/admin/lectures';
 import { SubjectsPage, SubjectDetailsPage } from '../features/admin/subjects';
-import { NoticesPage } from '../features/admin/notices/pages/NoticesPage';
+import { NoticesListPage, CreateNoticePage } from '../features/notices';
 import { ExamsPage } from '../features/admin/exams/pages/ExamsPage';
 import { ReportsPage } from '../features/admin/reports/pages/ReportsPage';
 import { SettingsPage } from '../features/admin/settings/pages/SettingsPage';
@@ -59,7 +59,9 @@ export const AppRoutes = () => {
         <Route path="lectures/:id" element={<LectureDetailsPage />} />
         <Route path="subjects" element={<SubjectsPage />} />
         <Route path="subjects/:id" element={<SubjectDetailsPage />} />
-        <Route path="notices" element={<NoticesPage />} />
+        <Route path="notices" element={<NoticesListPage />} />
+        <Route path="notices/create" element={<CreateNoticePage />} />
+        <Route path="notices/:id/edit" element={<CreateNoticePage />} />
         <Route path="exams" element={<ExamsPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="settings" element={<SettingsPage />} />

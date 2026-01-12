@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
   ADMIN_TEACHERS: '/admin/teachers',
   ADMIN_LECTURES: '/admin/lectures',
   ADMIN_SUBJECTS: '/admin/subjects',
+  ADMIN_NOTICES: '/admin/notices',
   ADMIN_REPORTS: '/admin/reports',
   
   // Teacher
