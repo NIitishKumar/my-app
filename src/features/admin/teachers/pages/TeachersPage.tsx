@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useTeachers } from '../hooks/useTeachers';
 import { useCreateTeacher } from '../hooks/useCreateTeacher';
 import { useUpdateTeacher } from '../hooks/useUpdateTeacher';
@@ -15,6 +16,7 @@ import type { Teacher, CreateTeacherData, TeachersQueryParams } from '../types/t
 const ITEMS_PER_PAGE = 10;
 
 export const TeachersPage = () => {
+  const location = useLocation();
   const [showForm, setShowForm] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState<Teacher | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
@@ -49,6 +51,17 @@ export const TeachersPage = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, departmentFilter]);
+
+  // Handle openForm from navigation state (for Quick Actions)
+  useEffect(() => {
+    const shouldOpenForm = (location.state as any)?.openForm;
+    if (shouldOpenForm) {
+      setEditingTeacher(undefined);
+      setShowForm(true);
+      // Clear the state to prevent re-triggering
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const handleSubmit = (formData: CreateTeacherData) => {
     if (editingTeacher) {
