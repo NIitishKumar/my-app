@@ -259,10 +259,163 @@ const getTeacherProfile = async (req, res) => {
   }
 };
 
+// Get teacher dashboard - comprehensive data for teacher dashboard
+const getTeacherDashboard = async (req, res) => {
+  try {
+    const teacherId = req.user.id;
+    const db = getDatabase();
+
+    // Get teacher profile
+    const teacher = await db.collection('teachers').findOne({
+      _id: new ObjectId(teacherId),
+      isActive: true
+    });
+
+    if (!teacher) {
+      return res.status(404).json({
+        success: false,
+        message: 'Teacher not found'
+      });
+    }
+
+    // Get assigned classes
+    const classes = await db.collection('classes')
+      .find({
+        isActive: true,
+        'assignedTeachers.teacherId': new ObjectId(teacherId)
+      })
+      .toArray();
+
+    // Calculate stats
+    const totalStudents = classes.reduce((sum, cls) => sum + (cls.students?.length || 0), 0);
+    const totalClasses = classes.length;
+
+    // Get today's date range
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Get today's lectures
+    const todayLectures = await db.collection('lectures')
+      .find({
+        'schedule.date': {
+          $gte: today,
+          $lt: tomorrow
+        },
+        'teacherId': new ObjectId(teacherId)
+      })
+      .toArray();
+
+    // Get recent attendance (last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+
+    const recentAttendance = await db.collection('attendance')
+      .find({
+        classId: { $in: classes.map(c => c._id) },
+        date: { $gte: sevenDaysAgo }
+      })
+      .sort({ date: -1 })
+      .limit(10)
+      .toArray();
+
+    // Calculate attendance statistics
+    let totalPresent = 0;
+    let totalAbsent = 0;
+    let totalLate = 0;
+
+    recentAttendance.forEach(record => {
+      if (record.students) {
+        record.students.forEach(student => {
+          if (student.status === 'present') totalPresent++;
+          else if (student.status === 'absent') totalAbsent++;
+          else if (student.status === 'late') totalLate++;
+        });
+      }
+    });
+
+    // Enrich classes with basic info
+    const enrichedClasses = await Promise.all(
+      classes.map(async (classItem) => {
+        const attendanceRate = await calculateAttendanceRate(db, classItem._id);
+        const lastAttendanceDate = await getLastAttendanceDate(db, classItem._id);
+
+        const teacherAssignment = classItem.assignedTeachers.find(
+          at => at.teacherId.toString() === teacherId
+        );
+
+        return {
+          _id: classItem._id,
+          className: classItem.className,
+          section: classItem.section,
+          subject: teacherAssignment ? teacherAssignment.subject : null,
+          studentCount: classItem.students?.length || 0,
+          attendanceRate: attendanceRate,
+          lastAttendanceDate: lastAttendanceDate
+        };
+      })
+    );
+
+    // Get upcoming lectures (next 7 days)
+    const nextWeek = new Date();
+    nextWeek.setDate(nextWeek.getDate() + 7);
+
+    const upcomingLectures = await db.collection('lectures')
+      .find({
+        'schedule.date': {
+          $gte: today,
+          $lt: nextWeek
+        },
+        'teacherId': new ObjectId(teacherId)
+      })
+      .sort({ 'schedule.date': 1 })
+      .limit(5)
+      .toArray();
+
+    res.status(200).json({
+      success: true,
+      data: {
+        teacher: {
+          _id: teacher._id,
+          firstName: teacher.firstName,
+          lastName: teacher.lastName,
+          email: teacher.email,
+          employeeId: teacher.employeeId
+        },
+        stats: {
+          totalClasses,
+          totalStudents,
+          todayLectures: todayLectures.length,
+          upcomingLectures: upcomingLectures.length,
+          recentAttendanceRecords: recentAttendance.length
+        },
+        classes: enrichedClasses,
+        todaySchedule: todayLectures,
+        upcomingLectures,
+        recentAttendance,
+        attendanceSummary: {
+          present: totalPresent,
+          absent: totalAbsent,
+          late: totalLate
+        }
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching teacher dashboard',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   getAssignedClasses,
   getClassDetails,
   getTeacherProfile,
+  getTeacherDashboard,
   calculateAttendanceRate,
   getLastAttendanceDate
 };
