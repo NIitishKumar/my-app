@@ -80,62 +80,62 @@ export const AttendancePage = () => {
   };
 
   return (
-    <div className="p-4 lg:p-6">
+    <div className="p-3 sm:p-4 lg:p-6 max-w-full overflow-x-hidden">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <div className="flex items-center space-x-3">
+      <div className="mb-4 sm:mb-6 flex items-center justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <button
               onClick={() => navigate(`/admin/classes/${id}`)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
               title="Back to Class Details"
             >
               <i className="fas fa-arrow-left text-gray-600"></i>
             </button>
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">
                 Attendance - {classData.className}
               </h1>
-              <p className="text-sm text-gray-600 mt-1">Manage attendance records</p>
+              <p className="text-xs sm:text-sm text-gray-600 mt-1">Manage attendance records</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 border-b border-gray-200">
-        <nav className="flex space-x-8">
+      <div className="mb-4 sm:mb-6 border-b border-gray-200 overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+        <nav className="flex space-x-4 sm:space-x-8 min-w-max">
           <button
             onClick={() => setActiveTab('mark')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+            className={`py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
               activeTab === 'mark'
                 ? 'border-indigo-500 text-indigo-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            <i className="fas fa-edit mr-2"></i>
+            <i className="fas fa-edit mr-1.5 sm:mr-2"></i>
             Mark Attendance
           </button>
           <button
             onClick={() => setActiveTab('records')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+            className={`py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
               activeTab === 'records'
                 ? 'border-indigo-500 text-indigo-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            <i className="fas fa-list mr-2"></i>
+            <i className="fas fa-list mr-1.5 sm:mr-2"></i>
             View Records
           </button>
           <button
             onClick={() => setActiveTab('stats')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+            className={`py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
               activeTab === 'stats'
                 ? 'border-indigo-500 text-indigo-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            <i className="fas fa-chart-bar mr-2"></i>
+            <i className="fas fa-chart-bar mr-1.5 sm:mr-2"></i>
             Statistics
           </button>
         </nav>

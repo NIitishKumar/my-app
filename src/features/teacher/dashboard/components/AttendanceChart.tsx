@@ -50,10 +50,10 @@ export const AttendanceChart = () => {
   const maxRate = Math.max(...chartData.map((d) => d.rate), 100);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-        <i className="fas fa-chart-bar text-indigo-600"></i>
-        <span>Attendance Overview</span>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+      <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center space-x-2">
+        <i className="fas fa-chart-bar text-indigo-600 flex-shrink-0"></i>
+        <span className="truncate">Attendance Overview</span>
       </h2>
 
       <div className="space-y-4">

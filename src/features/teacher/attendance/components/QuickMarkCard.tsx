@@ -13,12 +13,12 @@ interface QuickMarkCardProps {
 
 export const QuickMarkCard = ({ classItem, onQuickMark }: QuickMarkCardProps) => {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold text-gray-900 mb-1">{classItem.className}</h3>
-          <p className="text-sm text-gray-600 mb-2">
-            <i className="fas fa-clock mr-2"></i>
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 hover:shadow-md transition-shadow">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 break-words">{classItem.className}</h3>
+          <p className="text-xs sm:text-sm text-gray-600 mb-2">
+            <i className="fas fa-clock mr-1.5 sm:mr-2"></i>
             {classItem.scheduledTime}
           </p>
           <div className="flex items-center">
@@ -35,11 +35,11 @@ export const QuickMarkCard = ({ classItem, onQuickMark }: QuickMarkCardProps) =>
             )}
           </div>
         </div>
-        <div className="ml-4">
+        <div className="flex flex-col sm:flex-row gap-2 sm:ml-4 sm:shrink-0 w-full sm:w-auto">
           {!classItem.hasAttendance && (
             <button
               onClick={() => onQuickMark?.(classItem.classId)}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 w-full sm:w-auto"
             >
               <i className="fas fa-check mr-2"></i>
               Mark Now
@@ -47,7 +47,7 @@ export const QuickMarkCard = ({ classItem, onQuickMark }: QuickMarkCardProps) =>
           )}
           <Link
             to={`/teacher/classes/${classItem.classId}/attendance`}
-            className="ml-2 inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-2 w-full sm:w-auto"
           >
             <i className="fas fa-eye mr-2"></i>
             View

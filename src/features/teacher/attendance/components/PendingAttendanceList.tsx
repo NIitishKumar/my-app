@@ -51,9 +51,9 @@ export const PendingAttendanceList = ({ onClassSelect }: PendingAttendanceListPr
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">
+    <div className="space-y-3 sm:space-y-4">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900">
           Pending Attendance ({pendingClasses.length})
         </h3>
       </div>

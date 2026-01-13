@@ -280,19 +280,19 @@ export const AttendanceForm = ({
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-bold text-gray-900">Mark Attendance</h3>
-        <p className="text-sm text-gray-600 mt-1">Record attendance for students</p>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 max-w-full overflow-x-hidden">
+      <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+        <h3 className="text-base sm:text-lg font-bold text-gray-900">Mark Attendance</h3>
+        <p className="text-xs sm:text-sm text-gray-600 mt-1">Record attendance for students</p>
       </div>
 
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Attendance Type Selection */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Attendance Type
           </label>
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:space-x-4">
             <label className="flex items-center space-x-2 cursor-pointer">
               <input
                 type="radio"
@@ -356,10 +356,10 @@ export const AttendanceForm = ({
 
         {/* Status Summary Bar */}
         {classStudents.length > 0 && (
-          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <div className="flex flex-wrap items-center gap-4">
-              <span className="text-sm font-medium text-gray-700">Summary:</span>
-              <div className="flex flex-wrap items-center gap-3">
+          <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 sm:gap-4">
+              <span className="text-xs sm:text-sm font-medium text-gray-700">Summary:</span>
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <div className="flex items-center space-x-1">
                   <span className="w-3 h-3 rounded-full bg-green-500"></span>
                   <span className="text-sm text-gray-700">Present: {statusSummary.present}</span>
@@ -389,29 +389,33 @@ export const AttendanceForm = ({
 
         {/* Bulk Actions */}
         {classStudents.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2 pb-4 border-b border-gray-200">
-            <span className="text-sm font-medium text-gray-700">Bulk Actions:</span>
-            <button
-              type="button"
-              onClick={() => handleBulkAction(BULK_ACTIONS.MARK_ALL_PRESENT)}
-              className="px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
-            >
-              Mark All Present
-            </button>
-            <button
-              type="button"
-              onClick={() => handleBulkAction(BULK_ACTIONS.MARK_ALL_ABSENT)}
-              className="px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
-            >
-              Mark All Absent
-            </button>
-            <button
-              type="button"
-              onClick={() => handleBulkAction(BULK_ACTIONS.CLEAR_ALL)}
-              className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              Clear All
-            </button>
+          <div className="pb-4 border-b border-gray-200">
+            <div className="flex items-center gap-2 overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+              <span className="text-sm font-medium text-gray-700 whitespace-nowrap shrink-0">Bulk Actions:</span>
+              <div className="flex items-center gap-2 flex-nowrap">
+                <button
+                  type="button"
+                  onClick={() => handleBulkAction(BULK_ACTIONS.MARK_ALL_PRESENT)}
+                  className="px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors whitespace-nowrap shrink-0"
+                >
+                  Mark All Present
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleBulkAction(BULK_ACTIONS.MARK_ALL_ABSENT)}
+                  className="px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors whitespace-nowrap shrink-0"
+                >
+                  Mark All Absent
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleBulkAction(BULK_ACTIONS.CLEAR_ALL)}
+                  className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors whitespace-nowrap shrink-0"
+                >
+                  Clear All
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -460,7 +464,7 @@ export const AttendanceForm = ({
                   return (
                     <div
                       key={student.id}
-                      className={`p-4 border rounded-lg transition-colors ${
+                      className={`p-3 sm:p-4 border rounded-lg transition-colors ${
                         hasExistingAttendance
                           ? 'border-indigo-300 bg-indigo-50/30'
                           : 'border-gray-200 hover:border-indigo-300'
@@ -472,16 +476,18 @@ export const AttendanceForm = ({
                           <span>Attendance already marked</span>
                         </div>
                       )}
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                        <div className="flex-1 min-w-0">
                           <h4 className="text-sm font-semibold text-gray-900">
                             {student.firstName} {student.lastName}
                           </h4>
                           <p className="text-xs text-gray-500 mt-1">
-                            {student.studentId} • {student.email}
+                            <span className="truncate block sm:inline">{student.studentId}</span>
+                            <span className="hidden sm:inline"> • </span>
+                            <span className="truncate block sm:inline">{student.email}</span>
                           </p>
                         </div>
-                        <div className="ml-4 flex items-center space-x-2 flex-wrap gap-2">
+                        <div className="flex items-center flex-wrap gap-2 sm:ml-4 sm:shrink-0">
                           {ATTENDANCE_STATUS_OPTIONS.map((option) => {
                             const isSelected = studentStatuses[student.id] === option.value;
                             const colorClasses = {

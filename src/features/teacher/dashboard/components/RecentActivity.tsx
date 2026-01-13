@@ -29,11 +29,11 @@ export const RecentActivity = () => {
   }, [allAttendanceRecords]);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-          <i className="fas fa-history text-indigo-600"></i>
-          <span>Recent Activity</span>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center space-x-2">
+          <i className="fas fa-history text-indigo-600 flex-shrink-0"></i>
+          <span className="truncate">Recent Activity</span>
         </h2>
       </div>
 

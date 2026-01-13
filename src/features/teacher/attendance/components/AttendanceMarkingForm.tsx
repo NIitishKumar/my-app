@@ -447,62 +447,66 @@ export const AttendanceMarkingForm = ({
 
       {/* Bulk Actions */}
       {selectedClassId && classStudents.length > 0 && (
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-gray-700">Bulk Actions:</span>
-          <button
-            onClick={() => handleBulkAction(BULK_ACTIONS.MARK_ALL_PRESENT)}
-            className="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-md hover:bg-green-200"
-          >
-            Mark All Present
-          </button>
-          <button
-            onClick={() => handleBulkAction(BULK_ACTIONS.MARK_ALL_ABSENT)}
-            className="px-3 py-1 text-sm bg-red-100 text-red-800 rounded-md hover:bg-red-200"
-          >
-            Mark All Absent
-          </button>
-          <button
-            onClick={() => handleBulkAction(BULK_ACTIONS.MARK_ALL_LATE)}
-            className="px-3 py-1 text-sm bg-yellow-100 text-yellow-800 rounded-md hover:bg-yellow-200"
-          >
-            Mark All Late
-          </button>
-          <button
-            onClick={() => handleBulkAction(BULK_ACTIONS.MARK_ALL_EXCUSED)}
-            className="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200"
-          >
-            Mark All Excused
-          </button>
-          {selectedStudents.size > 0 && (
-            <>
-              <span className="text-sm text-gray-500">|</span>
-              <span className="text-sm text-gray-700">{selectedStudents.size} selected</span>
+        <div className="mb-4">
+          <div className="flex items-center gap-2 overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+            <span className="text-sm font-medium text-gray-700 whitespace-nowrap shrink-0">Bulk Actions:</span>
+            <div className="flex items-center gap-2 flex-nowrap">
               <button
-                onClick={() => handleBulkStatusChange('present')}
-                className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded hover:bg-green-200"
+                onClick={() => handleBulkAction(BULK_ACTIONS.MARK_ALL_PRESENT)}
+                className="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-md hover:bg-green-200 whitespace-nowrap shrink-0"
               >
-                P
+                Mark All Present
               </button>
               <button
-                onClick={() => handleBulkStatusChange('absent')}
-                className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded hover:bg-red-200"
+                onClick={() => handleBulkAction(BULK_ACTIONS.MARK_ALL_ABSENT)}
+                className="px-3 py-1 text-sm bg-red-100 text-red-800 rounded-md hover:bg-red-200 whitespace-nowrap shrink-0"
               >
-                A
+                Mark All Absent
               </button>
               <button
-                onClick={() => handleBulkStatusChange('late')}
-                className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200"
+                onClick={() => handleBulkAction(BULK_ACTIONS.MARK_ALL_LATE)}
+                className="px-3 py-1 text-sm bg-yellow-100 text-yellow-800 rounded-md hover:bg-yellow-200 whitespace-nowrap shrink-0"
               >
-                L
+                Mark All Late
               </button>
               <button
-                onClick={() => handleBulkStatusChange('excused')}
-                className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
+                onClick={() => handleBulkAction(BULK_ACTIONS.MARK_ALL_EXCUSED)}
+                className="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200 whitespace-nowrap shrink-0"
               >
-                E
+                Mark All Excused
               </button>
-            </>
-          )}
+              {selectedStudents.size > 0 && (
+                <>
+                  <span className="text-sm text-gray-500 whitespace-nowrap shrink-0">|</span>
+                  <span className="text-sm text-gray-700 whitespace-nowrap shrink-0">{selectedStudents.size} selected</span>
+                  <button
+                    onClick={() => handleBulkStatusChange('present')}
+                    className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded hover:bg-green-200 whitespace-nowrap shrink-0"
+                  >
+                    P
+                  </button>
+                  <button
+                    onClick={() => handleBulkStatusChange('absent')}
+                    className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded hover:bg-red-200 whitespace-nowrap shrink-0"
+                  >
+                    A
+                  </button>
+                  <button
+                    onClick={() => handleBulkStatusChange('late')}
+                    className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200 whitespace-nowrap shrink-0"
+                  >
+                    L
+                  </button>
+                  <button
+                    onClick={() => handleBulkStatusChange('excused')}
+                    className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded hover:bg-blue-200 whitespace-nowrap shrink-0"
+                  >
+                    E
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       )}
 

@@ -49,15 +49,15 @@ export const AttendancePage = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-2">Attendance Management</h1>
-        <p className="text-gray-600">Manage and track student attendance for your classes</p>
+    <div className="p-3 sm:p-4 lg:p-6 max-w-full overflow-x-hidden">
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-1 sm:mb-2">Attendance Management</h1>
+        <p className="text-xs sm:text-sm text-gray-600">Manage and track student attendance for your classes</p>
       </div>
 
       {/* Tab Navigation */}
-      <div className="border-b border-gray-200 mb-6">
-        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+      <div className="border-b border-gray-200 mb-4 sm:mb-6 overflow-x-auto -mx-3 sm:-mx-4 lg:-mx-6 px-3 sm:px-4 lg:px-6">
+        <nav className="-mb-px flex space-x-4 sm:space-x-8 min-w-max" aria-label="Tabs">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -73,10 +73,10 @@ export const AttendancePage = () => {
                     ? 'border-indigo-500 text-indigo-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }
-                whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center
+                whitespace-nowrap py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm flex items-center
               `}
             >
-              <i className={`fas ${tab.icon} mr-2`}></i>
+              <i className={`fas ${tab.icon} mr-1.5 sm:mr-2`}></i>
               {tab.label}
             </button>
           ))}
@@ -84,7 +84,7 @@ export const AttendancePage = () => {
       </div>
 
       {/* Tab Content */}
-      <div className="mt-6">
+      <div className="mt-4 sm:mt-6">
         {activeTab === 'dashboard' && (
           <AttendanceDashboard onMarkAttendance={handleMarkAttendance} />
         )}

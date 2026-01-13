@@ -91,21 +91,21 @@ export const DashboardStats = () => {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       {statCards.map((card) => (
         <div
           key={card.label}
-          className={`bg-white rounded-xl shadow-sm border ${card.borderColor} p-6`}
+          className={`bg-white rounded-xl shadow-sm border ${card.borderColor} p-4 sm:p-6`}
         >
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">{card.label}</p>
-              <p className={`mt-2 text-3xl font-bold ${card.textColor}`}>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">{card.label}</p>
+              <p className={`mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold ${card.textColor} break-words`}>
                 {card.value}
               </p>
             </div>
-            <div className={`${card.bgColor} p-3 rounded-lg`}>
-              <i className={`fas ${card.icon} ${card.textColor} text-2xl`}></i>
+            <div className={`${card.bgColor} p-2 sm:p-3 rounded-lg flex-shrink-0 ml-2`}>
+              <i className={`fas ${card.icon} ${card.textColor} text-xl sm:text-2xl`}></i>
             </div>
           </div>
         </div>
