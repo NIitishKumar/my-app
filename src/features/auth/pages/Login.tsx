@@ -13,16 +13,25 @@ export const Login = () => {
 
   // Quick login helper
   const quickLogin = (role: string) => {
-    const emails = {
-      admin: 'admin@school.com',
-      teacher: 'teacher@school.com',
-      student: 'student@school.com',
-      parent: 'parent@school.com',
+    const credentialsMap = {
+      admin: {
+        email: 'admin@school.com',
+        password: 'admin123',
+      },
+      teacher: {
+        email: 'NITISHKUMAR.NG746@GMAIL.COM',
+        password: 'Teacher@123',
+      },
+      student: {
+        email: 'student@school.com',
+        password: 'password123',
+      },
+      parent: {
+        email: 'parent@school.com',
+        password: 'password123',
+      },
     };
-    setCredentials({
-      email: emails[role as keyof typeof emails],
-      password: 'password123',
-    });
+    setCredentials(credentialsMap[role as keyof typeof credentialsMap]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
