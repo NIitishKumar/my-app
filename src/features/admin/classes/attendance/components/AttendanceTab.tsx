@@ -43,44 +43,44 @@ export const AttendanceTab = ({ classId }: AttendanceTabProps) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Quick Actions */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center gap-2 sm:space-x-3 overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
           <button
             onClick={() => setActiveView('summary')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-3 sm:px-4 py-2 rounded-lg font-medium text-sm transition-colors whitespace-nowrap shrink-0 ${
               activeView === 'summary'
                 ? 'bg-indigo-600 text-white'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
           >
-            <i className="fas fa-chart-bar mr-2"></i>
+            <i className="fas fa-chart-bar mr-1.5 sm:mr-2"></i>
             Summary
           </button>
           <button
             onClick={() => setActiveView('records')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-3 sm:px-4 py-2 rounded-lg font-medium text-sm transition-colors whitespace-nowrap shrink-0 ${
               activeView === 'records'
                 ? 'bg-indigo-600 text-white'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
           >
-            <i className="fas fa-list mr-2"></i>
+            <i className="fas fa-list mr-1.5 sm:mr-2"></i>
             Records
           </button>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center gap-2 sm:space-x-3 overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
           <button
             onClick={handleMarkAttendance}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors flex items-center space-x-2"
+            className="px-3 sm:px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium text-sm hover:bg-indigo-700 transition-colors flex items-center space-x-2 whitespace-nowrap shrink-0"
           >
             <i className="fas fa-plus"></i>
             <span>Mark Attendance</span>
           </button>
           <button
             onClick={handleViewAll}
-            className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center space-x-2"
+            className="px-3 sm:px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg font-medium text-sm hover:bg-gray-50 transition-colors flex items-center space-x-2 whitespace-nowrap shrink-0"
           >
             <i className="fas fa-external-link-alt"></i>
             <span>View All</span>

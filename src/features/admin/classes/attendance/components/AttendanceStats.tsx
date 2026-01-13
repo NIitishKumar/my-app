@@ -14,9 +14,9 @@ export const AttendanceStats = ({ classId }: AttendanceStatsProps) => {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-pulse">
+          <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 animate-pulse">
             <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
             <div className="h-8 bg-gray-200 rounded w-1/2"></div>
           </div>
@@ -73,23 +73,23 @@ export const AttendanceStats = ({ classId }: AttendanceStatsProps) => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {statCards.map((card) => (
           <div
             key={card.label}
-            className={`bg-white rounded-xl shadow-sm border ${card.borderColor} p-6`}
+            className={`bg-white rounded-xl shadow-sm border ${card.borderColor} p-4 sm:p-6`}
           >
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{card.label}</p>
-                <p className={`mt-2 text-3xl font-bold ${card.textColor}`}>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">{card.label}</p>
+                <p className={`mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold ${card.textColor} wrap-break-word`}>
                   {card.value}
                 </p>
               </div>
-              <div className={`${card.bgColor} p-3 rounded-lg`}>
-                <i className={`fas ${card.icon} ${card.textColor} text-2xl`}></i>
+              <div className={`${card.bgColor} p-2 sm:p-3 rounded-lg shrink-0 ml-2`}>
+                <i className={`fas ${card.icon} ${card.textColor} text-xl sm:text-2xl`}></i>
               </div>
             </div>
           </div>
@@ -97,64 +97,64 @@ export const AttendanceStats = ({ classId }: AttendanceStatsProps) => {
       </div>
 
       {/* Detailed Breakdown */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Detailed Breakdown</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 bg-gray-50 rounded-lg">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Detailed Breakdown</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="p-3 sm:p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Present</span>
-              <span className="text-sm font-bold text-green-600">{stats.presentDays}</span>
+              <span className="text-xs sm:text-sm font-medium text-gray-700">Present</span>
+              <span className="text-xs sm:text-sm font-bold text-green-600">{stats.presentDays}</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 rounded-full h-2.5 sm:h-2 min-w-0 overflow-hidden">
               <div
-                className="bg-green-600 h-2 rounded-full"
+                className="bg-green-600 h-2.5 sm:h-2 rounded-full transition-all duration-300"
                 style={{
-                  width: stats.totalDays > 0 ? `${(stats.presentDays / stats.totalDays) * 100}%` : '0%',
+                  width: stats.totalDays > 0 ? `${Math.min((stats.presentDays / stats.totalDays) * 100, 100)}%` : '0%',
                 }}
               ></div>
             </div>
           </div>
 
-          <div className="p-4 bg-gray-50 rounded-lg">
+          <div className="p-3 sm:p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Absent</span>
-              <span className="text-sm font-bold text-red-600">{stats.absentDays}</span>
+              <span className="text-xs sm:text-sm font-medium text-gray-700">Absent</span>
+              <span className="text-xs sm:text-sm font-bold text-red-600">{stats.absentDays}</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 rounded-full h-2.5 sm:h-2 min-w-0 overflow-hidden">
               <div
-                className="bg-red-600 h-2 rounded-full"
+                className="bg-red-600 h-2.5 sm:h-2 rounded-full transition-all duration-300"
                 style={{
-                  width: stats.totalDays > 0 ? `${(stats.absentDays / stats.totalDays) * 100}%` : '0%',
+                  width: stats.totalDays > 0 ? `${Math.min((stats.absentDays / stats.totalDays) * 100, 100)}%` : '0%',
                 }}
               ></div>
             </div>
           </div>
 
-          <div className="p-4 bg-gray-50 rounded-lg">
+          <div className="p-3 sm:p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Late</span>
-              <span className="text-sm font-bold text-yellow-600">{stats.lateDays}</span>
+              <span className="text-xs sm:text-sm font-medium text-gray-700">Late</span>
+              <span className="text-xs sm:text-sm font-bold text-yellow-600">{stats.lateDays}</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 rounded-full h-2.5 sm:h-2 min-w-0 overflow-hidden">
               <div
-                className="bg-yellow-600 h-2 rounded-full"
+                className="bg-yellow-600 h-2.5 sm:h-2 rounded-full transition-all duration-300"
                 style={{
-                  width: stats.totalDays > 0 ? `${(stats.lateDays / stats.totalDays) * 100}%` : '0%',
+                  width: stats.totalDays > 0 ? `${Math.min((stats.lateDays / stats.totalDays) * 100, 100)}%` : '0%',
                 }}
               ></div>
             </div>
           </div>
 
-          <div className="p-4 bg-gray-50 rounded-lg">
+          <div className="p-3 sm:p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Excused</span>
-              <span className="text-sm font-bold text-blue-600">{stats.excusedDays}</span>
+              <span className="text-xs sm:text-sm font-medium text-gray-700">Excused</span>
+              <span className="text-xs sm:text-sm font-bold text-blue-600">{stats.excusedDays}</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 rounded-full h-2.5 sm:h-2 min-w-0 overflow-hidden">
               <div
-                className="bg-blue-600 h-2 rounded-full"
+                className="bg-blue-600 h-2.5 sm:h-2 rounded-full transition-all duration-300"
                 style={{
-                  width: stats.totalDays > 0 ? `${(stats.excusedDays / stats.totalDays) * 100}%` : '0%',
+                  width: stats.totalDays > 0 ? `${Math.min((stats.excusedDays / stats.totalDays) * 100, 100)}%` : '0%',
                 }}
               ></div>
             </div>
@@ -162,10 +162,10 @@ export const AttendanceStats = ({ classId }: AttendanceStatsProps) => {
         </div>
 
         {/* Overall Attendance Rate */}
-        <div className="mt-6 p-4 bg-indigo-50 rounded-lg">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-indigo-900">Overall Attendance Rate</span>
-            <span className="text-lg font-bold text-indigo-600">{stats.percentage.toFixed(1)}%</span>
+        <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-indigo-50 rounded-lg">
+          <div className="flex items-center justify-between mb-2 gap-2">
+            <span className="text-xs sm:text-sm font-medium text-indigo-900 min-w-0 flex-1">Overall Attendance Rate</span>
+            <span className="text-base sm:text-lg font-bold text-indigo-600 shrink-0">{stats.percentage.toFixed(1)}%</span>
           </div>
           <div className="w-full bg-indigo-200 rounded-full h-3">
             <div

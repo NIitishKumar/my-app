@@ -223,27 +223,27 @@ export const TeacherClassDetailPage = () => {
   }
 
   return (
-    <div className="p-4 lg:p-6">
+    <div className="p-3 sm:p-4 lg:p-6 max-w-full overflow-x-hidden">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <div className="flex items-center space-x-3">
+      <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <button
               onClick={() => navigate('/teacher/classes')}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
               title="Back to My Classes"
             >
               <i className="fas fa-arrow-left text-gray-600"></i>
             </button>
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{classData.className}</h1>
-              <p className="text-sm text-gray-600 mt-1">Class Details</p>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">{classData.className}</h1>
+              <p className="text-xs sm:text-sm text-gray-600 mt-1">Class Details</p>
             </div>
           </div>
         </div>
         <button
           onClick={() => navigate(`/teacher/classes/${id}/attendance?action=mark`)}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center space-x-2"
+          className="px-3 sm:px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base w-full sm:w-auto"
         >
           <i className="fas fa-clipboard-check"></i>
           <span>Mark Attendance</span>
@@ -251,50 +251,50 @@ export const TeacherClassDetailPage = () => {
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 border-b border-gray-200">
-        <nav className="flex space-x-8">
+      <div className="mb-4 sm:mb-6 border-b border-gray-200 overflow-x-auto -mx-3 sm:-mx-4 lg:-mx-6 px-3 sm:px-4 lg:px-6">
+        <nav className="flex space-x-4 sm:space-x-8 min-w-max">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+            className={`py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
               activeTab === 'overview'
                 ? 'border-indigo-500 text-indigo-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            <i className="fas fa-info-circle mr-2"></i>
+            <i className="fas fa-info-circle mr-1.5 sm:mr-2"></i>
             Overview
           </button>
           <button
             onClick={() => setActiveTab('students')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+            className={`py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
               activeTab === 'students'
                 ? 'border-indigo-500 text-indigo-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            <i className="fas fa-user-graduate mr-2"></i>
+            <i className="fas fa-user-graduate mr-1.5 sm:mr-2"></i>
             Students ({classData.students.length})
           </button>
           <button
             onClick={() => setActiveTab('attendance')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+            className={`py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
               activeTab === 'attendance'
                 ? 'border-indigo-500 text-indigo-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            <i className="fas fa-clipboard-check mr-2"></i>
+            <i className="fas fa-clipboard-check mr-1.5 sm:mr-2"></i>
             Attendance
           </button>
           <button
             onClick={() => setActiveTab('statistics')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+            className={`py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
               activeTab === 'statistics'
                 ? 'border-indigo-500 text-indigo-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            <i className="fas fa-chart-bar mr-2"></i>
+            <i className="fas fa-chart-bar mr-1.5 sm:mr-2"></i>
             Statistics
           </button>
         </nav>
