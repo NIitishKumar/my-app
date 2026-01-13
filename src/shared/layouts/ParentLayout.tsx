@@ -1,6 +1,8 @@
 import { Outlet, NavLink } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
 import { Header } from '../components/Header';
+import { OfflineBanner } from '../components/OfflineBanner';
+import { SyncIndicator } from '../components/SyncIndicator';
 import { ROUTES } from '../constants';
 import { useUIStore, useAuthStore, selectIsSidebarOpen, selectUser } from '../../store';
 
@@ -42,6 +44,8 @@ export const ParentLayout = () => {
       )}
 
       <div className="flex-1 flex flex-col overflow-hidden">
+        <OfflineBanner />
+        <SyncIndicator />
         <Header 
           title="Dashboard" 
           userName={user?.name} 

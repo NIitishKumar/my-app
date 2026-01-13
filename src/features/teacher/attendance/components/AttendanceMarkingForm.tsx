@@ -28,7 +28,7 @@ import {
   clearDraft,
   getAcademicYearStart,
 } from '../utils/attendance.utils';
-import { useUIStore } from '../../../../store/ui.store';
+import toast from 'react-hot-toast';
 import type { MarkAttendanceData, AttendanceStatus, AttendanceType } from '../types/attendance.types';
 import type { Class } from '../../../admin/classes/types/classes.types';
 
@@ -66,7 +66,6 @@ export const AttendanceMarkingForm = ({
   const { data: existingAttendance } = useAttendanceByDate(selectedClassId, selectedDate);
   const markAttendance = useMarkAttendance();
   const updateAttendance = useUpdateAttendance();
-  const addToast = useUIStore((state) => state.addToast);
 
   // Get students for this class
   const classStudents = useMemo(() => {
@@ -233,12 +232,12 @@ export const AttendanceMarkingForm = ({
 
   const handleSubmit = async () => {
     if (!selectedClassId) {
-      addToast({ type: 'error', message: 'Please select a class', duration: 3000 });
+      toast.error('Please select a class');
       return;
     }
 
     if (classStudents.length === 0) {
-      addToast({ type: 'error', message: 'No students found in this class', duration: 3000 });
+      toast.error('No students found in this class');
       return;
     }
 
@@ -253,11 +252,7 @@ export const AttendanceMarkingForm = ({
     });
 
     if (validStudents.length === 0) {
-      addToast({
-        type: 'error',
-        message: 'No students with valid IDs found. Please check the class configuration.',
-        duration: 5000,
-      });
+      toast.error('No students with valid IDs found. Please check the class configuration.');
       return;
     }
 
@@ -286,11 +281,7 @@ export const AttendanceMarkingForm = ({
       .filter((student): student is NonNullable<typeof student> => student !== null);
     
     if (students.length === 0) {
-      addToast({
-        type: 'error',
-        message: 'No valid students to mark attendance for. Please check that students have valid IDs.',
-        duration: 5000,
-      });
+      toast.error('No valid students to mark attendance for. Please check that students have valid IDs.');
       return;
     }
     
@@ -306,11 +297,7 @@ export const AttendanceMarkingForm = ({
     // Validate data
     const validation = validateAttendanceData(data);
     if (!validation.isValid) {
-      addToast({
-        type: 'error',
-        message: validation.errors.join(', '),
-        duration: 5000,
-      });
+      toast.error(validation.errors.join(', '));
       return;
     }
 
@@ -325,11 +312,11 @@ export const AttendanceMarkingForm = ({
           students: data.students,
           version: existingAttendance.version,
         });
-        addToast({ type: 'success', message: 'Attendance updated successfully', duration: 3000 });
+        toast.success('Attendance updated successfully');
       } else {
         // Create new attendance
         await markAttendance.mutateAsync(data);
-        addToast({ type: 'success', message: 'Attendance marked successfully', duration: 3000 });
+        toast.success('Attendance marked successfully');
       }
       
       clearDraft(selectedClassId, selectedDate);
@@ -349,7 +336,7 @@ export const AttendanceMarkingForm = ({
           }
         }
       }
-      addToast({ type: 'error', message: errorMessage, duration: 5000 });
+      toast.error(errorMessage);
     }
   };
 
@@ -635,32 +622,32 @@ export const AttendanceMarkingForm = ({
       )}
 
       {/* Action Buttons */}
-      <div className="mt-6 flex justify-end space-x-3">
-        {onCancel && (
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            Cancel
-          </button>
-        )}
-        <button
-          onClick={handleSubmit}
-          disabled={markAttendance.isPending || updateAttendance.isPending || !selectedClassId}
-          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {markAttendance.isPending || updateAttendance.isPending ? (
-            <>
-              <i className="fas fa-spinner fa-spin mr-2"></i>
-              {existingAttendance ? 'Updating...' : 'Marking...'}
-            </>
-          ) : existingAttendance ? (
-            'Update Attendance'
-          ) : (
-            'Mark Attendance'
+      {!existingAttendance && (
+        <div className="mt-6 flex justify-end space-x-3">
+          {onCancel && (
+            <button
+              onClick={onCancel}
+              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Cancel
+            </button>
           )}
-        </button>
-      </div>
+          <button
+            onClick={handleSubmit}
+            disabled={markAttendance.isPending || updateAttendance.isPending || !selectedClassId}
+            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {markAttendance.isPending || updateAttendance.isPending ? (
+              <>
+                <i className="fas fa-spinner fa-spin mr-2"></i>
+                Marking...
+              </>
+            ) : (
+              'Mark Attendance'
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -5,6 +5,7 @@
 
 import { useMemo } from 'react';
 import { useTeacherClasses } from '../../classes/hooks/useTeacherClasses';
+import { DashboardStatsSkeleton } from '../../../../shared/components/skeletons';
 
 export const DashboardStats = () => {
   const { data: classes = [], isLoading: isLoadingClasses } = useTeacherClasses();
@@ -37,16 +38,7 @@ export const DashboardStats = () => {
   }, [classes, todayString]);
 
   if (isLoadingClasses) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-            <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-          </div>
-        ))}
-      </div>
-    );
+    return <DashboardStatsSkeleton />;
   }
 
   const statCards = [

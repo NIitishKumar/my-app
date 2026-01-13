@@ -7,7 +7,7 @@ import { useState, useMemo } from 'react';
 import { useClassAttendance } from '../hooks/useClassAttendance';
 import { useDeleteAttendance } from '../hooks/useMarkAttendance';
 import { formatAttendanceDate, sortByDate, filterByDateRange, filterByLecture } from '../utils/attendance.utils';
-import { useUIStore } from '../../../../../store/ui.store';
+import toast from 'react-hot-toast';
 import type { AttendanceRecord, AttendanceStatus } from '../types/attendance.types';
 
 interface AttendanceListProps {
@@ -26,7 +26,6 @@ export const AttendanceList = ({ classId, onEdit }: AttendanceListProps) => {
 
   const { data: allRecords = [], isLoading, error } = useClassAttendance(classId);
   const deleteAttendance = useDeleteAttendance();
-  const addToast = useUIStore((state) => state.addToast);
 
   const ITEMS_PER_PAGE = 10;
 
@@ -101,17 +100,9 @@ export const AttendanceList = ({ classId, onEdit }: AttendanceListProps) => {
         classId: record.classId,
         recordId: record.id,
       });
-      addToast({
-        type: 'success',
-        message: 'Attendance record deleted successfully',
-        duration: 3000,
-      });
+      toast.success('Attendance record deleted successfully');
     } catch (error) {
-      addToast({
-        type: 'error',
-        message: `Error: ${error instanceof Error ? error.message : 'Failed to delete record'}`,
-        duration: 5000,
-      });
+      toast.error(error instanceof Error ? error.message : 'Failed to delete record');
     }
   };
 

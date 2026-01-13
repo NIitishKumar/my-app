@@ -6,6 +6,7 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTeacherClasses } from '../../classes/hooks/useTeacherClasses';
+import { TodaysClassesSkeleton } from '../../../../shared/components/skeletons';
 
 export const TodaysClasses = () => {
   const navigate = useNavigate();
@@ -18,17 +19,7 @@ export const TodaysClasses = () => {
   }, [classes]);
 
   if (isLoading) {
-    return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="space-y-3">
-            <div className="h-20 bg-gray-200 rounded"></div>
-            <div className="h-20 bg-gray-200 rounded"></div>
-          </div>
-        </div>
-      </div>
-    );
+    return <TodaysClassesSkeleton />;
   }
 
   return (

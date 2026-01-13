@@ -10,6 +10,7 @@ import { useDeleteStudent } from '../hooks/useDeleteStudent';
 import { StudentTable } from '../components/StudentTable';
 import { StudentForm } from '../components/StudentForm';
 import { filterStudents } from '../utils/students.utils';
+import { StudentListSkeleton } from '../../../../shared/components/skeletons';
 import type { Student, CreateStudentData } from '../types/students.types';
 
 const ITEMS_PER_PAGE = 10;
@@ -112,7 +113,7 @@ export const StudentsPage = () => {
   if (isLoading && allStudents.length === 0) {
     return (
       <div className="p-4 lg:p-6">
-        <div className="text-center">Loading students...</div>
+        <StudentListSkeleton />
       </div>
     );
   }

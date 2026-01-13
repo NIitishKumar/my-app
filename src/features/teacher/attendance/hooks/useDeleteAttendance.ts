@@ -47,12 +47,18 @@ export const useDeleteAttendance = () => {
         queryClient.setQueryData(attendanceQueryKeys.list(), context.previousRecords);
       }
     },
-    onSuccess: (_, variables) => {
-      // Invalidate and refetch related queries
-      queryClient.invalidateQueries({ queryKey: attendanceQueryKeys.dashboard() });
-      queryClient.invalidateQueries({ queryKey: attendanceQueryKeys.list() });
+    onSuccess: () => {
+      // Invalidate and refetch all related queries
       queryClient.invalidateQueries({ 
-        queryKey: attendanceQueryKeys.stats(variables.classId) 
+        predicate: (query) => {
+          const queryKey = query.queryKey;
+          // Match all queries that start with ['teacher', 'attendance']
+          return (
+            Array.isArray(queryKey) &&
+            queryKey[0] === 'teacher' &&
+            queryKey[1] === 'attendance'
+          );
+        },
       });
     },
   });

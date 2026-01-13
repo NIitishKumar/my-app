@@ -5,6 +5,7 @@
 
 import { useMemo } from 'react';
 import { useTeacherClasses } from '../../classes/hooks/useTeacherClasses';
+import { AttendanceChartSkeleton } from '../../../../shared/components/skeletons';
 
 export const AttendanceChart = () => {
   const { data: classes = [], isLoading } = useTeacherClasses();
@@ -22,14 +23,7 @@ export const AttendanceChart = () => {
   }, [classes]);
 
   if (isLoading) {
-    return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="h-48 bg-gray-200 rounded"></div>
-        </div>
-      </div>
-    );
+    return <AttendanceChartSkeleton />;
   }
 
   if (chartData.length === 0) {

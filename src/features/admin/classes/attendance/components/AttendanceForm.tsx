@@ -11,7 +11,7 @@ import { useAttendanceByDate } from '../hooks/useAttendanceByDate';
 import { useMarkAttendance, useUpdateAttendance } from '../hooks/useMarkAttendance';
 import { ATTENDANCE_STATUS_OPTIONS, BULK_ACTIONS, VALIDATION } from '../constants/attendance.constants';
 import { getTodayDateString } from '../utils/attendance.utils';
-import { useUIStore } from '../../../../../store/ui.store';
+import toast from 'react-hot-toast';
 import type { MarkAttendanceData, AttendanceStatus } from '../types/attendance.types';
 
 interface AttendanceFormProps {
@@ -46,7 +46,6 @@ export const AttendanceForm = ({
   const { data: existingAttendance } = useAttendanceByDate(classId, selectedDate);
   const markAttendance = useMarkAttendance();
   const updateAttendance = useUpdateAttendance();
-  const addToast = useUIStore((state) => state.addToast);
 
   // Get students for this class
   const classStudents = useMemo(() => {
@@ -192,11 +191,7 @@ export const AttendanceForm = ({
 
   const handleSubmit = async () => {
     if (classStudents.length === 0) {
-      addToast({
-        type: 'error',
-        message: 'No students found in this class',
-        duration: 3000,
-      });
+      toast.error('No students found in this class');
       return;
     }
 
@@ -221,19 +216,11 @@ export const AttendanceForm = ({
           recordId: existingAttendance.id,
           ...data,
         });
-        addToast({
-          type: 'success',
-          message: 'Attendance updated successfully',
-          duration: 3000,
-        });
+        toast.success('Attendance updated successfully');
       } else {
         // Create new attendance
         await markAttendance.mutateAsync(data);
-        addToast({
-          type: 'success',
-          message: 'Attendance marked successfully',
-          duration: 3000,
-        });
+        toast.success('Attendance marked successfully');
       }
       setHasUnsavedChanges(false);
       initialStatusesRef.current = studentStatuses;
@@ -259,11 +246,7 @@ export const AttendanceForm = ({
         errorMessage = error.message;
       }
       
-      addToast({
-        type: 'error',
-        message: errorMessage,
-        duration: 5000,
-      });
+      toast.error(errorMessage);
     }
   };
 
@@ -549,60 +532,62 @@ export const AttendanceForm = ({
         </div>
 
         {/* Form Actions */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t border-gray-200 sticky bottom-0 bg-white pb-2 -mb-2">
-          {onCancel && (
+        {!existingAttendance && (
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t border-gray-200 sticky bottom-0 bg-white pb-2 -mb-2">
+            {onCancel && (
+              <button
+                type="button"
+                onClick={onCancel}
+                className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                disabled={isSubmitting}
+              >
+                Cancel
+              </button>
+            )}
             <button
               type="button"
-              onClick={onCancel}
-              className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
-              disabled={isSubmitting}
+              data-attendance-submit
+              onClick={handleSubmit}
+              disabled={isSubmitting || classStudents.length === 0 || (attendanceType === 'lecture' && !selectedLectureId)}
+              className={`px-6 py-2.5 text-white rounded-lg font-medium transition-colors flex items-center space-x-2 ${
+                isSubmitting || classStudents.length === 0 || (attendanceType === 'lecture' && !selectedLectureId)
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-indigo-600 hover:bg-indigo-700'
+              }`}
             >
-              Cancel
+              {isSubmitting ? (
+                <>
+                  <svg
+                    className="animate-spin h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-save"></i>
+                  <span>Mark Attendance</span>
+                </>
+              )}
             </button>
-          )}
-          <button
-            type="button"
-            data-attendance-submit
-            onClick={handleSubmit}
-            disabled={isSubmitting || classStudents.length === 0 || (attendanceType === 'lecture' && !selectedLectureId)}
-            className={`px-6 py-2.5 text-white rounded-lg font-medium transition-colors flex items-center space-x-2 ${
-              isSubmitting || classStudents.length === 0 || (attendanceType === 'lecture' && !selectedLectureId)
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-indigo-600 hover:bg-indigo-700'
-            }`}
-          >
-            {isSubmitting ? (
-              <>
-                <svg
-                  className="animate-spin h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                <span>Saving...</span>
-              </>
-            ) : (
-              <>
-                <i className="fas fa-save"></i>
-                <span>{existingAttendance ? 'Update Attendance' : 'Mark Attendance'}</span>
-              </>
-            )}
-          </button>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

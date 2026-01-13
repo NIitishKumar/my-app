@@ -9,7 +9,7 @@ import { useDeleteAttendance } from '../hooks/useDeleteAttendance';
 import { AttendanceFilters } from './AttendanceFilters';
 import { formatAttendanceDate, exportToExcel, exportToCSV } from '../utils/attendance.utils';
 import { ATTENDANCE_STATUS_OPTIONS } from '../constants/attendance.constants';
-import { useUIStore } from '../../../../store/ui.store';
+import toast from 'react-hot-toast';
 import type { AttendanceRecord, AttendanceFilters as AttendanceFiltersType } from '../types/attendance.types';
 
 interface AttendanceRecordsListProps {
@@ -27,7 +27,6 @@ export const AttendanceRecordsList = ({ onEdit, onView }: AttendanceRecordsListP
 
   const { data: recordsResponse, isLoading, error } = useAttendanceRecords(filters);
   const deleteAttendance = useDeleteAttendance();
-  const addToast = useUIStore((state) => state.addToast);
 
   // Sort records
   const sortedRecords = useMemo(() => {
@@ -65,28 +64,28 @@ export const AttendanceRecordsList = ({ onEdit, onView }: AttendanceRecordsListP
         classId: record.classId,
         recordId: record.id,
       });
-      addToast({ type: 'success', message: 'Attendance record deleted successfully', duration: 3000 });
+      toast.success('Attendance record deleted successfully');
     } catch (error: any) {
-      addToast({ type: 'error', message: error?.message || 'Failed to delete attendance record', duration: 5000 });
+      toast.error(error?.message || 'Failed to delete attendance record');
     }
   };
 
   const handleExport = (format: 'excel' | 'csv') => {
     if (!recordsResponse?.data || recordsResponse.data.length === 0) {
-      addToast({ type: 'error', message: 'No records to export', duration: 3000 });
+      toast.error('No records to export');
       return;
     }
 
     try {
       if (format === 'excel') {
         exportToExcel(recordsResponse.data);
-        addToast({ type: 'success', message: 'Export to Excel completed', duration: 3000 });
+        toast.success('Export to Excel completed');
       } else {
         exportToCSV(recordsResponse.data);
-        addToast({ type: 'success', message: 'Export to CSV completed', duration: 3000 });
+        toast.success('Export to CSV completed');
       }
     } catch (error: any) {
-      addToast({ type: 'error', message: error?.message || 'Export failed', duration: 5000 });
+      toast.error(error?.message || 'Export failed');
     }
   };
 

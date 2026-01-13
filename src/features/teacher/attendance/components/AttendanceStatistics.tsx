@@ -13,7 +13,7 @@ import { useClasses } from '../../../admin/classes/hooks/useClasses';
 import { useAttendanceStats } from '../hooks/useAttendanceStats';
 import { formatPercentage, formatAttendanceDate, getTrendColorClass } from '../utils/attendance.utils';
 import { DATE_RANGE_PRESETS, DATE_RANGE_PRESET_OPTIONS } from '../constants/attendance.constants';
-import { useUIStore } from '../../../../store/ui.store';
+import toast from 'react-hot-toast';
 import type { Class } from '../../../admin/classes/types/classes.types';
 
 const COLORS = ['#10b981', '#ef4444', '#f59e0b', '#3b82f6'];
@@ -38,7 +38,6 @@ export const AttendanceStatistics = ({ onExport }: AttendanceStatisticsProps) =>
     endDate: endDate ? endDate.toISOString().split('T')[0] : undefined,
   });
 
-  const addToast = useUIStore((state) => state.addToast);
 
   const handlePresetChange = (preset: string) => {
     setDateRangePreset(preset);
@@ -70,7 +69,7 @@ export const AttendanceStatistics = ({ onExport }: AttendanceStatisticsProps) =>
 
   const handleExport = (format: 'excel' | 'csv') => {
     if (!stats) {
-      addToast({ type: 'error', message: 'No statistics data to export', duration: 3000 });
+      toast.error('No statistics data to export');
       return;
     }
 
@@ -98,19 +97,19 @@ export const AttendanceStatistics = ({ onExport }: AttendanceStatisticsProps) =>
           type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
         });
         saveAs(blob, `${filename}.xlsx`);
-        addToast({ type: 'success', message: 'Statistics exported to Excel', duration: 3000 });
+        toast.success('Statistics exported to Excel');
       } else {
         const ws = XLSX.utils.json_to_sheet(exportData);
         const csv = XLSX.utils.sheet_to_csv(ws);
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         saveAs(blob, `${filename}.csv`);
-        addToast({ type: 'success', message: 'Statistics exported to CSV', duration: 3000 });
+        toast.success('Statistics exported to CSV');
       }
       onExport?.(format);
     } catch (error) {
       console.error('Export error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Export failed';
-      addToast({ type: 'error', message: errorMessage, duration: 5000 });
+      toast.error(errorMessage);
     }
   };
 

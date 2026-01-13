@@ -69,14 +69,17 @@ export const useMarkAttendance = () => {
       queryClient.removeQueries({ queryKey: attendanceQueryKeys.byDate(newData.classId, newData.date) });
     },
     onSuccess: (data, variables) => {
-      // Invalidate and refetch related queries
-      queryClient.invalidateQueries({ queryKey: attendanceQueryKeys.dashboard() });
-      queryClient.invalidateQueries({ queryKey: attendanceQueryKeys.list() });
+      // Invalidate and refetch all related queries
       queryClient.invalidateQueries({ 
-        queryKey: attendanceQueryKeys.byDate(variables.classId, variables.date) 
-      });
-      queryClient.invalidateQueries({ 
-        queryKey: attendanceQueryKeys.stats(variables.classId) 
+        predicate: (query) => {
+          const queryKey = query.queryKey;
+          // Match all queries that start with ['teacher', 'attendance']
+          return (
+            Array.isArray(queryKey) &&
+            queryKey[0] === 'teacher' &&
+            queryKey[1] === 'attendance'
+          );
+        },
       });
       
       // Update cache with server response

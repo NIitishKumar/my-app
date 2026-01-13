@@ -49,8 +49,29 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// Remove splash screen when app is ready
+const removeSplashScreen = () => {
+  const splashScreen = document.getElementById('splash-screen');
+  if (splashScreen) {
+    splashScreen.classList.add('fade-out');
+    setTimeout(() => {
+      splashScreen.remove();
+    }, 300);
+  }
+};
+
+// Wait for React to be ready, then remove splash
+setTimeout(() => {
+  removeSplashScreen();
+}, 100);
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
   </StrictMode>,
 )
+
+// Also remove splash when React is fully mounted
+window.addEventListener('load', () => {
+  setTimeout(removeSplashScreen, 100);
+});
