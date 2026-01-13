@@ -13,6 +13,7 @@ export const API_ENDPOINTS = {
   ADMIN_REPORTS: '/admin/reports',
   
   // Teacher
+  TEACHER_DASHBOARD: '/teacher/dashboard',
   TEACHER_CLASSES: '/teacher/classes',
   TEACHER_ATTENDANCE: '/teacher/attendance',
   TEACHER_QUERIES: '/teacher/queries',
