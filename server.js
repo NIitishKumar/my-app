@@ -16,6 +16,7 @@ const statisticsRoutes = require('./routes/statisticsRoutes');
 const exportRoutes = require('./routes/exportRoutes');
 const subjectRoutes = require('./routes/subjectRoutes');
 const noticeRoutes = require('./routes/noticeRoutes');
+const profileRoutes = require('./routes/profileRoutes');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 require('dotenv').config();
 
@@ -70,6 +71,7 @@ app.use('/api/attendance', statisticsRoutes);
 app.use('/api/admin', exportRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/admin/notices', noticeRoutes);
+app.use('/api/users', profileRoutes);
 
 // 404 handler - must be after all routes
 app.use(notFoundHandler);
