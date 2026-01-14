@@ -3,6 +3,7 @@ import { Sidebar } from '../components/Sidebar';
 import { Header } from '../components/Header';
 import { OfflineBanner } from '../components/OfflineBanner';
 import { SyncIndicator } from '../components/SyncIndicator';
+import { AccountChatbot } from '../components/AccountChatbot';
 import { ROUTES } from '../constants';
 import { useUIStore, useAuthStore, selectIsSidebarOpen, selectUser } from '../../store';
 
@@ -79,6 +80,7 @@ export const StudentLayout = () => {
           </div>
         </nav>
       </div>
+      <AccountChatbot />
     </div>
   );
 };
