@@ -19,21 +19,54 @@ const login = async (req, res) => {
       });
     }
 
-    // Find teacher by email (email is already lowercase from schema)
-    const teacher = await db.collection('teachers').findOne({
+    // Try to find user in different collections (order: teachers, students, parents)
+    let user = null;
+    let userRole = null;
+    let collectionName = null;
+
+    // Check teachers collection
+    user = await db.collection('teachers').findOne({
       email: email,
       isActive: true
     });
+    if (user) {
+      userRole = user.role === 'ADMIN' ? 'ADMIN' : 'TEACHER';
+      collectionName = 'teachers';
+    }
 
-    if (!teacher) {
+    // If not found in teachers, check students
+    if (!user) {
+      user = await db.collection('students').findOne({
+        email: email,
+        isActive: true
+      });
+      if (user) {
+        userRole = 'STUDENT';
+        collectionName = 'students';
+      }
+    }
+
+    // If not found in students, check parents
+    if (!user) {
+      user = await db.collection('parents').findOne({
+        email: email,
+        isActive: true
+      });
+      if (user) {
+        userRole = 'PARENT';
+        collectionName = 'parents';
+      }
+    }
+
+    if (!user) {
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
       });
     }
 
-    // Check if teacher has a password field
-    if (!teacher.password) {
+    // Check if user has a password field
+    if (!user.password) {
       return res.status(401).json({
         success: false,
         message: 'Account not set up with password. Please contact administrator.'
@@ -41,7 +74,7 @@ const login = async (req, res) => {
     }
 
     // Verify password
-    const isPasswordValid = await bcrypt.compare(password, teacher.password);
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -50,35 +83,46 @@ const login = async (req, res) => {
       });
     }
 
-    // Determine role - check if teacher has role field set to ADMIN
-    const userRole = teacher.role === 'ADMIN' ? 'ADMIN' : 'TEACHER';
-
     // Create JWT token
     const token = jwt.sign(
       {
-        id: teacher._id.toString(),
-        email: teacher.email,
+        id: user._id.toString(),
+        email: user.email,
         role: userRole,
-        employeeId: teacher.employeeId
+        employeeId: user.employeeId || null,
+        studentId: user.studentId || null
       },
       JWT_SECRET,
       { expiresIn: '24h' }
     );
 
+    // Build response based on role
+    const userData = {
+      id: user._id.toString(),
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      name: `${user.firstName} ${user.lastName}`,
+      role: userRole
+    };
+
+    // Add role-specific fields
+    if (userRole === 'TEACHER' || userRole === 'ADMIN') {
+      userData.employeeId = user.employeeId;
+      userData.department = user.department;
+    } else if (userRole === 'STUDENT') {
+      userData.studentId = user.studentId;
+      userData.dateOfBirth = user.dateOfBirth;
+      userData.gender = user.gender;
+    } else if (userRole === 'PARENT') {
+      userData.phoneNumber = user.phoneNumber;
+    }
+
     // Return user data and token
     res.status(200).json({
       success: true,
       token: token,
-      user: {
-        id: teacher._id.toString(),
-        email: teacher.email,
-        firstName: teacher.firstName,
-        lastName: teacher.lastName,
-        name: `${teacher.firstName} ${teacher.lastName}`,
-        role: userRole,
-        employeeId: teacher.employeeId,
-        department: teacher.department
-      }
+      user: userData
     });
   } catch (error) {
     console.error('Login error:', error);
