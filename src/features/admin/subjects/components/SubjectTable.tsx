@@ -49,11 +49,11 @@ export const SubjectTable = ({ subjects, onView, onEdit, onDelete }: SubjectTabl
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto -mx-4 sm:mx-0">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               <div className="flex items-center space-x-1">
                 <span>Subject Name</span>
                 <div className="flex flex-col">
@@ -62,7 +62,7 @@ export const SubjectTable = ({ subjects, onView, onEdit, onDelete }: SubjectTabl
                 </div>
               </div>
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               <div className="flex items-center space-x-1">
                 <span>Author</span>
                 <div className="flex flex-col">
@@ -71,7 +71,7 @@ export const SubjectTable = ({ subjects, onView, onEdit, onDelete }: SubjectTabl
                 </div>
               </div>
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               <div className="flex items-center space-x-1">
                 <span>Price</span>
                 <div className="flex flex-col">
@@ -80,10 +80,10 @@ export const SubjectTable = ({ subjects, onView, onEdit, onDelete }: SubjectTabl
                 </div>
               </div>
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
               Classes
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               <div className="flex items-center space-x-1">
                 <span>Status</span>
                 <div className="flex flex-col">
@@ -92,7 +92,7 @@ export const SubjectTable = ({ subjects, onView, onEdit, onDelete }: SubjectTabl
                 </div>
               </div>
             </th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
               Actions
             </th>
           </tr>
@@ -100,24 +100,24 @@ export const SubjectTable = ({ subjects, onView, onEdit, onDelete }: SubjectTabl
         <tbody className="bg-white divide-y divide-gray-200">
           {subjects.map((subject) => (
             <tr key={subject.id} className="hover:bg-gray-50 transition-colors">
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="px-3 sm:px-6 py-4">
                 <div className="text-sm font-medium text-gray-900">{subject.name}</div>
                 {subject.description && (
                   <div className="text-xs text-gray-500 mt-1 line-clamp-1">{subject.description}</div>
                 )}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="px-3 sm:px-6 py-4">
                 <div className="text-sm text-gray-900">{subject.author}</div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="px-3 sm:px-6 py-4">
                 <div className="text-sm font-medium text-gray-900">{formatPrice(subject.price)}</div>
               </td>
-              <td className="px-6 py-4">
+              <td className="px-3 sm:px-6 py-4 hidden md:table-cell">
                 <div className="text-sm text-gray-900 max-w-xs truncate" title={getClassNames(subject.classes)}>
                   {getClassNames(subject.classes)}
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="px-3 sm:px-6 py-4">
                 <span
                   className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                     subject.isActive
@@ -128,7 +128,7 @@ export const SubjectTable = ({ subjects, onView, onEdit, onDelete }: SubjectTabl
                   {subject.isActive ? 'Active' : 'Inactive'}
                 </span>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <td className="px-3 sm:px-6 py-4 text-right text-sm font-medium">
                 <div className="flex items-center justify-end space-x-2">
                   {onView && (
                     <button

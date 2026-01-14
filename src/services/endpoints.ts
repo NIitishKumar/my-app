@@ -33,5 +33,10 @@ export const API_ENDPOINTS = {
   PARENT_RECORDS: '/parent/records',
   PARENT_TEACHERS: '/parent/teachers',
   PARENT_QUERIES: '/parent/queries',
+  
+  // Profile (shared across all roles)
+  USER_PROFILE: '/users/profile',
+  USER_PROFILE_AVATAR: '/users/profile/avatar',
+  USER_PASSWORD: '/users/password',
 } as const;
 

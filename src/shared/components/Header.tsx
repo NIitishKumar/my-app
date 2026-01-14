@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ROUTES } from '../constants';
-import { useAuthStore } from '../../store';
+import { ROUTES, USER_ROLES } from '../constants';
+import { useAuthStore, selectUser } from '../../store';
 
 interface HeaderProps {
   title: string;
@@ -12,6 +12,7 @@ interface HeaderProps {
 export const Header = ({ title, userName, onMenuClick }: HeaderProps) => {
   const navigate = useNavigate();
   const logout = useAuthStore((state) => state.logout);
+  const user = useAuthStore(selectUser);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const notificationRef = useRef<HTMLDivElement>(null);
@@ -35,6 +36,19 @@ export const Header = ({ title, userName, onMenuClick }: HeaderProps) => {
   const handleLogout = () => {
     logout();
     navigate(ROUTES.LOGIN);
+  };
+
+  const handleProfileClick = () => {
+    setShowProfile(false);
+    if (user?.role === USER_ROLES.ADMIN) {
+      navigate(ROUTES.ADMIN_PROFILE);
+    } else if (user?.role === USER_ROLES.TEACHER) {
+      navigate(ROUTES.TEACHER_PROFILE);
+    } else if (user?.role === USER_ROLES.STUDENT) {
+      navigate(ROUTES.STUDENT_PROFILE);
+    } else if (user?.role === USER_ROLES.PARENT) {
+      navigate(ROUTES.PARENT_PROFILE);
+    }
   };
 
   return (
@@ -112,18 +126,12 @@ export const Header = ({ title, userName, onMenuClick }: HeaderProps) => {
 
             {showProfile && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                <a
-                  href="#"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                <button
+                  onClick={handleProfileClick}
+                  className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                 >
                   <i className="fas fa-user w-5 mr-2"></i>Profile
-                </a>
-                <a
-                  href="#"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                >
-                  <i className="fas fa-cog w-5 mr-2"></i>Settings
-                </a>
+                </button>
                 <hr className="my-1" />
                 <button
                   onClick={handleLogout}

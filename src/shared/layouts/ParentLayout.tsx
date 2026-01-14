@@ -21,7 +21,7 @@ const mobileBottomNav = [
   { path: ROUTES.PARENT_ATTENDANCE, label: 'Attendance', icon: 'fa-clipboard-check' },
   { path: ROUTES.PARENT_RECORDS, label: 'Records', icon: 'fa-chart-line' },
   { path: '#notices', label: 'Notices', icon: 'fa-bell' },
-  { path: '#profile', label: 'Profile', icon: 'fa-user' },
+  { path: ROUTES.PARENT_PROFILE, label: 'Profile', icon: 'fa-user' },
 ];
 
 export const ParentLayout = () => {

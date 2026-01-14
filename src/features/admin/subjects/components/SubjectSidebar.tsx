@@ -25,9 +25,9 @@ export const SubjectSidebar = ({
   const classes = allClasses || [];
 
   return (
-    <div className="w-64 bg-white rounded-xl shadow-sm border border-gray-200 p-4 h-fit">
+    <div className="w-full lg:w-64 bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 h-fit">
       <div className="mb-4">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Filters</h3>
+        <h3 className="text-sm font-semibold text-gray-900 mb-3 sm:mb-4">Filters</h3>
         
         {/* Search */}
         <div className="mb-4">
@@ -97,7 +97,7 @@ export const SubjectSidebar = ({
             onClassFilterChange('all');
             onStatusFilterChange('all');
           }}
-          className="w-full px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          className="w-full px-4 py-2 text-xs sm:text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
         >
           Clear Filters
         </button>

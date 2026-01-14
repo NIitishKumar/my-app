@@ -21,7 +21,7 @@ const mobileBottomNav = [
   { path: ROUTES.TEACHER_CLASSES, label: 'Classes', icon: 'fa-chalkboard-teacher' },
   { path: ROUTES.TEACHER_ATTENDANCE, label: 'Attendance', icon: 'fa-clipboard-check' },
   { path: ROUTES.TEACHER_QUERIES, label: 'Queries', icon: 'fa-comments', badge: 5 },
-  { path: '#profile', label: 'Profile', icon: 'fa-user' },
+  { path: ROUTES.TEACHER_PROFILE, label: 'Profile', icon: 'fa-user' },
 ];
 
 export const TeacherLayout = () => {

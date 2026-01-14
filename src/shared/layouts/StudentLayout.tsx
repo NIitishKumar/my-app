@@ -22,7 +22,7 @@ const mobileBottomNav = [
   { path: '#timetable', label: 'Schedule', icon: 'fa-calendar-alt' },
   { path: '#attendance', label: 'Attendance', icon: 'fa-clipboard-check' },
   { path: ROUTES.STUDENT_NOTIFICATIONS, label: 'Notices', icon: 'fa-bell' },
-  { path: '#profile', label: 'Profile', icon: 'fa-user' },
+  { path: ROUTES.STUDENT_PROFILE, label: 'Profile', icon: 'fa-user' },
 ];
 
 export const StudentLayout = () => {

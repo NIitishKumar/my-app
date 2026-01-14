@@ -25,6 +25,7 @@ const CreateNoticePage = lazy(() => import('../features/notices').then(m => ({ d
 const ExamsPage = lazy(() => import('../features/admin/exams/pages/ExamsPage').then(m => ({ default: m.ExamsPage })));
 const ReportsPage = lazy(() => import('../features/admin/reports/pages/ReportsPage').then(m => ({ default: m.ReportsPage })));
 const SettingsPage = lazy(() => import('../features/admin/settings/pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const AdminProfilePage = lazy(() => import('../features/admin/profile').then(m => ({ default: m.AdminProfilePage })));
 const TeacherDashboard = lazy(() => import('../features/teacher/dashboard/TeacherDashboard').then(m => ({ default: m.TeacherDashboard })));
 const TeacherClassesPage = lazy(() => import('../features/teacher/classes/pages/TeacherClassesPage').then(m => ({ default: m.TeacherClassesPage })));
 const TeacherClassDetailPage = lazy(() => import('../features/teacher/classes/pages/TeacherClassDetailPage').then(m => ({ default: m.TeacherClassDetailPage })));
@@ -33,17 +34,20 @@ const TeacherAttendance = lazy(() => import('../features/teacher/attendance').th
 const TeacherQueries = lazy(() => import('../features/teacher/queries/Queries').then(m => ({ default: m.Queries })));
 const TeacherSubjectsPage = lazy(() => import('../features/teacher/subjects').then(m => ({ default: m.TeacherSubjectsPage })));
 const TeacherSubjectDetailsPage = lazy(() => import('../features/teacher/subjects').then(m => ({ default: m.TeacherSubjectDetailsPage })));
+const TeacherProfilePage = lazy(() => import('../features/teacher/profile').then(m => ({ default: m.TeacherProfilePage })));
 const StudentDashboard = lazy(() => import('../features/student/dashboard/StudentDashboard').then(m => ({ default: m.StudentDashboard })));
 const Exams = lazy(() => import('../features/student/exams/Exams').then(m => ({ default: m.Exams })));
 const Notifications = lazy(() => import('../features/student/notifications/Notifications').then(m => ({ default: m.Notifications })));
 const StudentRecords = lazy(() => import('../features/student/records/Records').then(m => ({ default: m.Records })));
 const StudentSubjectsPage = lazy(() => import('../features/student/subjects').then(m => ({ default: m.StudentSubjectsPage })));
 const StudentSubjectDetailsPage = lazy(() => import('../features/student/subjects').then(m => ({ default: m.StudentSubjectDetailsPage })));
+const StudentProfilePage = lazy(() => import('../features/student/profile').then(m => ({ default: m.StudentProfilePage })));
 const ParentDashboard = lazy(() => import('../features/parent/dashboard/ParentDashboard').then(m => ({ default: m.ParentDashboard })));
 const ParentAttendance = lazy(() => import('../features/parent/attendance/Attendance').then(m => ({ default: m.Attendance })));
 const ParentRecords = lazy(() => import('../features/parent/records/Records').then(m => ({ default: m.Records })));
 const ParentSubjectsPage = lazy(() => import('../features/parent/subjects').then(m => ({ default: m.ParentSubjectsPage })));
 const ParentSubjectDetailsPage = lazy(() => import('../features/parent/subjects').then(m => ({ default: m.ParentSubjectDetailsPage })));
+const ParentProfilePage = lazy(() => import('../features/parent/profile').then(m => ({ default: m.ParentProfilePage })));
 
 // Fallback component for route loading
 const RouteFallback = () => (
@@ -84,6 +88,7 @@ export const AppRoutes = () => {
           <Route path="exams" element={<ExamsPage />} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="profile" element={<AdminProfilePage />} />
           <Route index element={<Navigate to={ROUTES.ADMIN_DASHBOARD} replace />} />
         </Route>
 
@@ -104,6 +109,7 @@ export const AppRoutes = () => {
           <Route path="queries" element={<TeacherQueries />} />
           <Route path="subjects" element={<TeacherSubjectsPage />} />
           <Route path="subjects/:id" element={<TeacherSubjectDetailsPage />} />
+          <Route path="profile" element={<TeacherProfilePage />} />
           <Route index element={<Navigate to={ROUTES.TEACHER_DASHBOARD} replace />} />
         </Route>
 
@@ -122,6 +128,7 @@ export const AppRoutes = () => {
           <Route path="records" element={<StudentRecords />} />
           <Route path="subjects" element={<StudentSubjectsPage />} />
           <Route path="subjects/:id" element={<StudentSubjectDetailsPage />} />
+          <Route path="profile" element={<StudentProfilePage />} />
           <Route index element={<Navigate to={ROUTES.STUDENT_DASHBOARD} replace />} />
         </Route>
 
@@ -139,6 +146,7 @@ export const AppRoutes = () => {
           <Route path="records" element={<ParentRecords />} />
           <Route path="subjects" element={<ParentSubjectsPage />} />
           <Route path="subjects/:id" element={<ParentSubjectDetailsPage />} />
+          <Route path="profile" element={<ParentProfilePage />} />
           <Route index element={<Navigate to={ROUTES.PARENT_DASHBOARD} replace />} />
         </Route>
 
