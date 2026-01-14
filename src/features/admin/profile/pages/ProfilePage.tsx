@@ -2,7 +2,7 @@
  * Admin Profile Page
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useProfile, useUpdateProfile, useUploadAvatar } from '../../../profile';
 import { ProfilePictureUpload } from '../../../../shared/components/ProfilePictureUpload';
 import { ChangePasswordForm } from '../../../profile/components/ChangePasswordForm';

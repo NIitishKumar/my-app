@@ -16,6 +16,10 @@ export const StudentProfilePage = () => {
   const user = useAuthStore(selectUser);
   const [activeTab, setActiveTab] = useState<'profile' | 'password'>('profile');
   const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+  });
 
   if (isLoading) {
     return (
