@@ -21,14 +21,6 @@ export const StudentProfilePage = () => {
     lastName: '',
   });
 
-  if (isLoading) {
-    return (
-      <div className="p-4 lg:p-6">
-        <DashboardStatsSkeleton />
-      </div>
-    );
-  }
-
   const profileData = profile || user;
 
   // Initialize form data when profile loads
@@ -40,6 +32,14 @@ export const StudentProfilePage = () => {
       });
     }
   }, [profileData]);
+
+  if (isLoading) {
+    return (
+      <div className="p-4 lg:p-6">
+        <DashboardStatsSkeleton />
+      </div>
+    );
+  }
 
   const handleSave = () => {
     updateProfile.mutate(
