@@ -1,4 +1,6 @@
 import { NavLink } from 'react-router-dom';
+import { useAuthStore, selectUser } from '../../store';
+import { ROUTES, USER_ROLES } from '../constants';
 
 interface SidebarItem {
   path: string;
@@ -14,6 +16,15 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ items, isOpen = false, onClose }: SidebarProps) => {
+  const user = useAuthStore(selectUser);
+  const isStudentOrParent = user?.role === USER_ROLES.STUDENT || user?.role === USER_ROLES.PARENT;
+  const helpSupportRoute =
+    user?.role === USER_ROLES.STUDENT
+      ? ROUTES.STUDENT_HELP_SUPPORT
+      : user?.role === USER_ROLES.PARENT
+      ? ROUTES.PARENT_HELP_SUPPORT
+      : '#';
+
   return (
     <aside 
       className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transition-transform duration-300 flex flex-col ${
@@ -74,13 +85,21 @@ export const Sidebar = ({ items, isOpen = false, onClose }: SidebarProps) => {
           <i className="fas fa-cog w-5"></i>
           <span>Settings</span>
         </a>
-        <a
-          href="#"
-          className="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-gray-50 rounded-lg"
-        >
-          <i className="fas fa-question-circle w-5"></i>
-          <span>Help & Support</span>
-        </a>
+        {isStudentOrParent && (
+          <NavLink
+            to={helpSupportRoute}
+            className={({ isActive }) =>
+              `flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors ${
+                isActive
+                  ? 'bg-indigo-50 text-indigo-600'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`
+            }
+          >
+            <i className="fas fa-question-circle w-5"></i>
+            <span>Help & Support</span>
+          </NavLink>
+        )}
       </div>
 
       {/* User Profile at Bottom */}

@@ -43,5 +43,7 @@ export const ROUTES = {
   PARENT_SUBJECTS: '/parent/subjects',
   PARENT_SUBJECT_DETAIL: '/parent/subjects/:id',
   PARENT_PROFILE: '/parent/profile',
+  STUDENT_HELP_SUPPORT: '/student/help-support',
+  PARENT_HELP_SUPPORT: '/parent/help-support',
 } as const;
 

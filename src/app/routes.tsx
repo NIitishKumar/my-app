@@ -48,6 +48,7 @@ const ParentRecords = lazy(() => import('../features/parent/records/Records').th
 const ParentSubjectsPage = lazy(() => import('../features/parent/subjects').then(m => ({ default: m.ParentSubjectsPage })));
 const ParentSubjectDetailsPage = lazy(() => import('../features/parent/subjects').then(m => ({ default: m.ParentSubjectDetailsPage })));
 const ParentProfilePage = lazy(() => import('../features/parent/profile').then(m => ({ default: m.ParentProfilePage })));
+const HelpSupportPage = lazy(() => import('../features/help-support').then(m => ({ default: m.HelpSupportPage })));
 
 // Fallback component for route loading
 const RouteFallback = () => (
@@ -129,6 +130,7 @@ export const AppRoutes = () => {
           <Route path="subjects" element={<StudentSubjectsPage />} />
           <Route path="subjects/:id" element={<StudentSubjectDetailsPage />} />
           <Route path="profile" element={<StudentProfilePage />} />
+          <Route path="help-support" element={<HelpSupportPage />} />
           <Route index element={<Navigate to={ROUTES.STUDENT_DASHBOARD} replace />} />
         </Route>
 
@@ -147,6 +149,7 @@ export const AppRoutes = () => {
           <Route path="subjects" element={<ParentSubjectsPage />} />
           <Route path="subjects/:id" element={<ParentSubjectDetailsPage />} />
           <Route path="profile" element={<ParentProfilePage />} />
+          <Route path="help-support" element={<HelpSupportPage />} />
           <Route index element={<Navigate to={ROUTES.PARENT_DASHBOARD} replace />} />
         </Route>
 

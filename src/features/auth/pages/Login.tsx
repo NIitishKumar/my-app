@@ -24,7 +24,7 @@ export const Login = () => {
       },
       student: {
         email: 'student@school.com',
-        password: 'password123',
+        password: 'student123',
       },
       parent: {
         email: 'parent@school.com',
