@@ -1,26 +1,70 @@
+/**
+ * Student Dashboard Component
+ * Comprehensive dashboard for students
+ */
+
+import { useAuthStore, selectUser } from '../../../store';
+import { DashboardStats } from './components/DashboardStats';
+import { UpcomingExams } from './components/UpcomingExams';
+import { AttendanceOverview } from './components/AttendanceOverview';
+import { RecentNotifications } from './components/RecentNotifications';
+import { AcademicPerformance } from './components/AcademicPerformance';
+import { TodaysSchedule } from './components/TodaysSchedule';
+import { QuickActions } from './components/QuickActions';
+
 export const StudentDashboard = () => {
+  const user = useAuthStore(selectUser);
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold mb-4">Student Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-medium text-gray-700">Upcoming Exams</h3>
-          <p className="text-3xl font-bold text-indigo-600 mt-2">-</p>
+    <div className="p-3 sm:p-4 lg:p-6 max-w-full overflow-x-hidden">
+      {/* Header */}
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 break-words">
+          Welcome back, {user?.name || user?.firstName || 'Student'}!
+        </h1>
+        <p className="text-xs sm:text-sm text-gray-600 mt-1">Here's an overview of your academic progress</p>
+      </div>
+
+      {/* Statistics Cards */}
+      <div className="mb-4 sm:mb-6">
+        <DashboardStats />
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
+        {/* Upcoming Exams */}
+        <div className="lg:col-span-2 min-w-0">
+          <UpcomingExams />
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-medium text-gray-700">Notifications</h3>
-          <p className="text-3xl font-bold text-indigo-600 mt-2">-</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-medium text-gray-700">Attendance %</h3>
-          <p className="text-3xl font-bold text-indigo-600 mt-2">-</p>
+
+        {/* Today's Schedule */}
+        <div className="min-w-0">
+          <TodaysSchedule />
         </div>
       </div>
-      <div className="mt-6 bg-white p-6 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-4">Recent Updates</h2>
-        <p className="text-gray-600">No recent updates available.</p>
+
+      {/* Second Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
+        {/* Attendance Overview */}
+        <div className="lg:col-span-2 min-w-0">
+          <AttendanceOverview />
+        </div>
+
+        {/* Academic Performance */}
+        <div className="min-w-0">
+          <AcademicPerformance />
+        </div>
+      </div>
+
+      {/* Recent Notifications */}
+      <div className="mb-4 sm:mb-6">
+        <RecentNotifications />
+      </div>
+
+      {/* Quick Actions */}
+      <div className="mb-4 sm:mb-6">
+        <QuickActions />
       </div>
     </div>
   );
 };
-
