@@ -190,8 +190,32 @@ const verifyAttendanceOwner = async (req, res, next) => {
   }
 };
 
+// Verify user is a student
+const verifyStudent = (req, res, next) => {
+  if (req.user.role !== 'STUDENT') {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied. Student role required.'
+    });
+  }
+  next();
+};
+
+// Verify user is a teacher
+const verifyTeacher = (req, res, next) => {
+  if (req.user.role !== 'TEACHER') {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied. Teacher role required.'
+    });
+  }
+  next();
+};
+
 module.exports = {
   authenticateToken,
   verifyTeacherClass,
-  verifyAttendanceOwner
+  verifyAttendanceOwner,
+  verifyStudent,
+  verifyTeacher
 };

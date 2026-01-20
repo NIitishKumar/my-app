@@ -20,6 +20,9 @@ const profileRoutes = require('./routes/profileRoutes');
 const studentDashboardRoutes = require('./routes/studentDashboardRoutes');
 const timetableRoutes = require('./routes/timetableRoutes');
 const studentAttendanceRoutes = require('./routes/studentAttendanceRoutes');
+const adminExamRoutes = require('./routes/adminExamRoutes');
+const studentExamRoutes = require('./routes/studentExamRoutes');
+const teacherExamRoutes = require('./routes/teacherExamRoutes');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 require('dotenv').config();
 
@@ -78,6 +81,9 @@ app.use('/api/users', profileRoutes);
 app.use('/api/student', studentDashboardRoutes);
 app.use('/api/student/timetable', timetableRoutes);
 app.use('/api/student/attendance', studentAttendanceRoutes);
+app.use('/api/admin/exams', adminExamRoutes);
+app.use('/api/student/exams', studentExamRoutes);
+app.use('/api/teacher/exams', teacherExamRoutes);
 
 // 404 handler - must be after all routes
 app.use(notFoundHandler);
