@@ -20,7 +20,6 @@ export const MyExamsList: React.FC<MyExamsListProps> = ({
   exams,
   isLoading = false,
   onExamClick,
-  onEdit,
   groupByClass = false,
   className = '',
 }) => {

@@ -3,7 +3,7 @@
  * Main page for student attendance with tab navigation
  */
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { AttendanceFilters } from '../components/AttendanceFilters';
 import { AttendanceHistory } from '../components/AttendanceHistory';
 import { AttendanceStats } from '../components/AttendanceStats';

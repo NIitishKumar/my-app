@@ -19,14 +19,6 @@ import type {
   ExamAnalyticsApiResponse,
   ExamConflictsApiResponse,
 } from '../types/exam.types';
-import type {
-  ExamsResponse,
-  ExamDetails,
-} from '../../../student/exams/types/exam.types';
-import type {
-  ExamsApiResponse,
-  ExamDetailsApiResponse,
-} from '../../../student/exams/api/exams.dto';
 
 // Re-export student mappers
 export {

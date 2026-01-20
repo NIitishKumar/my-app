@@ -26,7 +26,6 @@ import type {
 import type {
   ExamsApiResponse,
   ExamDetailsApiResponse,
-  CreateExamApiDTO,
   BulkCreateResultApiResponse,
   ExamDashboardApiResponse,
   ExamAnalyticsApiResponse,

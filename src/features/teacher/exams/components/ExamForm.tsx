@@ -212,8 +212,8 @@ export const ExamForm: React.FC<ExamFormProps> = ({
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto border border-gray-300 rounded-lg p-3">
               {assignedClasses.map((cls) => {
-                const className = (cls as any).name || (cls as any).className || cls.className || 'Unnamed Class';
-                const classId = cls.id || (cls as any)._id || '';
+                const className = cls.name || 'Unnamed Class';
+                const classId = cls.id || '';
                 return (
                   <label key={classId} className="flex items-center space-x-2 cursor-pointer">
                     <input

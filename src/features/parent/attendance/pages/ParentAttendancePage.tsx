@@ -11,10 +11,7 @@ import { ChildrenSelector, type Child } from '../components/ChildrenSelector';
 import { ChildAttendanceOverview } from '../components/ChildAttendanceOverview';
 import { MultiChildComparison } from '../components/MultiChildComparison';
 import { AttendanceHistory } from '../../../student/attendance/components/AttendanceHistory';
-import { AttendanceCalendar } from '../../../student/attendance/components/AttendanceCalendar';
-import { AttendanceStats } from '../../../student/attendance/components/AttendanceStats';
 import { DashboardStatsSkeleton } from '../../../../shared/components/skeletons';
-import { formatDateISO } from '../../../../shared/utils/attendance/attendance.formatters';
 import type { ChildAttendanceRecord } from '../types/attendance.types';
 
 type TabType = 'overview' | 'history' | 'calendar' | 'statistics' | 'compare';
@@ -22,8 +19,6 @@ type TabType = 'overview' | 'history' | 'calendar' | 'statistics' | 'compare';
 export const ParentAttendancePage = () => {
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('overview');
-  const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
-  const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth() + 1);
 
   // Fetch children
   const { data: children = [], isLoading: isLoadingChildren } = useChildren();
@@ -44,17 +39,12 @@ export const ParentAttendancePage = () => {
   );
 
   const tabs: { id: TabType; label: string; icon: string }[] = [
-    { id: 'overview', label: 'Overview', icon: 'fa-home' },
-    ...(children.length > 1 ? [{ id: 'compare', label: 'Compare', icon: 'fa-balance-scale' }] : []),
-    { id: 'history', label: 'History', icon: 'fa-list' },
-    { id: 'calendar', label: 'Calendar', icon: 'fa-calendar' },
-    { id: 'statistics', label: 'Statistics', icon: 'fa-chart-bar' },
+    { id: 'overview' as TabType, label: 'Overview', icon: 'fa-home' },
+    ...(children.length > 1 ? [{ id: 'compare' as TabType, label: 'Compare', icon: 'fa-balance-scale' }] : []),
+    { id: 'history' as TabType, label: 'History', icon: 'fa-list' },
+    { id: 'calendar' as TabType, label: 'Calendar', icon: 'fa-calendar' },
+    { id: 'statistics' as TabType, label: 'Statistics', icon: 'fa-chart-bar' },
   ];
-
-  const handleCalendarMonthChange = (year: number, month: number) => {
-    setCalendarYear(year);
-    setCalendarMonth(month);
-  };
 
   const isLoading = isLoadingChildren || isLoadingOverview;
 
@@ -62,7 +52,7 @@ export const ParentAttendancePage = () => {
   const childrenForSelector: Child[] = children.map((c) => ({
     id: c.id,
     name: c.name,
-    classId: c.classId || '',
+    classId: c.id, // Use child id as classId fallback
     className: c.className,
     avatar: c.avatar,
   }));

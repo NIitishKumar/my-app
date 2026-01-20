@@ -54,7 +54,7 @@ export const ExamsPage = () => {
   );
 
   // Fetch upcoming exams
-  const { data: upcomingExamsData } = useUpcomingExams();
+  useUpcomingExams();
 
   // Fetch calendar data
   const { data: calendarData } = useExamCalendar(calendarYear, calendarMonth);
@@ -211,8 +211,8 @@ export const ExamsPage = () => {
                   >
                     <option value="">All Classes</option>
                     {classes.map((cls) => {
-                      const className = (cls as any).name || cls.className || 'Unnamed Class';
-                      const subject = (cls as any).subject || (cls as any).subjects?.[0] || '';
+                      const className = cls.name || 'Unnamed Class';
+                      const subject = cls.subject || '';
                       return (
                         <option key={cls.id} value={cls.id}>
                           {className}{subject ? ` (${subject})` : ''}
@@ -265,11 +265,9 @@ export const ExamsPage = () => {
                             subject: editingExam.subject,
                             subjectCode: editingExam.subjectCode,
                             classIds: [editingExam.classId],
-                            date: editingExam.date instanceof Date
+                            date: editingExam.date instanceof Date 
                               ? editingExam.date.toISOString().split('T')[0]
-                              : typeof editingExam.date === 'string'
-                              ? editingExam.date.split('T')[0]
-                              : '',
+                              : String(editingExam.date || '').split('T')[0],
                             startTime: editingExam.startTime,
                             duration: editingExam.duration,
                             totalMarks: editingExam.totalMarks,
