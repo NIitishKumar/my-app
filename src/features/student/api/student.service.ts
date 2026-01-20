@@ -20,9 +20,14 @@ import type {
 
 export const studentService = {
   // Exams
-  getExams: async (): Promise<Exam[]> => {
-    const response = await httpClient.get<ExamDTO[]>(API_ENDPOINTS.STUDENT_EXAMS);
-    return response.map(StudentMapper.examToDomain);
+  getExams: async (params?: { status?: string; limit?: number }): Promise<Exam[]> => {
+    const response = await httpClient.get<ExamDTO[] | { success: boolean; data: ExamDTO[] }>(
+      API_ENDPOINTS.STUDENT_EXAMS,
+      params
+    );
+    // Handle both wrapped and direct array responses
+    const exams = Array.isArray(response) ? response : response.data || [];
+    return exams.map(StudentMapper.examToDomain);
   },
 
   getExam: async (id: string): Promise<Exam> => {
@@ -33,11 +38,14 @@ export const studentService = {
   },
 
   // Notifications
-  getNotifications: async (): Promise<Notification[]> => {
-    const response = await httpClient.get<NotificationDTO[]>(
-      API_ENDPOINTS.STUDENT_NOTIFICATIONS
+  getNotifications: async (params?: { limit?: number }): Promise<Notification[]> => {
+    const response = await httpClient.get<NotificationDTO[] | { success: boolean; data: NotificationDTO[] }>(
+      API_ENDPOINTS.STUDENT_NOTIFICATIONS,
+      params
     );
-    return response.map(StudentMapper.notificationToDomain);
+    // Handle both wrapped and direct array responses
+    const notifications = Array.isArray(response) ? response : response.data || [];
+    return notifications.map(StudentMapper.notificationToDomain);
   },
 
   markNotificationAsRead: async (id: string): Promise<void> => {

@@ -9,7 +9,7 @@ import { useUIStore, useAuthStore, selectIsSidebarOpen, selectUser } from '../..
 
 const studentMenuItems = [
   { path: ROUTES.STUDENT_DASHBOARD, label: 'Dashboard', icon: 'fa-home' },
-  { path: '#timetable', label: 'My Timetable', icon: 'fa-calendar-alt' },
+  { path: ROUTES.STUDENT_TIMETABLE, label: 'My Timetable', icon: 'fa-calendar-alt' },
   { path: '#attendance', label: 'Attendance', icon: 'fa-clipboard-check' },
   { path: ROUTES.STUDENT_EXAMS, label: 'Exam Schedule', icon: 'fa-file-alt' },
   { path: ROUTES.STUDENT_RECORDS, label: 'Academic Records', icon: 'fa-chart-line' },
@@ -20,7 +20,7 @@ const studentMenuItems = [
 
 const mobileBottomNav = [
   { path: ROUTES.STUDENT_DASHBOARD, label: 'Home', icon: 'fa-home' },
-  { path: '#timetable', label: 'Schedule', icon: 'fa-calendar-alt' },
+  { path: ROUTES.STUDENT_TIMETABLE, label: 'Schedule', icon: 'fa-calendar-alt' },
   { path: '#attendance', label: 'Attendance', icon: 'fa-clipboard-check' },
   { path: ROUTES.STUDENT_NOTIFICATIONS, label: 'Notices', icon: 'fa-bell' },
   { path: ROUTES.STUDENT_PROFILE, label: 'Profile', icon: 'fa-user' },

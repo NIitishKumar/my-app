@@ -1,26 +1,18 @@
 /**
  * Student Dashboard Hooks
- * Hooks for fetching dashboard data
- * Currently returns mock data, ready for API integration
+ * React Query hooks for fetching dashboard data from APIs
  */
 
 import { useQuery } from '@tanstack/react-query';
-import {
-  mockDashboardStats,
-  mockUpcomingExams,
-  mockRecentNotifications,
-  mockAttendanceStats,
-  mockAcademicSummary,
-  mockTodaysSchedule,
-  type DashboardStats,
-  type AttendanceStats,
-  type AcademicSummary,
-  type ScheduleItem,
+import { dashboardService } from '../api/dashboard.service';
+import { studentService } from '../../api/student.service';
+import type {
+  DashboardStats,
+  AttendanceStats,
+  AcademicSummary,
+  ScheduleItem,
 } from '../data/mockDashboardData';
 import type { Exam, Notification } from '../../models/student.model';
-
-// Simulate API delay
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Get dashboard statistics
@@ -28,10 +20,7 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export const useDashboardStats = () => {
   return useQuery<DashboardStats>({
     queryKey: ['student-dashboard', 'stats'],
-    queryFn: async () => {
-      await delay(500); // Simulate API call
-      return mockDashboardStats;
-    },
+    queryFn: () => dashboardService.getDashboardStats(),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
@@ -42,10 +31,7 @@ export const useDashboardStats = () => {
 export const useUpcomingExams = () => {
   return useQuery<Exam[]>({
     queryKey: ['student-dashboard', 'upcoming-exams'],
-    queryFn: async () => {
-      await delay(500);
-      return mockUpcomingExams;
-    },
+    queryFn: () => studentService.getExams({ status: 'upcoming', limit: 5 }),
     staleTime: 5 * 60 * 1000,
   });
 };
@@ -56,10 +42,7 @@ export const useUpcomingExams = () => {
 export const useRecentNotifications = () => {
   return useQuery<Notification[]>({
     queryKey: ['student-dashboard', 'recent-notifications'],
-    queryFn: async () => {
-      await delay(500);
-      return mockRecentNotifications;
-    },
+    queryFn: () => studentService.getNotifications({ limit: 5 }),
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 };
@@ -70,10 +53,7 @@ export const useRecentNotifications = () => {
 export const useAttendanceStats = () => {
   return useQuery<AttendanceStats>({
     queryKey: ['student-dashboard', 'attendance-stats'],
-    queryFn: async () => {
-      await delay(500);
-      return mockAttendanceStats;
-    },
+    queryFn: () => dashboardService.getAttendanceStats(),
     staleTime: 5 * 60 * 1000,
   });
 };
@@ -84,10 +64,7 @@ export const useAttendanceStats = () => {
 export const useAcademicSummary = () => {
   return useQuery<AcademicSummary>({
     queryKey: ['student-dashboard', 'academic-summary'],
-    queryFn: async () => {
-      await delay(500);
-      return mockAcademicSummary;
-    },
+    queryFn: () => dashboardService.getAcademicSummary(),
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 };
@@ -98,12 +75,7 @@ export const useAcademicSummary = () => {
 export const useTodaysSchedule = () => {
   return useQuery<ScheduleItem[]>({
     queryKey: ['student-dashboard', 'todays-schedule'],
-    queryFn: async () => {
-      await delay(300);
-      // Filter schedule based on today's day of week
-      // For mock data, return all schedule items
-      return mockTodaysSchedule;
-    },
+    queryFn: () => dashboardService.getTodaysSchedule(),
     staleTime: 60 * 60 * 1000, // 1 hour
   });
 };

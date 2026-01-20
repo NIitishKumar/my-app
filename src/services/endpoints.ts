@@ -26,6 +26,15 @@ export const API_ENDPOINTS = {
   STUDENT_NOTIFICATIONS: '/student/notifications',
   STUDENT_RECORDS: '/student/records',
   STUDENT_TEACHERS: '/student/teachers',
+  // Student Dashboard
+  STUDENT_DASHBOARD_STATS: '/student/dashboard/stats',
+  STUDENT_DASHBOARD_ATTENDANCE: '/student/dashboard/attendance',
+  STUDENT_DASHBOARD_ACADEMIC_SUMMARY: '/student/dashboard/academic-summary',
+  STUDENT_DASHBOARD_SCHEDULE_TODAY: '/student/dashboard/schedule/today',
+  // Student Timetable
+  STUDENT_TIMETABLE: '/student/timetable',
+  STUDENT_TIMETABLE_WEEK: '/student/timetable/week',
+  STUDENT_TIMETABLE_DAY: '/student/timetable/day',
   
   // Parent
   PARENT_CHILDREN: '/parent/children',
