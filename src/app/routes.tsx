@@ -42,6 +42,7 @@ const StudentRecords = lazy(() => import('../features/student/records/Records').
 const StudentSubjectsPage = lazy(() => import('../features/student/subjects').then(m => ({ default: m.StudentSubjectsPage })));
 const StudentSubjectDetailsPage = lazy(() => import('../features/student/subjects').then(m => ({ default: m.StudentSubjectDetailsPage })));
 const StudentProfilePage = lazy(() => import('../features/student/profile').then(m => ({ default: m.StudentProfilePage })));
+const StudentAttendancePage = lazy(() => import('../features/student/attendance').then(m => ({ default: m.StudentAttendancePage })));
 const TimetablePage = lazy(() => import('../features/student/timetable').then(m => ({ default: m.TimetablePage })));
 const ParentDashboard = lazy(() => import('../features/parent/dashboard/ParentDashboard').then(m => ({ default: m.ParentDashboard })));
 const ParentAttendance = lazy(() => import('../features/parent/attendance/Attendance').then(m => ({ default: m.Attendance })));
@@ -125,6 +126,7 @@ export const AppRoutes = () => {
           }
         >
           <Route path="dashboard" element={<StudentDashboard />} />
+          <Route path="attendance" element={<StudentAttendancePage />} />
           <Route path="timetable" element={<TimetablePage />} />
           <Route path="exams" element={<Exams />} />
           <Route path="notifications" element={<Notifications />} />

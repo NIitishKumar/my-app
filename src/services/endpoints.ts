@@ -35,10 +35,14 @@ export const API_ENDPOINTS = {
   STUDENT_TIMETABLE: '/student/timetable',
   STUDENT_TIMETABLE_WEEK: '/student/timetable/week',
   STUDENT_TIMETABLE_DAY: '/student/timetable/day',
+  // Student Attendance
+  STUDENT_ATTENDANCE: '/student/attendance',
   
   // Parent
   PARENT_CHILDREN: '/parent/children',
   PARENT_ATTENDANCE: '/parent/attendance',
+  PARENT_ATTENDANCE_OVERVIEW: '/parent/attendance/overview',
+  PARENT_ATTENDANCE_COMPARE: '/parent/attendance/compare',
   PARENT_RECORDS: '/parent/records',
   PARENT_TEACHERS: '/parent/teachers',
   PARENT_QUERIES: '/parent/queries',

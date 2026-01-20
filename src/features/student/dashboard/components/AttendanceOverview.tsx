@@ -54,7 +54,7 @@ export const AttendanceOverview = () => {
           <span className="truncate">Attendance Overview</span>
         </h2>
         <button
-          onClick={() => navigate('#attendance')}
+          onClick={() => navigate('/student/attendance')}
           className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-700 font-medium whitespace-nowrap flex-shrink-0"
         >
           View Details →

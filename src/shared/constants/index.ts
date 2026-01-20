@@ -37,6 +37,7 @@ export const ROUTES = {
   STUDENT_SUBJECTS: '/student/subjects',
   STUDENT_SUBJECT_DETAIL: '/student/subjects/:id',
   STUDENT_PROFILE: '/student/profile',
+  STUDENT_ATTENDANCE: '/student/attendance',
   STUDENT_TIMETABLE: '/student/timetable',
   PARENT_DASHBOARD: '/parent/dashboard',
   PARENT_ATTENDANCE: '/parent/attendance',
