@@ -14,6 +14,7 @@ const adminMenuItems = [
   { path: ROUTES.ADMIN_STUDENTS, label: 'Students', icon: 'fa-user-graduate' },
   { path: ROUTES.ADMIN_LECTURES, label: 'Lectures', icon: 'fa-book' },
   { path: ROUTES.ADMIN_SUBJECTS, label: 'Subjects', icon: 'fa-book-open' },
+  { path: ROUTES.ADMIN_EXAMS, label: 'Exams', icon: 'fa-clipboard-list' },
   { path: ROUTES.ADMIN_NOTICES, label: 'Notices', icon: 'fa-bullhorn' },
 ];
 

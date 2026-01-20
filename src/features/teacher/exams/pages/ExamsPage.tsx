@@ -1,37 +1,39 @@
 /**
  * ExamsPage Component
- * Main page for admin exam management
+ * Main page for teacher exam schedule
  */
 
 import { useState } from 'react';
-import { useExams } from '../hooks/useExams';
+import { useTeacherExams } from '../hooks/useTeacherExams';
+import { useClassExams } from '../hooks/useClassExams';
+import { useUpcomingExams } from '../hooks/useUpcomingExams';
+import { useExamCalendar } from '../../../student/exams/hooks/useExamCalendar';
+import { useAssignedClasses } from '../../hooks/useTeacher';
 import { useCreateExam } from '../hooks/useCreateExam';
 import { useUpdateExam } from '../hooks/useUpdateExam';
-import { useDeleteExam } from '../hooks/useDeleteExam';
-import { useExamDashboard } from '../hooks/useExamDashboard';
-import { useExamAnalytics } from '../hooks/useExamAnalytics';
-import { useExamCalendar } from '../../../student/exams/hooks/useExamCalendar';
-import { useExam } from '../hooks/useExam';
 import { ExamsDashboard } from '../components/ExamsDashboard';
-import { ExamsList } from '../components/ExamsList';
-import { ExamForm } from '../components/ExamForm';
+import { MyExamsList } from '../components/MyExamsList';
+import { ClassExamsList } from '../components/ClassExamsList';
 import { ExamScheduleCalendar } from '../../../student/exams/components/ExamScheduleCalendar';
-import { ExamAnalytics } from '../components/ExamAnalytics';
-import { ExamDetails } from '../../../student/exams/components/ExamDetails';
 import { ExamFilters } from '../../../student/exams/components/ExamFilters';
+import { ExamDetails } from '../../../student/exams/components/ExamDetails';
+import { ExamForm } from '../components/ExamForm';
+import { useExam } from '../../../student/exams/hooks/useExam';
 import { DashboardStatsSkeleton } from '../../../../shared/components/skeletons';
-import type { CreateExamData, Exam } from '../types/exam.types';
+import type { Exam } from '../../../student/exams/types/exam.types';
+import type { CreateExamData } from '../../../admin/exams/types/exam.types';
 
-type TabType = 'all' | 'create' | 'calendar' | 'analytics';
+type TabType = 'all' | 'by-class' | 'calendar' | 'create';
 
 export const ExamsPage = () => {
   const [activeTab, setActiveTab] = useState<TabType>('all');
-  const [showForm, setShowForm] = useState(false);
-  const [editingExamId, setEditingExamId] = useState<string | null>(null);
-  const [selectedExamId, setSelectedExamId] = useState<string | null>(null);
-  const [showExamDetails, setShowExamDetails] = useState(false);
+  const [selectedClassId, setSelectedClassId] = useState<string>('');
   const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
   const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth() + 1);
+  const [selectedExamId, setSelectedExamId] = useState<string | null>(null);
+  const [showExamDetails, setShowExamDetails] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [editingExamId, setEditingExamId] = useState<string | null>(null);
   const [filters, setFilters] = useState<{
     status?: string;
     subject?: string;
@@ -39,23 +41,60 @@ export const ExamsPage = () => {
     endDate?: string;
   }>({});
 
-  // Fetch data
-  const { data: examsData, isLoading: isLoadingExams } = useExams(filters);
-  const { data: dashboardData, isLoading: isLoadingDashboard } = useExamDashboard();
-  const { data: analyticsData, isLoading: isLoadingAnalytics } = useExamAnalytics();
+  // Fetch assigned classes
+  const { data: classes = [] } = useAssignedClasses();
+
+  // Fetch all exams
+  const { data: allExamsData, isLoading: isLoadingAllExams } = useTeacherExams(filters);
+
+  // Fetch class-specific exams
+  const { data: classExamsData, isLoading: isLoadingClassExams } = useClassExams(
+    selectedClassId,
+    filters
+  );
+
+  // Fetch upcoming exams
+  const { data: upcomingExamsData } = useUpcomingExams();
+
+  // Fetch calendar data
   const { data: calendarData } = useExamCalendar(calendarYear, calendarMonth);
+
+  // Fetch selected exam details
   const { data: examDetails } = useExam(selectedExamId || '');
+
+  // Fetch exam for editing
   const { data: editingExam } = useExam(editingExamId || '');
 
   // Mutations
   const createExam = useCreateExam();
   const updateExam = useUpdateExam();
-  const deleteExam = useDeleteExam();
+
+  const handleFilterChange = (newFilters: {
+    status?: string;
+    subject?: string;
+    startDate?: string;
+    endDate?: string;
+  }) => {
+    setFilters(newFilters);
+  };
+
+  const handleExamClick = (exam: Exam) => {
+    setSelectedExamId(exam.id);
+    setShowExamDetails(true);
+  };
+
+  const handleEditExam = (exam: Exam) => {
+    setEditingExamId(exam.id);
+    setShowForm(true);
+    setActiveTab('create');
+  };
 
   const handleCreateExam = (data: CreateExamData) => {
     createExam.mutate(data, {
       onSuccess: () => {
         setShowForm(false);
+        setEditingExamId(null);
+        setActiveTab('all');
       },
     });
   };
@@ -68,34 +107,10 @@ export const ExamsPage = () => {
         onSuccess: () => {
           setShowForm(false);
           setEditingExamId(null);
+          setActiveTab('all');
         },
       }
     );
-  };
-
-  const handleDeleteExam = (exam: Exam) => {
-    if (window.confirm(`Are you sure you want to delete "${exam.title}"?`)) {
-      deleteExam.mutate(exam.id);
-    }
-  };
-
-  const handleEditExam = (exam: Exam) => {
-    setEditingExamId(exam.id);
-    setShowForm(true);
-  };
-
-  const handleExamClick = (exam: Exam) => {
-    setSelectedExamId(exam.id);
-    setShowExamDetails(true);
-  };
-
-  const handleFilterChange = (newFilters: {
-    status?: string;
-    subject?: string;
-    startDate?: string;
-    endDate?: string;
-  }) => {
-    setFilters(newFilters);
   };
 
   const handleCalendarMonthChange = (year: number, month: number) => {
@@ -105,33 +120,29 @@ export const ExamsPage = () => {
 
   const tabs: { id: TabType; label: string; icon: string }[] = [
     { id: 'all', label: 'All Exams', icon: 'fa-list' },
-    { id: 'create', label: 'Create Exam', icon: 'fa-plus-circle' },
+    { id: 'by-class', label: 'By Class', icon: 'fa-layer-group' },
     { id: 'calendar', label: 'Calendar', icon: 'fa-calendar-alt' },
-    { id: 'analytics', label: 'Analytics', icon: 'fa-chart-bar' },
+    { id: 'create', label: 'Create Exam', icon: 'fa-plus-circle' },
   ];
 
-  const isLoading = isLoadingExams || isLoadingDashboard || isLoadingAnalytics;
+  const isLoading = isLoadingAllExams || isLoadingClassExams;
 
   return (
     <div className="p-3 sm:p-4 lg:p-6 max-w-full overflow-x-hidden">
       {/* Header */}
       <div className="mb-4 sm:mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
-              Exam Schedule Management
-            </h1>
-            <p className="text-xs sm:text-sm text-gray-600">
-              Create and manage exam schedules for all classes
-            </p>
-          </div>
-        </div>
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
+          Exam Schedule
+        </h1>
+        <p className="text-xs sm:text-sm text-gray-600">
+          View exams for your assigned classes
+        </p>
       </div>
 
       {/* Dashboard */}
       {activeTab === 'all' && (
         <div className="mb-6">
-          <ExamsDashboard dashboardData={dashboardData} isLoading={isLoadingDashboard} />
+          <ExamsDashboard examsData={allExamsData} isLoading={isLoadingAllExams} />
         </div>
       )}
 
@@ -168,22 +179,78 @@ export const ExamsPage = () => {
 
       {/* Tab Content */}
       <div>
-        {isLoading && activeTab !== 'create' ? (
+        {isLoading ? (
           <DashboardStatsSkeleton />
         ) : (
           <>
             {/* All Exams Tab */}
-            {activeTab === 'all' && examsData && (
+            {activeTab === 'all' && allExamsData && (
               <div className="space-y-4">
                 <ExamFilters onFilterChange={handleFilterChange} />
-                <ExamsList
-                  exams={examsData.exams}
-                  isLoading={isLoadingExams}
+                <MyExamsList
+                  exams={allExamsData.exams}
+                  isLoading={isLoadingAllExams}
                   onExamClick={handleExamClick}
                   onEdit={handleEditExam}
-                  onDelete={handleDeleteExam}
+                  groupByClass={true}
                 />
               </div>
+            )}
+
+            {/* By Class Tab */}
+            {activeTab === 'by-class' && (
+              <div className="space-y-4">
+                <div className="bg-white rounded-lg border border-gray-200 p-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select Class
+                  </label>
+                  <select
+                    value={selectedClassId}
+                    onChange={(e) => setSelectedClassId(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  >
+                    <option value="">All Classes</option>
+                    {classes.map((cls) => {
+                      const className = (cls as any).name || cls.className || 'Unnamed Class';
+                      const subject = (cls as any).subject || (cls as any).subjects?.[0] || '';
+                      return (
+                        <option key={cls.id} value={cls.id}>
+                          {className}{subject ? ` (${subject})` : ''}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                {selectedClassId && classExamsData && (
+                  <ClassExamsList
+                    exams={classExamsData.exams}
+                    className={classExamsData.exams[0]?.className || 'Unknown Class'}
+                    isLoading={isLoadingClassExams}
+                    onExamClick={handleExamClick}
+                  />
+                )}
+
+                {!selectedClassId && allExamsData && (
+                  <MyExamsList
+                    exams={allExamsData.exams}
+                    isLoading={isLoadingAllExams}
+                    onExamClick={handleExamClick}
+                    groupByClass={true}
+                  />
+                )}
+              </div>
+            )}
+
+            {/* Calendar Tab */}
+            {activeTab === 'calendar' && calendarData && (
+              <ExamScheduleCalendar
+                year={calendarData.year}
+                month={calendarData.month}
+                exams={calendarData.days.flatMap((day) => day.exams)}
+                onMonthChange={handleCalendarMonthChange}
+                onExamClick={handleExamClick}
+              />
             )}
 
             {/* Create/Edit Exam Tab */}
@@ -200,7 +267,9 @@ export const ExamsPage = () => {
                             classIds: [editingExam.classId],
                             date: editingExam.date instanceof Date
                               ? editingExam.date.toISOString().split('T')[0]
-                              : editingExam.date,
+                              : typeof editingExam.date === 'string'
+                              ? editingExam.date.split('T')[0]
+                              : '',
                             startTime: editingExam.startTime,
                             duration: editingExam.duration,
                             totalMarks: editingExam.totalMarks,
@@ -214,6 +283,7 @@ export const ExamsPage = () => {
                     onCancel={() => {
                       setShowForm(false);
                       setEditingExamId(null);
+                      setActiveTab('all');
                     }}
                     isLoading={createExam.isPending || updateExam.isPending}
                   />
@@ -224,22 +294,6 @@ export const ExamsPage = () => {
                   </div>
                 )}
               </div>
-            )}
-
-            {/* Calendar Tab */}
-            {activeTab === 'calendar' && calendarData && (
-              <ExamScheduleCalendar
-                year={calendarData.year}
-                month={calendarData.month}
-                exams={calendarData.days.flatMap((day) => day.exams)}
-                onMonthChange={handleCalendarMonthChange}
-                onExamClick={handleExamClick}
-              />
-            )}
-
-            {/* Analytics Tab */}
-            {activeTab === 'analytics' && analyticsData && (
-              <ExamAnalytics analyticsData={analyticsData} isLoading={isLoadingAnalytics} />
             )}
           </>
         )}
@@ -262,3 +316,4 @@ export const ExamsPage = () => {
     </div>
   );
 };
+

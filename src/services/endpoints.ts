@@ -11,11 +11,13 @@ export const API_ENDPOINTS = {
   ADMIN_SUBJECTS: '/admin/subjects',
   ADMIN_NOTICES: '/admin/notices',
   ADMIN_REPORTS: '/admin/reports',
+  ADMIN_EXAMS: '/admin/exams',
   
   // Teacher
   TEACHER_DASHBOARD: '/teacher/dashboard',
   TEACHER_CLASSES: '/teacher/classes',
   TEACHER_ATTENDANCE: '/teacher/attendance',
+  TEACHER_EXAMS: '/teacher/exams',
   TEACHER_QUERIES: '/teacher/queries',
   
   // Subjects (for teachers, students, parents - view only)
@@ -23,6 +25,10 @@ export const API_ENDPOINTS = {
   
   // Student
   STUDENT_EXAMS: '/student/exams',
+  STUDENT_EXAMS_UPCOMING: '/student/exams/upcoming',
+  STUDENT_EXAMS_RESULTS: '/student/exams/results',
+  STUDENT_EXAMS_CALENDAR: '/student/exams/calendar',
+  STUDENT_EXAMS_EXPORT: '/student/exams/export',
   STUDENT_NOTIFICATIONS: '/student/notifications',
   STUDENT_RECORDS: '/student/records',
   STUDENT_TEACHERS: '/student/teachers',

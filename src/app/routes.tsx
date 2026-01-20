@@ -32,6 +32,7 @@ const TeacherClassDetailPage = lazy(() => import('../features/teacher/classes/pa
 const TeacherAttendancePage = lazy(() => import('../features/teacher/classes/pages/TeacherAttendancePage').then(m => ({ default: m.TeacherAttendancePage })));
 const TeacherAttendance = lazy(() => import('../features/teacher/attendance').then(m => ({ default: m.AttendancePage })));
 const TeacherQueries = lazy(() => import('../features/teacher/queries/Queries').then(m => ({ default: m.Queries })));
+const TeacherExamsPage = lazy(() => import('../features/teacher/exams').then(m => ({ default: m.ExamsPage })));
 const TeacherSubjectsPage = lazy(() => import('../features/teacher/subjects').then(m => ({ default: m.TeacherSubjectsPage })));
 const TeacherSubjectDetailsPage = lazy(() => import('../features/teacher/subjects').then(m => ({ default: m.TeacherSubjectDetailsPage })));
 const TeacherProfilePage = lazy(() => import('../features/teacher/profile').then(m => ({ default: m.TeacherProfilePage })));
@@ -109,6 +110,7 @@ export const AppRoutes = () => {
           <Route path="classes/:id" element={<TeacherClassDetailPage />} />
           <Route path="classes/:id/attendance" element={<TeacherAttendancePage />} />
           <Route path="attendance" element={<TeacherAttendance />} />
+          <Route path="exams" element={<TeacherExamsPage />} />
           <Route path="queries" element={<TeacherQueries />} />
           <Route path="subjects" element={<TeacherSubjectsPage />} />
           <Route path="subjects/:id" element={<TeacherSubjectDetailsPage />} />

@@ -26,6 +26,7 @@ export const ROUTES = {
   TEACHER_CLASS_DETAIL: '/teacher/classes/:id',
   TEACHER_CLASS_ATTENDANCE: '/teacher/classes/:id/attendance',
   TEACHER_ATTENDANCE: '/teacher/attendance',
+  TEACHER_EXAMS: '/teacher/exams',
   TEACHER_QUERIES: '/teacher/queries',
   TEACHER_SUBJECTS: '/teacher/subjects',
   TEACHER_SUBJECT_DETAIL: '/teacher/subjects/:id',
