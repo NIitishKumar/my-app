@@ -23,7 +23,7 @@ export const Login = () => {
         password: 'Teacher@123',
       },
       student: {
-        email: 'student@school.com',
+        email: 'john.doe@student.com',
         password: 'student123',
       },
       parent: {
@@ -158,7 +158,7 @@ export const Login = () => {
             </div>
             <div className="flex justify-between">
               <span className="font-medium">Student:</span>
-              <span>student@school.com</span>
+              <span>john.doe@student.com</span>
             </div>
             <div className="flex justify-between">
               <span className="font-medium">Parent:</span>
