@@ -61,8 +61,13 @@ export const TimetablePage = () => {
     );
   }
 
-  const weekEnd = new Date(currentWeek);
-  weekEnd.setDate(weekEnd.getDate() + 6);
+  // Use dates from API response instead of calculating
+  const weekStart = timetable.weekStartDate || currentWeek;
+  const weekEnd = timetable.weekEndDate || (() => {
+    const end = new Date(currentWeek);
+    end.setDate(end.getDate() + 6);
+    return end;
+  })();
 
   const weekdays = timetable.days.filter((day) => day.day >= 1 && day.day <= 5);
   const selectedDaySchedule = weekdays.find((day) => day.day === selectedDay) || weekdays[0];
@@ -79,7 +84,7 @@ export const TimetablePage = () => {
 
       {/* Week Navigation */}
       <WeekNavigation
-        weekStart={currentWeek}
+        weekStart={weekStart}
         weekEnd={weekEnd}
         isCurrentWeek={isCurrentWeek}
         onPreviousWeek={goToPreviousWeek}

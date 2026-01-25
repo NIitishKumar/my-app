@@ -63,16 +63,6 @@ export const WeeklyTimetable = ({ timetable, currentTime = new Date() }: WeeklyT
     );
   }
 
-  if (!hasSlots) {
-    return (
-      <div className="text-center py-12 text-gray-500">
-        <i className="fas fa-calendar-times text-4xl mb-3 text-gray-400"></i>
-        <p className="text-sm">No classes scheduled for this week</p>
-        <p className="text-xs text-gray-400 mt-1">Enjoy your free time!</p>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       {/* Desktop View - Grid Layout */}
@@ -93,42 +83,62 @@ export const WeeklyTimetable = ({ timetable, currentTime = new Date() }: WeeklyT
 
           {/* Time Slot Rows */}
           <div className="divide-y divide-gray-200">
-            {timeSlots.map((time, idx) => {
-              if (idx === timeSlots.length - 1) return null; // Skip last time (end time)
-              return (
-                <div key={time} className="grid grid-cols-6">
-                  <div className="p-3 text-xs text-gray-600 font-medium border-r border-gray-200">
-                    {time}
+            {timeSlots.length > 0 ? (
+              timeSlots.map((time, idx) => {
+                if (idx === timeSlots.length - 1) return null; // Skip last time (end time)
+                return (
+                  <div key={time} className="grid grid-cols-6">
+                    <div className="p-3 text-xs text-gray-600 font-medium border-r border-gray-200">
+                      {time}
+                    </div>
+                    {weekdays.map((day) => {
+                      const slots = getSlotsForTime(day, time);
+                      return (
+                        <div
+                          key={day.day}
+                          className="p-2 border-l border-gray-200 min-h-[80px]"
+                        >
+                          {slots.map((slot) => (
+                            <div
+                              key={slot.id}
+                              className={`mb-1 p-2 rounded text-xs ${
+                                slot.type === 'lab'
+                                  ? 'bg-purple-100 border border-purple-300'
+                                  : slot.type === 'tutorial'
+                                  ? 'bg-blue-100 border border-blue-300'
+                                  : 'bg-indigo-100 border border-indigo-300'
+                              }`}
+                            >
+                              <div className="font-semibold truncate">{slot.subject}</div>
+                              <div className="text-gray-600 truncate">{slot.teacher.name}</div>
+                              <div className="text-gray-600">{slot.room}</div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })}
                   </div>
-                  {weekdays.map((day) => {
-                    const slots = getSlotsForTime(day, time);
-                    return (
-                      <div
-                        key={day.day}
-                        className="p-2 border-l border-gray-200 min-h-[80px]"
-                      >
-                        {slots.map((slot) => (
-                          <div
-                            key={slot.id}
-                            className={`mb-1 p-2 rounded text-xs ${
-                              slot.type === 'lab'
-                                ? 'bg-purple-100 border border-purple-300'
-                                : slot.type === 'tutorial'
-                                ? 'bg-blue-100 border border-blue-300'
-                                : 'bg-indigo-100 border border-indigo-300'
-                            }`}
-                          >
-                            <div className="font-semibold truncate">{slot.subject}</div>
-                            <div className="text-gray-600 truncate">{slot.teacher.name}</div>
-                            <div className="text-gray-600">{slot.room}</div>
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  })}
+                );
+              })
+            ) : (
+              // Show empty week structure when no time slots exist
+              <div className="grid grid-cols-6">
+                <div className="p-3 text-xs text-gray-400 font-medium border-r border-gray-200">
+                  All Day
                 </div>
-              );
-            })}
+                {weekdays.map((day) => (
+                  <div
+                    key={day.day}
+                    className="p-4 border-l border-gray-200 min-h-[100px] flex items-center justify-center"
+                  >
+                    <div className="text-center text-gray-400">
+                      <i className="fas fa-calendar-times text-2xl mb-2"></i>
+                      <p className="text-xs">No classes</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
