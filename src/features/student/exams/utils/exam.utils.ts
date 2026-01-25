@@ -50,8 +50,19 @@ export const groupExamsByDate = (exams: Exam[]): Record<string, Exam[]> => {
  * Check if exam is upcoming
  */
 export const isUpcoming = (exam: Exam): boolean => {
+  // Trust the API status if it's marked as upcoming or scheduled
+  if (exam.status === 'upcoming' || exam.status === 'scheduled') {
+    return true;
+  }
+  
+  // If status is completed or cancelled, it's not upcoming
+  if (exam.status === 'completed' || exam.status === 'cancelled') {
+    return false;
+  }
+  
+  // For other statuses, check the date
   const examDate = typeof exam.date === 'string' ? new Date(exam.date) : exam.date;
   const now = new Date();
-  return examDate > now && exam.status !== 'completed' && exam.status !== 'cancelled';
+  return examDate > now;
 };
 

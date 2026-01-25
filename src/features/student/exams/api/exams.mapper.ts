@@ -50,9 +50,15 @@ export const mapExamToDomain = (dto: ExamApiDTO): Exam => {
  * Map API response to ExamsResponse
  */
 export const mapExamsResponseToDomain = (response: ExamsApiResponse): ExamsResponse => {
+  const exams = response.data.exams.map(mapExamToDomain);
   return {
-    exams: response.data.exams.map(mapExamToDomain),
-    pagination: response.data.pagination,
+    exams,
+    pagination: response.data.pagination || {
+      page: 1,
+      limit: exams.length,
+      totalPages: 1,
+      totalRecords: exams.length,
+    },
   };
 };
 

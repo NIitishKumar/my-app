@@ -10,6 +10,7 @@ import {
   mapExamDetailsToDomain,
   mapExamResultsResponseToDomain,
   mapExamCalendarToDomain,
+  mapExamToDomain,
 } from './exams.mapper';
 import type {
   ExamsResponse,
@@ -17,6 +18,7 @@ import type {
   ExamResultsResponse,
   ExamCalendar,
   ExamFilters,
+  ExamApiDTO,
 } from '../types/exam.types';
 import type {
   ExamsApiResponse,
@@ -51,14 +53,29 @@ export const studentExamService = {
     const queryString = buildQueryString(filters);
     const endpoint = `${API_ENDPOINTS.STUDENT_EXAMS}${queryString}`;
 
-    const response = await httpClient.get<ExamsApiResponse | ExamsResponse>(endpoint);
+    const response = await httpClient.get<ExamsApiResponse | ExamsResponse | { exams: ExamApiDTO[] }>(endpoint);
 
-    // Handle both wrapped and direct responses
+    // Handle wrapped response with success property
     if ('success' in response && response.success) {
       return mapExamsResponseToDomain(response as ExamsApiResponse);
     }
 
-    // Direct response structure
+    // Handle direct response with exams array (no wrapper, no pagination)
+    if ('exams' in response && Array.isArray(response.exams)) {
+      const directResponse = response as { exams: ExamApiDTO[]; pagination?: any };
+      const exams = directResponse.exams.map(mapExamToDomain);
+      return {
+        exams,
+        pagination: directResponse.pagination || {
+          page: 1,
+          limit: exams.length,
+          totalPages: 1,
+          totalRecords: exams.length,
+        },
+      };
+    }
+
+    // Direct response structure with pagination (already mapped)
     return response as ExamsResponse;
   },
 
