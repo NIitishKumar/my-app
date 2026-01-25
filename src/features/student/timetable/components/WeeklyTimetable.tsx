@@ -49,11 +49,6 @@ export const WeeklyTimetable = ({ timetable, currentTime = new Date() }: WeeklyT
     return getTimeSlots(timetable);
   }, [timetable]);
 
-  // Check if there are any slots in any day
-  const hasSlots = useMemo(() => {
-    return weekdays.some((day) => day.slots && day.slots.length > 0);
-  }, [weekdays]);
-
   if (weekdays.length === 0) {
     return (
       <div className="text-center py-12 text-gray-500">
