@@ -78,11 +78,12 @@ app.use('/api/admin', exportRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/admin/notices', noticeRoutes);
 app.use('/api/users', profileRoutes);
-app.use('/api/student', studentDashboardRoutes);
+// Specific student routes must come before general student route
+app.use('/api/student/exams', studentExamRoutes);
 app.use('/api/student/timetable', timetableRoutes);
 app.use('/api/student/attendance', studentAttendanceRoutes);
+app.use('/api/student', studentDashboardRoutes);
 app.use('/api/admin/exams', adminExamRoutes);
-app.use('/api/student/exams', studentExamRoutes);
 app.use('/api/teacher/exams', teacherExamRoutes);
 
 // 404 handler - must be after all routes
