@@ -6,7 +6,6 @@ import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { useState, useMemo } from 'react';
 import { useTeachers } from '../../teachers/hooks/useTeachers';
-import { useClasses } from '../../classes/hooks/useClasses';
 import {
   DAY_OF_WEEK_OPTIONS,
   LECTURE_TYPE_OPTIONS,
@@ -17,9 +16,11 @@ import {
 } from '../constants/lectures.constants';
 import { getDefaultLectureFormData, calculateDuration } from '../utils/lectures.utils';
 import type { CreateLectureData, Lecture, LectureMaterial } from '../types/lectures.types';
+import type { Class } from '../../classes/types/classes.types';
 
 interface LectureFormProps {
   initialData?: Lecture;
+  selectedClass?: Class;
   onSubmit: (data: CreateLectureData) => void;
   onCancel?: () => void;
   isLoading?: boolean;
@@ -58,15 +59,14 @@ const validationSchema = yup.object({
   isActive: yup.boolean(),
 });
 
-export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: LectureFormProps) => {
+export const LectureForm = ({ initialData, selectedClass, onSubmit, onCancel, isLoading }: LectureFormProps) => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [teacherSearchTerm, setTeacherSearchTerm] = useState('');
-  const [classSearchTerm, setClassSearchTerm] = useState('');
   const defaultData = getDefaultLectureFormData();
+  const lockedClassId = selectedClass?.id || initialData?.classId || '';
 
   // Fetch teachers and classes
   const { data: teachersResponse, isLoading: isLoadingTeachers } = useTeachers();
-  const { data: classesData, isLoading: isLoadingClasses } = useClasses();
 
   // Extract teachers array from response (API returns { teachers: [], pagination: {} })
   const teachers = useMemo(() => {
@@ -84,9 +84,7 @@ export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: Lect
     return [];
   }, [teachersResponse]);
 
-  const classes = useMemo(() => classesData || [], [classesData]);
-
-  // Filter teachers and classes based on search
+  // Filter teachers based on search
   const filteredTeachers = useMemo(() => {
     if (!teacherSearchTerm.trim()) return teachers;
     const searchLower = teacherSearchTerm.toLowerCase();
@@ -98,17 +96,6 @@ export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: Lect
         teacher.employeeId.toLowerCase().includes(searchLower)
     );
   }, [teachers, teacherSearchTerm]);
-
-  const filteredClasses = useMemo(() => {
-    if (!classSearchTerm.trim()) return classes;
-    const searchLower = classSearchTerm.toLowerCase();
-    return classes.filter(
-      (classItem) =>
-        classItem.className.toLowerCase().includes(searchLower) ||
-        classItem.grade.toLowerCase().includes(searchLower) ||
-        classItem.roomNo.toLowerCase().includes(searchLower)
-    );
-  }, [classes, classSearchTerm]);
 
   // Find selected teacher ID from initial data
   const initialTeacherId = useMemo(() => {
@@ -148,10 +135,10 @@ export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: Lect
             type: initialData.type,
             materials: initialData.materials || [],
             isActive: initialData.isActive,
-            classId: initialData.classId || '',
+            classId: lockedClassId,
             lectureGroup: initialData.lectureGroup || '',
             selectedTeacherId: initialTeacherId,
-            selectedClassId: initialData.classId || '',
+            selectedClassId: lockedClassId,
           }
         : {
             title: defaultData.title || '',
@@ -173,10 +160,10 @@ export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: Lect
             type: defaultData.type || 'lecture',
             materials: defaultData.materials || [],
             isActive: defaultData.isActive ?? true,
-            classId: '',
+            classId: lockedClassId,
             lectureGroup: '',
             selectedTeacherId: '',
-            selectedClassId: '',
+            selectedClassId: lockedClassId,
           }),
     },
     validationSchema,
@@ -186,12 +173,12 @@ export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: Lect
         values.duration = calculateDuration(values.schedule.startTime, values.schedule.endTime);
       }
       // Prepare submission data - replace teacher object with teacher ID
-      const { selectedTeacherId, selectedClassId, teacher, ...rest } = values;
+      const { selectedTeacherId, selectedClassId, teacher: _teacher, ...rest } = values;
       const submitData: CreateLectureData = {
         ...rest,
-        // Pass teacher ID as string instead of teacher object
+        classId: selectedClassId || lockedClassId,
         teacher: selectedTeacherId || '',
-        teacherId: selectedTeacherId, // Add teacherId for mapper to use
+        teacherId: selectedTeacherId,
       };
       onSubmit(submitData);
       setShowSuccess(true);
@@ -213,14 +200,6 @@ export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: Lect
       // Clear search term
       setTeacherSearchTerm('');
     }
-  };
-
-  // Handle class selection
-  const handleClassChange = (classId: string) => {
-    formik.setFieldValue('selectedClassId', classId);
-    formik.setFieldValue('classId', classId);
-    // Clear search term
-    setClassSearchTerm('');
   };
 
   // Auto-calculate duration when times change
@@ -294,9 +273,24 @@ export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: Lect
     <div className="max-w-5xl mx-auto">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-bold text-gray-900">Add / Edit Lecture</h3>
-          <p className="text-sm text-gray-600 mt-1">Enter lecture information below</p>
+          <h3 className="text-lg font-bold text-gray-900">
+            {initialData ? 'Edit Lecture' : 'Add Lecture'}
+          </h3>
+          <p className="text-sm text-gray-600 mt-1">
+            {selectedClass
+              ? `Adding lecture for ${selectedClass.className} (Grade ${selectedClass.grade})`
+              : 'Enter lecture information below'}
+          </p>
         </div>
+
+        {selectedClass && (
+          <div className="mx-6 mt-4 px-4 py-3 bg-indigo-50 border border-indigo-100 rounded-lg">
+            <p className="text-sm font-medium text-indigo-900">{selectedClass.className}</p>
+            <p className="text-xs text-indigo-700 mt-1">
+              Grade {selectedClass.grade} • Room {selectedClass.roomNo}
+            </p>
+          </div>
+        )}
 
         {showSuccess && (
           <div className="mx-6 mt-4 flex items-center justify-between px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
@@ -449,12 +443,10 @@ export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: Lect
             </div>
           </div>
 
-          {/* Teacher & Class Selection Section */}
+          {/* Teacher Selection Section */}
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <h4 className="text-sm font-semibold text-gray-900 mb-3">Teacher & Class Selection</h4>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {/* Teacher Selection */}
-              <div>
+            <h4 className="text-sm font-semibold text-gray-900 mb-3">Teacher</h4>
+            <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Teacher <span className="text-red-500">*</span>
                 </label>
@@ -514,49 +506,6 @@ export const LectureForm = ({ initialData, onSubmit, onCancel, isLoading }: Lect
                   </p>
                 )}
               </div>
-
-              {/* Class Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Class <span className="text-gray-400">(Optional)</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder={isLoadingClasses ? 'Loading classes...' : 'Search and select class'}
-                    value={
-                      formik.values.selectedClassId && !classSearchTerm
-                        ? classes.find((c) => c.id === formik.values.selectedClassId)?.className || ''
-                        : classSearchTerm
-                    }
-                    onChange={(e) => setClassSearchTerm(e.target.value)}
-                    onFocus={() => {
-                      if (formik.values.selectedClassId) {
-                        setClassSearchTerm('');
-                      }
-                    }}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  />
-                  {(classSearchTerm || !formik.values.selectedClassId) && filteredClasses.length > 0 && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                      {filteredClasses.map((classItem) => (
-                        <button
-                          key={classItem.id}
-                          type="button"
-                          onClick={() => handleClassChange(classItem.id)}
-                          className="w-full text-left px-4 py-2 hover:bg-indigo-50 focus:bg-indigo-50 focus:outline-none"
-                        >
-                          <div className="font-medium text-gray-900">{classItem.className}</div>
-                          <div className="text-sm text-gray-500">
-                            {classItem.grade} • Room {classItem.roomNo}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Schedule Section */}

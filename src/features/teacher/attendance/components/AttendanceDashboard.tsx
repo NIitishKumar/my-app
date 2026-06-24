@@ -4,15 +4,11 @@
  */
 
 import { useAttendanceDashboard } from '../hooks/useAttendanceDashboard';
-import { PendingAttendanceList } from './PendingAttendanceList';
 import { RecentActivity } from './RecentActivity';
 import { formatPercentage } from '../utils/attendance.utils';
 
-interface AttendanceDashboardProps {
-  onMarkAttendance?: (classId: string) => void;
-}
 
-export const AttendanceDashboard = ({ onMarkAttendance }: AttendanceDashboardProps) => {
+export const AttendanceDashboard = () => {
   const { data: dashboardData, isLoading, error } = useAttendanceDashboard();
 
   if (isLoading) {
@@ -126,10 +122,7 @@ export const AttendanceDashboard = ({ onMarkAttendance }: AttendanceDashboardPro
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Pending Attendance List */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Pending Attendance</h2>
-          <PendingAttendanceList onClassSelect={onMarkAttendance} />
-        </div>
+        
 
         {/* Recent Activity */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">

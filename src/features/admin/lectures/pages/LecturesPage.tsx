@@ -2,420 +2,217 @@
  * LecturesPage Component
  */
 
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useLectures } from '../hooks/useLectures';
-import { useCreateLecture } from '../hooks/useCreateLecture';
-import { useUpdateLecture } from '../hooks/useUpdateLecture';
-import { useDeleteLecture } from '../hooks/useDeleteLecture';
 import { LectureTable } from '../components/LectureTable';
 import { LectureForm } from '../components/LectureForm';
-import { filterLectures } from '../utils/lectures.utils';
-import type { Lecture, CreateLectureData } from '../types/lectures.types';
-
-const ITEMS_PER_PAGE = 10;
+import { useLecturesPage } from './index.hook.js';
 
 export const LecturesPage = () => {
-  const navigate = useNavigate();
-  const [showForm, setShowForm] = useState(false);
-  const [editingLecture, setEditingLecture] = useState<Lecture | undefined>();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState<'all' | 'lecture' | 'lab' | 'seminar' | 'tutorial'>('all');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
-  const [groupBy, setGroupBy] = useState<'none' | 'subject' | 'type' | 'teacher' | 'lectureGroup'>('none');
-  const [currentPage, setCurrentPage] = useState(1);
+  const {
+    view,
+    selectedClass,
+    editingLecture,
+    classSearchTerm,
+    lectureSearchTerm,
+    filteredClasses,
+    classLectures,
+    isLoading,
+    isFormLoading,
+    error,
+    setClassSearchTerm,
+    setLectureSearchTerm,
+    getLectureCountForClass,
+    handleSelectClass,
+    handleBackToClasses,
+    handleAddLecture,
+    handleEditLecture,
+    handleCancelForm,
+    handleSubmit,
+    handleView,
+    handleDelete,
+  } = useLecturesPage();
 
-  const { data: lectures, isLoading, error } = useLectures();
-  const allLectures = lectures || [];
-
-  const createLecture = useCreateLecture();
-  const updateLecture = useUpdateLecture();
-  const deleteLecture = useDeleteLecture();
-
-  // Filter lectures based on search, type, and status
-  const filteredLectures = useMemo(() => {
-    let filtered = allLectures || [];
-
-    // Apply search filter
-    if (searchTerm.trim()) {
-      filtered = filterLectures(filtered, searchTerm);
-    }
-
-    // Apply type filter
-    if (typeFilter !== 'all') {
-      filtered = filtered.filter((lecture) => lecture.type === typeFilter);
-    }
-
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter((lecture) =>
-        statusFilter === 'active' ? lecture.isActive : !lecture.isActive
-      );
-    }
-
-    return filtered;
-  }, [allLectures, searchTerm, typeFilter, statusFilter]);
-
-  // Group filtered lectures
-  const groupedLectures = useMemo(() => {
-    if (groupBy === 'none') {
-      return { 'All Lectures': filteredLectures };
-    }
-
-    const grouped: Record<string, Lecture[]> = {};
-
-    filteredLectures.forEach((lecture) => {
-      let groupKey: string;
-
-      switch (groupBy) {
-        case 'subject':
-          groupKey = lecture.subject || 'Uncategorized';
-          break;
-        case 'type':
-          groupKey = lecture.type.charAt(0).toUpperCase() + lecture.type.slice(1);
-          break;
-        case 'teacher':
-          groupKey = `${lecture.teacher.firstName} ${lecture.teacher.lastName}` || 'Unknown Teacher';
-          break;
-        case 'lectureGroup':
-          groupKey = lecture.lectureGroup || 'No Group';
-          break;
-        default:
-          groupKey = 'All Lectures';
-      }
-
-      if (!grouped[groupKey]) {
-        grouped[groupKey] = [];
-      }
-      grouped[groupKey].push(lecture);
-    });
-
-    // Sort group keys alphabetically
-    const sortedGroups: Record<string, Lecture[]> = {};
-    Object.keys(grouped)
-      .sort((a, b) => {
-        // Put "No Group" at the end
-        if (a === 'No Group' || a === 'Uncategorized' || a === 'Unknown Teacher') return 1;
-        if (b === 'No Group' || b === 'Uncategorized' || b === 'Unknown Teacher') return -1;
-        return a.localeCompare(b);
-      })
-      .forEach((key) => {
-        sortedGroups[key] = grouped[key];
-      });
-
-    return sortedGroups;
-  }, [filteredLectures, groupBy]);
-
-  // Flatten grouped lectures for pagination when groupBy is 'none'
-  const lecturesForPagination = useMemo(() => {
-    if (groupBy === 'none') {
-      return filteredLectures;
-    }
-    return filteredLectures;
-  }, [filteredLectures, groupBy]);
-
-  // Paginate filtered lectures (only when not grouped)
-  const paginatedLectures = useMemo(() => {
-    if (groupBy !== 'none') {
-      // When grouped, we'll show all groups (paginated within each group)
-      return lecturesForPagination;
-    }
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    return lecturesForPagination.slice(startIndex, endIndex);
-  }, [lecturesForPagination, currentPage, groupBy]);
-
-  const totalPages = Math.ceil(lecturesForPagination.length / ITEMS_PER_PAGE);
-  const startItem = (currentPage - 1) * ITEMS_PER_PAGE + 1;
-  const endItem = Math.min(currentPage * ITEMS_PER_PAGE, lecturesForPagination.length);
-
-  const handleSubmit = (data: CreateLectureData) => {
-    if (editingLecture) {
-      updateLecture.mutate(
-        { id: editingLecture.id, ...data },
-        {
-          onSuccess: () => {
-            setShowForm(false);
-            setEditingLecture(undefined);
-          },
-        }
-      );
-    } else {
-      createLecture.mutate(data, {
-        onSuccess: () => {
-          setShowForm(false);
-        },
-      });
-    }
-  };
-
-  const handleCancel = () => {
-    setShowForm(false);
-    setEditingLecture(undefined);
-  };
-
-  const handleAddNew = () => {
-    setEditingLecture(undefined);
-    setShowForm(true);
-  };
-
-  const handleEdit = (lecture: Lecture) => {
-    setEditingLecture(lecture);
-    setShowForm(true);
-  };
-
-  const handleView = (lecture: Lecture) => {
-    navigate(`/admin/lectures/${lecture.id}`);
-  };
-
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this lecture?')) {
-      deleteLecture.mutate(id);
-    }
-  };
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  if (isLoading && allLectures.length === 0) {
+  if (isLoading && view === 'classes' && filteredClasses.length === 0) {
     return (
       <div className="p-4 lg:p-6">
-        <div className="text-center">Loading lectures...</div>
+        <div className="text-center text-gray-600">Loading classes and lectures...</div>
       </div>
     );
   }
 
-  if (error && allLectures.length === 0) {
+  if (error && view === 'classes' && filteredClasses.length === 0) {
     return (
       <div className="p-4 lg:p-6">
-        <div className="text-center text-red-600">Error loading lectures: {error.message || 'Unknown error'}</div>
+        <div className="text-center text-red-600">
+          Error loading data: {error.message || 'Unknown error'}
+        </div>
+      </div>
+    );
+  }
+
+  if (view === 'form' && selectedClass) {
+    return (
+      <div className="p-4 lg:p-6">
+        <button
+          type="button"
+          onClick={handleCancelForm}
+          className="mb-4 inline-flex items-center text-sm text-indigo-600 hover:text-indigo-800"
+        >
+          <i className="fas fa-arrow-left mr-2"></i>
+          Back to {selectedClass.className}
+        </button>
+        <LectureForm
+          initialData={editingLecture}
+          selectedClass={selectedClass}
+          onSubmit={handleSubmit}
+          onCancel={handleCancelForm}
+          isLoading={isFormLoading}
+        />
+      </div>
+    );
+  }
+
+  if (view === 'class-lectures' && selectedClass) {
+    return (
+      <div className="p-4 lg:p-6">
+        <button
+          type="button"
+          onClick={handleBackToClasses}
+          className="mb-4 inline-flex items-center text-sm text-indigo-600 hover:text-indigo-800"
+        >
+          <i className="fas fa-arrow-left mr-2"></i>
+          All Classes
+        </button>
+
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{selectedClass.className}</h1>
+            <p className="text-sm text-gray-600 mt-1">
+              Grade {selectedClass.grade} • Room {selectedClass.roomNo} • {classLectures.length} lecture(s)
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleAddLecture}
+            className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors inline-flex items-center space-x-2"
+          >
+            <i className="fas fa-plus"></i>
+            <span>Add Lecture</span>
+          </button>
+        </div>
+
+        <div className="mb-6 max-w-md">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i className="fas fa-search text-gray-400"></i>
+            </div>
+            <input
+              type="text"
+              placeholder="Search lectures in this class..."
+              value={lectureSearchTerm}
+              onChange={(e) => setLectureSearchTerm(e.target.value)}
+              className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          {classLectures.length > 0 ? (
+            <LectureTable
+              lectures={classLectures}
+              onView={handleView}
+              onEdit={handleEditLecture}
+              onDelete={handleDelete}
+            />
+          ) : (
+            <div className="p-10 text-center">
+              <i className="fas fa-chalkboard-teacher text-gray-300 text-4xl mb-3"></i>
+              <p className="text-sm font-medium text-gray-900">No lectures for this class yet</p>
+              <p className="text-xs text-gray-500 mt-1 mb-4">
+                {lectureSearchTerm.trim()
+                  ? 'Try a different search term'
+                  : 'Add the first lecture to get started'}
+              </p>
+              {!lectureSearchTerm.trim() && (
+                <button
+                  type="button"
+                  onClick={handleAddLecture}
+                  className="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700"
+                >
+                  Add Lecture
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="p-4 lg:p-6">
-      {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1">All Lectures</h1>
-        <p className="text-sm text-gray-600">Manage lecture records</p>
+        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-1">Lectures by Class</h1>
+        <p className="text-sm text-gray-600">Select a class to view and manage its lectures</p>
       </div>
 
-      {showForm ? (
-        <div className="mb-6">
-          <LectureForm
-            initialData={editingLecture}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            isLoading={createLecture.isPending || updateLecture.isPending}
+      <div className="mb-6 max-w-md">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i className="fas fa-search text-gray-400"></i>
+          </div>
+          <input
+            type="text"
+            placeholder="Search classes..."
+            value={classSearchTerm}
+            onChange={(e) => setClassSearchTerm(e.target.value)}
+            className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           />
         </div>
-      ) : (
-        <>
-          {/* Search and Filter Bar */}
-          <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div className="flex-1 max-w-md">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i className="fas fa-search text-gray-400"></i>
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search by title, subject, teacher, or room..."
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setCurrentPage(1); // Reset to first page on search
-                  }}
-                  className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <select
-                value={typeFilter}
-                onChange={(e) => {
-                  setTypeFilter(e.target.value as 'all' | 'lecture' | 'lab' | 'seminar' | 'tutorial');
-                  setCurrentPage(1);
-                }}
-                className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-              >
-                <option value="all">All Types</option>
-                <option value="lecture">Lecture</option>
-                <option value="lab">Lab</option>
-                <option value="seminar">Seminar</option>
-                <option value="tutorial">Tutorial</option>
-              </select>
-              <select
-                value={statusFilter}
-                onChange={(e) => {
-                  setStatusFilter(e.target.value as 'all' | 'active' | 'inactive');
-                  setCurrentPage(1);
-                }}
-                className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-              >
-                <option value="all">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-              <select
-                value={groupBy}
-                onChange={(e) => {
-                  setGroupBy(e.target.value as 'none' | 'subject' | 'type' | 'teacher' | 'lectureGroup');
-                  setCurrentPage(1);
-                }}
-                className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                title="Group lectures by"
-              >
-                <option value="none">No Grouping</option>
-                <option value="subject">Group by Subject</option>
-                <option value="type">Group by Type</option>
-                <option value="teacher">Group by Teacher</option>
-                <option value="lectureGroup">Group by Lecture Group</option>
-              </select>
-              <button
-                onClick={handleAddNew}
-                className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors flex items-center space-x-2"
-              >
-                <i className="fas fa-plus"></i>
-                <span>Add Lecture</span>
-              </button>
-            </div>
-          </div>
+      </div>
 
-          {/* Table - Grouped or Ungrouped */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            {filteredLectures && filteredLectures.length > 0 ? (
-              <>
-                {groupBy === 'none' ? (
-                  <>
-                    <LectureTable
-                      lectures={paginatedLectures}
-                      onView={handleView}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
-                    />
-                    
-                    {/* Pagination */}
-                    {totalPages > 0 && (
-                      <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-                        <div className="text-sm text-gray-700">
-                          Showing <span className="font-medium">{startItem}</span> to{' '}
-                          <span className="font-medium">{endItem}</span> of{' '}
-                          <span className="font-medium">{filteredLectures.length}</span> results
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => handlePageChange(currentPage - 1)}
-                            disabled={currentPage === 1}
-                            className={`px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium ${
-                              currentPage === 1
-                                ? 'text-gray-400 cursor-not-allowed bg-gray-50'
-                                : 'text-gray-700 hover:bg-gray-50'
-                            }`}
-                          >
-                            <i className="fas fa-chevron-left"></i>
-                          </button>
-                          {totalPages > 1 && (
-                            <div className="flex items-center space-x-1">
-                              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                                let page;
-                                if (totalPages <= 5) {
-                                  page = i + 1;
-                                } else if (currentPage <= 3) {
-                                  page = i + 1;
-                                } else if (currentPage >= totalPages - 2) {
-                                  page = totalPages - 4 + i;
-                                } else {
-                                  page = currentPage - 2 + i;
-                                }
-                                return (
-                                  <button
-                                    key={page}
-                                    onClick={() => handlePageChange(page)}
-                                    className={`px-3 py-2 text-sm font-medium rounded-lg ${
-                                      currentPage === page
-                                        ? 'bg-indigo-600 text-white'
-                                        : 'text-gray-700 hover:bg-gray-50 border border-gray-300'
-                                    }`}
-                                  >
-                                    {page}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          )}
-                          {totalPages === 1 && (
-                            <div className="flex items-center space-x-1">
-                              <button
-                                className="px-3 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white"
-                              >
-                                1
-                              </button>
-                            </div>
-                          )}
-                          <button
-                            onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                            className={`px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium ${
-                              currentPage === totalPages
-                                ? 'text-gray-400 cursor-not-allowed bg-gray-50'
-                                : 'text-gray-700 hover:bg-gray-50'
-                            }`}
-                          >
-                            <i className="fas fa-chevron-right"></i>
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="divide-y divide-gray-200">
-                    {Object.entries(groupedLectures).map(([groupKey, groupLectures]) => (
-                      <div key={groupKey} className="p-6">
-                        <div className="mb-4 pb-3 border-b border-gray-200">
-                          <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-                            <i className="fas fa-layer-group text-indigo-600"></i>
-                            <span>{groupKey}</span>
-                            <span className="text-sm font-normal text-gray-500">
-                              ({groupLectures.length} {groupLectures.length === 1 ? 'lecture' : 'lectures'})
-                            </span>
-                          </h3>
-                        </div>
-                        <LectureTable
-                          lectures={groupLectures}
-                          onView={handleView}
-                          onEdit={handleEdit}
-                          onDelete={handleDelete}
-                        />
-                      </div>
-                    ))}
-                    <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                      <div className="text-sm text-gray-700">
-                        Total: <span className="font-medium">{filteredLectures.length}</span> lectures in{' '}
-                        <span className="font-medium">{Object.keys(groupedLectures).length}</span> group(s)
-                      </div>
-                    </div>
+      {filteredClasses.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filteredClasses.map((classItem) => {
+            const lectureCount = getLectureCountForClass(classItem.id);
+            const teacherName = `${classItem.classHead.firstName} ${classItem.classHead.lastName}`.trim();
+
+            return (
+              <button
+                key={classItem.id}
+                type="button"
+                onClick={() => handleSelectClass(classItem)}
+                className="text-left bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">{classItem.className}</h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Grade {classItem.grade} • Room {classItem.roomNo}
+                    </p>
                   </div>
-                )}
-              </>
-            ) : (
-              <div className="p-6 text-center text-gray-500">
-                <i className="fas fa-inbox text-gray-400 text-4xl mb-3"></i>
-                <p className="text-sm font-medium text-gray-900">No records found</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {searchTerm || typeFilter !== 'all' || statusFilter !== 'all'
-                    ? 'Try adjusting your search or filter criteria'
-                    : 'Start by adding your first record using the form above'}
-                </p>
-              </div>
-            )}
-          </div>
-        </>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
+                    {lectureCount} lecture{lectureCount === 1 ? '' : 's'}
+                  </span>
+                </div>
+                <div className="mt-4 pt-4 border-t border-gray-100 text-xs text-gray-500">
+                  <p>Class head: {teacherName || 'Unassigned'}</p>
+                  <p className="mt-1">{classItem.enrolled ?? 0} students enrolled</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-200 p-10 text-center">
+          <i className="fas fa-school text-gray-300 text-4xl mb-3"></i>
+          <p className="text-sm font-medium text-gray-900">No classes found</p>
+          <p className="text-xs text-gray-500 mt-1">
+            {classSearchTerm.trim()
+              ? 'Try adjusting your search'
+              : 'Create a class first, then add lectures to it'}
+          </p>
+        </div>
       )}
     </div>
   );
 };
-

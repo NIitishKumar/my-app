@@ -42,8 +42,8 @@ export interface CreateClassData {
   capacity: number;
   enrolled?: number;
   students?: string[];
-  classHead: ClassHead;
-  lectures?: string[];
+  /** Teacher MongoDB _id */
+  classHead: string;
   schedule: ClassSchedule;
   isActive: boolean;
 }

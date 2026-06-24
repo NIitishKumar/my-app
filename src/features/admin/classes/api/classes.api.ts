@@ -154,12 +154,7 @@ export const classesApi = {
         capacity: data.capacity,
         enrolled: data.enrolled || 0,
         isActive: data.isActive,
-        classHead: {
-          firstName: data.classHead.firstName,
-          lastName: data.classHead.lastName,
-          email: data.classHead.email,
-          employeeId: data.classHead.employeeId,
-        },
+        classHead: { _id: data.classHead },
         schedule: {
           academicYear: data.schedule.academicYear,
           semester: data.schedule.semester,
@@ -172,7 +167,6 @@ export const classesApi = {
             : data.schedule.endDate,
         },
         students: data.students || [],
-        lectures: data.lectures || [],
       };
 
       console.log('Creating class with payload:', payload);
@@ -202,6 +196,12 @@ export const classesApi = {
       
       // Prepare update payload - convert Date objects to ISO strings for schedule dates
       const payload: any = { ...updateData };
+
+      if (typeof payload.classHead === 'string' && payload.classHead) {
+        payload.classHead = { _id: payload.classHead };
+      }
+
+      delete payload.lectures;
       
       // Convert schedule dates to ISO strings if present
       if (payload.schedule) {

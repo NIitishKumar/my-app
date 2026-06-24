@@ -2,14 +2,10 @@
  * ClassForm Component
  */
 
-import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
-import { useFormik } from 'formik';
-import { GRADE_OPTIONS, SEMESTER_OPTIONS, SUBJECT_OPTIONS, getAcademicYearOptions } from '../constants/classes.constants';
-import { validateClassForm, formatDateForInput, parseDateFromInput, getDefaultClassFormData } from '../utils/classes.utils';
-import { useStudents } from '../../students/hooks/useStudents';
-import { useLectures } from '../../lectures/hooks/useLectures';
+import { GRADE_OPTIONS, SEMESTER_OPTIONS, SUBJECT_OPTIONS } from '../constants/classes.constants';
+import { formatDateForInput, parseDateFromInput } from '../utils/classes.utils';
 import type { CreateClassData, Class } from '../types/classes.types';
-import type { ValidationErrors } from '../utils/classes.utils';
+import { useClassForm } from './ClassForm/index.hook.js';
 
 interface ClassFormProps {
   initialData?: Class;
@@ -19,332 +15,35 @@ interface ClassFormProps {
 }
 
 export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassFormProps) => {
-  // Fetch students from API
-  const { data: allStudents, isLoading: isLoadingStudents } = useStudents();
-  const students = useMemo(() => allStudents || [], [allStudents]);
-
-  // Fetch lectures from API
-  const { data: allLectures, isLoading: isLoadingLectures } = useLectures();
-  const lectures = useMemo(() => allLectures || [], [allLectures]);
-
-  // State for student search and dropdown
-  const [studentSearchTerm, setStudentSearchTerm] = useState('');
-  const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
-  const studentDropdownRef = useRef<HTMLDivElement>(null);
-
-  // State for lecture search and dropdown
-  const [lectureSearchTerm, setLectureSearchTerm] = useState('');
-  const [isLectureDropdownOpen, setIsLectureDropdownOpen] = useState(false);
-  const lectureDropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close student dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        studentDropdownRef.current &&
-        !studentDropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsStudentDropdownOpen(false);
-      }
-    };
-
-    if (isStudentDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isStudentDropdownOpen]);
-
-  // Close lecture dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        lectureDropdownRef.current &&
-        !lectureDropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsLectureDropdownOpen(false);
-      }
-    };
-
-    if (isLectureDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isLectureDropdownOpen]);
-
-  // Memoize initial values to prevent unnecessary re-renders that block input
-  // Only recalculate when initialData changes (not on every render)
-  const initialValues = useMemo<Partial<CreateClassData>>(() => {
-    if (initialData) {
-      return {
-          className: initialData.className,
-          subjects: initialData.subjects,
-          grade: initialData.grade,
-          roomNo: initialData.roomNo,
-          capacity: initialData.capacity,
-          enrolled: initialData.enrolled,
-          students: initialData.students,
-          classHead: {
-            firstName: initialData.classHead.firstName,
-            lastName: initialData.classHead.lastName,
-            email: initialData.classHead.email,
-            employeeId: initialData.classHead.employeeId,
-          },
-          lectures: initialData.lectures,
-          schedule: {
-            academicYear: initialData.schedule.academicYear,
-            semester: initialData.schedule.semester,
-            startDate: initialData.schedule.startDate,
-            endDate: initialData.schedule.endDate,
-          },
-          isActive: initialData.isActive,
-      };
-    }
-    // Call getDefaultClassFormData inside useMemo so it's only called when needed
-    return getDefaultClassFormData();
-  }, [initialData]);
-
-  const formik = useFormik<Partial<CreateClassData>>({
-    initialValues,
-    validate: (values) => {
-      const errors = validateClassForm(values);
-      // Convert ValidationErrors to Formik errors format
-      const formikErrors: Record<string, string | Record<string, string>> = {};
-      
-      Object.keys(errors).forEach((key) => {
-        const error = errors[key as keyof ValidationErrors];
-        if (typeof error === 'string') {
-          formikErrors[key] = error;
-        } else if (error && typeof error === 'object') {
-          // Check if the nested object has any actual error messages
-          const nestedErrors = error as Record<string, string>;
-          const hasNestedErrors = Object.keys(nestedErrors).some(
-            (nestedKey) => nestedErrors[nestedKey] !== undefined && nestedErrors[nestedKey] !== ''
-          );
-          // Only add nested errors if there are actual error messages
-          if (hasNestedErrors) {
-            formikErrors[key] = nestedErrors;
-          }
-        }
-      });
-      
-      return formikErrors;
-    },
-    validateOnChange: false,
-    validateOnBlur: false,
-    validateOnMount: false,
-    onSubmit: (values, { setSubmitting }) => {
-      // Log form values and validation errors
-      console.log('=== FORM SUBMISSION ===');
-      console.log('Is Edit Mode:', !!initialData);
-      console.log('Initial Data:', initialData);
-      
-      // Log all form values
-      console.log('--- FORM VALUES ---');
-      console.log('Form Data (raw):', values);
-      console.log('Form Data (stringified):', JSON.stringify(values, null, 2));
-      
-      // Log each field individually for clarity
-      console.log('Class Name:', values.className);
-      console.log('Grade:', values.grade);
-      console.log('Room No:', values.roomNo);
-      console.log('Capacity:', values.capacity);
-      console.log('Enrolled:', values.enrolled);
-      console.log('Subjects:', values.subjects);
-      console.log('Class Head:', values.classHead);
-      console.log('Schedule:', values.schedule);
-      console.log('Is Active:', values.isActive);
-      console.log('Students:', values.students);
-      console.log('Lectures:', values.lectures);
-      
-      // Run validation and log errors
-      const validationErrors = validateClassForm(values);
-      console.log('--- VALIDATION ERRORS ---');
-      console.log('Validation Errors (raw):', validationErrors);
-      console.log('Validation Errors (stringified):', JSON.stringify(validationErrors, null, 2));
-
-    // Check if there are any errors
-    const hasErrors = Object.keys(validationErrors).some(
-        (key) => {
-          const error = validationErrors[key as keyof ValidationErrors];
-          if (typeof error === 'string') {
-            return !!error;
-          }
-          if (error && typeof error === 'object') {
-            return Object.keys(error).length > 0;
-          }
-          return false;
-        }
-      );
-      
-      console.log('Has Validation Errors:', hasErrors);
-      console.log('Form is Valid:', !hasErrors);
-      
-      // Log Formik's internal state
-      console.log('--- FORMIK STATE ---');
-      console.log('Formik Errors:', formik.errors);
-      console.log('Formik Touched:', formik.touched);
-      console.log('Formik isSubmitting:', formik.isSubmitting);
-      console.log('Formik isValid:', formik.isValid);
-      console.log('======================');
-
-      // Always call parent onSubmit - let the parent handle validation
-      // The validation check above is just for logging
-      console.log('Calling parent onSubmit with values:', values);
-      try {
-        onSubmit(values as CreateClassData);
-        // Show success message
-        formik.setStatus({ showSuccess: true });
-        setTimeout(() => {
-          formik.setStatus({ showSuccess: false });
-        }, 3000);
-      } catch (error) {
-        console.error('Error in onSubmit callback:', error);
-      } finally {
-        setSubmitting(false);
-      }
-    },
-    enableReinitialize: true,
-  });
-
-  const getFieldError = (field: string): string | undefined => {
-    if (field.includes('.')) {
-      const [parent, child] = field.split('.');
-      const parentError = formik.errors[parent as keyof typeof formik.errors];
-      if (parentError && typeof parentError === 'object') {
-        return (parentError as Record<string, string>)?.[child];
-      }
-      return undefined;
-    }
-    return formik.errors[field as keyof typeof formik.errors] as string | undefined;
-  };
-
-  const isFieldTouched = (field: string): boolean => {
-    if (field.includes('.')) {
-      const [parent, child] = field.split('.');
-      const parentTouched = formik.touched[parent as keyof typeof formik.touched];
-      if (parentTouched && typeof parentTouched === 'object') {
-        return (parentTouched as Record<string, boolean>)?.[child] || false;
-      }
-      return false;
-    }
-    return formik.touched[field as keyof typeof formik.touched] || false;
-  };
-
-  const isFieldValid = (field: string): boolean => {
-    const error = getFieldError(field);
-    return isFieldTouched(field) && !error;
-  };
-
-  const isFieldInvalid = (field: string): boolean => {
-    const error = getFieldError(field);
-    return isFieldTouched(field) && !!error;
-  };
-
-  const academicYearOptions = useMemo(() => getAcademicYearOptions(), []);
-
-  // Student selection helpers
-  const selectedStudentIds = useMemo(() => formik.values.students || [], [formik.values.students]);
-  const selectedStudents = useMemo(() => {
-    return students.filter((student) => selectedStudentIds.includes(student.id));
-  }, [students, selectedStudentIds]);
-
-  const filteredStudents = useMemo(() => {
-    if (!studentSearchTerm.trim()) {
-      return students;
-    }
-    const searchLower = studentSearchTerm.toLowerCase();
-    return students.filter(
-      (student) =>
-        student.firstName.toLowerCase().includes(searchLower) ||
-        student.lastName.toLowerCase().includes(searchLower) ||
-        student.email.toLowerCase().includes(searchLower) ||
-        student.studentId.toLowerCase().includes(searchLower)
-    );
-  }, [students, studentSearchTerm]);
-
-  const handleStudentToggle = useCallback(
-    (studentId: string) => {
-      const currentIds = formik.values.students || [];
-      const newIds = currentIds.includes(studentId)
-        ? currentIds.filter((id) => id !== studentId)
-        : [...currentIds, studentId];
-      formik.setFieldValue('students', newIds);
-    },
-    [formik]
-  );
-
-  const handleRemoveStudent = useCallback(
-    (studentId: string) => {
-      const currentIds = formik.values.students || [];
-      formik.setFieldValue(
-        'students',
-        currentIds.filter((id) => id !== studentId)
-      );
-    },
-    [formik]
-  );
-
-  // Lecture selection helpers
-  const selectedLectureIds = useMemo(() => formik.values.lectures || [], [formik.values.lectures]);
-  const selectedLectures = useMemo(() => {
-    return lectures.filter((lecture) => selectedLectureIds.includes(lecture.id));
-  }, [lectures, selectedLectureIds]);
-
-  const filteredLectures = useMemo(() => {
-    if (!lectureSearchTerm.trim()) {
-      return lectures;
-    }
-    const searchLower = lectureSearchTerm.toLowerCase();
-    return lectures.filter(
-      (lecture) =>
-        lecture.title.toLowerCase().includes(searchLower) ||
-        lecture.subject.toLowerCase().includes(searchLower) ||
-        lecture.description?.toLowerCase().includes(searchLower) ||
-        `${lecture.teacher.firstName} ${lecture.teacher.lastName}`.toLowerCase().includes(searchLower)
-    );
-  }, [lectures, lectureSearchTerm]);
-
-  const handleLectureToggle = useCallback(
-    (lectureId: string) => {
-      const currentIds = formik.values.lectures || [];
-      if (currentIds.includes(lectureId)) {
-        // Allow deselecting
-        formik.setFieldValue('lectures', currentIds.filter((id) => id !== lectureId));
-      } else {
-        // Only allow selecting if less than 5 are selected
-        if (currentIds.length < 5) {
-          formik.setFieldValue('lectures', [...currentIds, lectureId]);
-        }
-      }
-    },
-    [formik]
-  );
-
-  const handleRemoveLecture = useCallback(
-    (lectureId: string) => {
-      const currentIds = formik.values.lectures || [];
-      formik.setFieldValue(
-        'lectures',
-        currentIds.filter((id) => id !== lectureId)
-      );
-    },
-    [formik]
-  );
-
-  const handleSubjectToggle = (subject: string) => {
-    const currentSubjects = formik.values.subjects || [];
-    const newSubjects = currentSubjects.includes(subject)
-      ? currentSubjects.filter((s) => s !== subject)
-      : [...currentSubjects, subject];
-    formik.setFieldValue('subjects', newSubjects);
-    formik.setFieldTouched('subjects', true);
-  };
+  const {
+    formik,
+    isLoadingStudents,
+    isLoadingTeachers,
+    studentSearchTerm,
+    setStudentSearchTerm,
+    isStudentDropdownOpen,
+    setIsStudentDropdownOpen,
+    studentDropdownRef,
+    teacherSearchTerm,
+    setTeacherSearchTerm,
+    isTeacherDropdownOpen,
+    setIsTeacherDropdownOpen,
+    teacherDropdownRef,
+    getFieldError,
+    isFieldValid,
+    isFieldInvalid,
+    academicYearOptions,
+    selectedStudentIds,
+    selectedStudents,
+    filteredStudents,
+    filteredTeachers,
+    selectedTeacherId,
+    handleTeacherToggle,
+    handleStudentToggle,
+    handleRemoveStudent,
+    handleSubjectToggle,
+    handleSaveClick,
+  } = useClassForm({ initialData, onSubmit });
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -452,242 +151,113 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
 
               {/* Student Selection Field */}
               <div className="lg:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Students
-              </label>
-              <div className="relative">
-                {/* Selected Students Display */}
-                {selectedStudents.length > 0 && (
-                  <div className="mb-2 flex flex-wrap gap-2">
-                    {selectedStudents.map((student) => (
-                      <span
-                        key={student.id}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-indigo-100 text-indigo-800 border border-indigo-200"
-                      >
-                        {student.firstName} {student.lastName} ({student.studentId})
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveStudent(student.id)}
-                          className="ml-2 text-indigo-600 hover:text-indigo-800 focus:outline-none"
-                          disabled={isLoading || formik.isSubmitting}
+                <label className="block text-sm font-medium text-gray-700 mb-2">Students</label>
+                <div className="relative">
+                  {selectedStudents.length > 0 && (
+                    <div className="mb-2 flex flex-wrap gap-2">
+                      {selectedStudents.map((student) => (
+                        <span
+                          key={student.id}
+                          className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-indigo-100 text-indigo-800 border border-indigo-200"
                         >
-                          <i className="fas fa-times text-xs"></i>
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {/* Search Input and Dropdown */}
-                <div className="relative" ref={studentDropdownRef}>
-                  <input
-                    type="text"
-                    placeholder="Search students by name, email, or student ID..."
-                    value={studentSearchTerm}
-                    onChange={(e) => {
-                      setStudentSearchTerm(e.target.value);
-                      setIsStudentDropdownOpen(true);
-                    }}
-                    onFocus={() => setIsStudentDropdownOpen(true)}
-                    disabled={isLoading || formik.isSubmitting || isLoadingStudents}
-                    className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
-                      isLoading || formik.isSubmitting || isLoadingStudents
-                        ? 'bg-gray-100 cursor-not-allowed'
-                        : 'border-gray-300 focus:ring-indigo-500 focus:border-transparent'
-                    }`}
-                  />
-                  <div className="absolute right-3 top-3 pointer-events-none">
-                    <i className="fas fa-chevron-down text-gray-400"></i>
-                  </div>
-
-                  {/* Dropdown */}
-                  {isStudentDropdownOpen && !isLoadingStudents && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
-                      {filteredStudents.length === 0 ? (
-                        <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                          {studentSearchTerm.trim() ? 'No students found' : 'No students available'}
-                        </div>
-                      ) : (
-                        <ul className="py-1">
-                          {filteredStudents.map((student) => {
-                            const isSelected = selectedStudentIds.includes(student.id);
-                            return (
-                              <li
-                                key={student.id}
-                                className={`px-4 py-2 cursor-pointer hover:bg-indigo-50 ${
-                                  isSelected ? 'bg-indigo-100' : ''
-                                }`}
-                                onClick={() => {
-                                  handleStudentToggle(student.id);
-                                  setStudentSearchTerm('');
-                                }}
-                              >
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center space-x-2">
-                                    <input
-                                      type="checkbox"
-                                      checked={isSelected}
-                                      onChange={() => {}}
-                                      className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                                      readOnly
-                                    />
-                                    <div>
-                                      <div className="text-sm font-medium text-gray-900">
-                                        {student.firstName} {student.lastName}
-                                      </div>
-                                      <div className="text-xs text-gray-500">
-                                        {student.email} • {student.studentId}
-                                      </div>
-                                    </div>
-                                  </div>
-                                  {isSelected && (
-                                    <i className="fas fa-check text-indigo-600"></i>
-                                  )}
-                                </div>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      )}
+                          {student.firstName} {student.lastName} ({student.studentId})
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveStudent(student.id)}
+                            className="ml-2 text-indigo-600 hover:text-indigo-800 focus:outline-none"
+                            disabled={isLoading || formik.isSubmitting}
+                          >
+                            <i className="fas fa-times text-xs"></i>
+                          </button>
+                        </span>
+                      ))}
                     </div>
                   )}
-                </div>
 
-                {isLoadingStudents && (
-                  <p className="mt-1 text-xs text-gray-500">Loading students...</p>
-                )}
-                <p className="mt-1 text-xs text-gray-500">
-                  Select students to add to this class. {selectedStudents.length} student(s) selected.
-                </p>
-              </div>
-            </div>
+                  <div className="relative" ref={studentDropdownRef}>
+                    <input
+                      type="text"
+                      placeholder="Search students by name, email, or student ID..."
+                      value={studentSearchTerm}
+                      onChange={(e) => {
+                        setStudentSearchTerm(e.target.value);
+                        setIsStudentDropdownOpen(true);
+                      }}
+                      onFocus={() => setIsStudentDropdownOpen(true)}
+                      disabled={isLoading || formik.isSubmitting || isLoadingStudents}
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
+                        isLoading || formik.isSubmitting || isLoadingStudents
+                          ? 'bg-gray-100 cursor-not-allowed'
+                          : 'border-gray-300 focus:ring-indigo-500 focus:border-transparent'
+                      }`}
+                    />
+                    <div className="absolute right-3 top-3 pointer-events-none">
+                      <i className="fas fa-chevron-down text-gray-400"></i>
+                    </div>
 
-            {/* Lecture Selection Field */}
-            <div className="lg:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Lectures <span className="text-gray-500 text-xs font-normal">(Max 5)</span>
-              </label>
-              <div className="relative">
-                {/* Selected Lectures Display */}
-                {selectedLectures.length > 0 && (
-                  <div className="mb-2 flex flex-wrap gap-2">
-                    {selectedLectures.map((lecture) => (
-                      <span
-                        key={lecture.id}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800 border border-purple-200"
-                      >
-                        {lecture.title} ({lecture.subject})
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveLecture(lecture.id)}
-                          className="ml-2 text-purple-600 hover:text-purple-800 focus:outline-none"
-                          disabled={isLoading || formik.isSubmitting}
-                        >
-                          <i className="fas fa-times text-xs"></i>
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {/* Search Input and Dropdown */}
-                <div className="relative" ref={lectureDropdownRef}>
-                  <input
-                    type="text"
-                    placeholder="Search lectures by title, subject, or teacher..."
-                    value={lectureSearchTerm}
-                    onChange={(e) => {
-                      setLectureSearchTerm(e.target.value);
-                      setIsLectureDropdownOpen(true);
-                    }}
-                    onFocus={() => {
-                      if (selectedLectureIds.length < 5) {
-                        setIsLectureDropdownOpen(true);
-                      }
-                    }}
-                    disabled={isLoading || formik.isSubmitting || isLoadingLectures || selectedLectureIds.length >= 5}
-                    className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
-                      isLoading || formik.isSubmitting || isLoadingLectures || selectedLectureIds.length >= 5
-                        ? 'bg-gray-100 cursor-not-allowed'
-                        : 'border-gray-300 focus:ring-indigo-500 focus:border-transparent'
-                    }`}
-                  />
-                  <div className="absolute right-3 top-3 pointer-events-none">
-                    <i className="fas fa-chevron-down text-gray-400"></i>
-                  </div>
-
-                  {/* Dropdown */}
-                  {isLectureDropdownOpen && !isLoadingLectures && selectedLectureIds.length < 5 && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
-                      {filteredLectures.length === 0 ? (
-                        <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                          {lectureSearchTerm.trim() ? 'No lectures found' : 'No lectures available'}
-                        </div>
-                      ) : (
-                        <ul className="py-1">
-                          {filteredLectures.map((lecture) => {
-                            const isSelected = selectedLectureIds.includes(lecture.id);
-                            return (
-                              <li
-                                key={lecture.id}
-                                className={`px-4 py-2 cursor-pointer hover:bg-purple-50 ${
-                                  isSelected ? 'bg-purple-100' : ''
-                                }`}
-                                onClick={() => {
-                                  handleLectureToggle(lecture.id);
-                                  setLectureSearchTerm('');
-                                }}
-                              >
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center space-x-2">
-                                    <input
-                                      type="checkbox"
-                                      checked={isSelected}
-                                      onChange={() => {}}
-                                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                                      readOnly
-                                    />
-                                    <div>
-                                      <div className="text-sm font-medium text-gray-900">
-                                        {lecture.title}
-                                      </div>
-                                      <div className="text-xs text-gray-500">
-                                        {lecture.subject} • {lecture.teacher.firstName} {lecture.teacher.lastName} • {lecture.type}
+                    {isStudentDropdownOpen && !isLoadingStudents && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
+                        {filteredStudents.length === 0 ? (
+                          <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                            {studentSearchTerm.trim() ? 'No students found' : 'No students available'}
+                          </div>
+                        ) : (
+                          <ul className="py-1">
+                            {filteredStudents.map((student) => {
+                              const isSelected = selectedStudentIds.includes(student.id);
+                              return (
+                                <li
+                                  key={student.id}
+                                  className={`px-4 py-2 cursor-pointer hover:bg-indigo-50 ${
+                                    isSelected ? 'bg-indigo-100' : ''
+                                  }`}
+                                  onClick={() => {
+                                    handleStudentToggle(student.id);
+                                    setStudentSearchTerm('');
+                                  }}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-2">
+                                      <input
+                                        type="checkbox"
+                                        checked={isSelected}
+                                        onChange={() => {}}
+                                        className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                                        readOnly
+                                      />
+                                      <div>
+                                        <div className="text-sm font-medium text-gray-900">
+                                          {student.firstName} {student.lastName}
+                                        </div>
+                                        <div className="text-xs text-gray-500">
+                                          {student.email} • {student.studentId}
+                                        </div>
                                       </div>
                                     </div>
+                                    {isSelected && <i className="fas fa-check text-indigo-600"></i>}
                                   </div>
-                                  {isSelected && (
-                                    <i className="fas fa-check text-purple-600"></i>
-                                  )}
-                                </div>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      )}
-                    </div>
-                  )}
-                </div>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
-                {isLoadingLectures && (
-                  <p className="mt-1 text-xs text-gray-500">Loading lectures...</p>
-                )}
-                {selectedLectureIds.length >= 5 && (
-                  <p className="mt-1 text-xs text-amber-600 flex items-center space-x-1">
-                    <i className="fas fa-exclamation-circle"></i>
-                    <span>Maximum of 5 lectures allowed. Please remove a lecture to add another.</span>
+                  {isLoadingStudents && (
+                    <p className="mt-1 text-xs text-gray-500">Loading students...</p>
+                  )}
+                  <p className="mt-1 text-xs text-gray-500">
+                    Select students to add to this class. {selectedStudents.length} student(s) selected.
                   </p>
-                )}
-                <p className={`mt-1 text-xs ${selectedLectureIds.length >= 5 ? 'text-gray-600' : 'text-gray-500'}`}>
-                  Select lectures to add to this class. {selectedLectures.length} of 5 lecture(s) selected.
-                </p>
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Room Number <span className="text-red-500">*</span>
-              </label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Room Number <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   name="roomNo"
@@ -776,123 +346,83 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
           </div>
 
           {/* Class Head Section */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <h4 className="text-sm font-semibold text-gray-900 mb-3">Class Head Information</h4>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  First Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="classHead.firstName"
-                  placeholder="Enter first name"
-                  value={formik.values.classHead?.firstName || ''}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
-                    isFieldInvalid('classHead.firstName')
-                      ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                      : 'border-gray-300 focus:ring-indigo-500 focus:border-transparent'
-                  }`}
-                  required
-                />
-                {isFieldInvalid('classHead.firstName') && (
-                  <p className="mt-1 text-xs text-red-600 flex items-center space-x-1">
-                    <i className="fas fa-exclamation-circle"></i>
-                    <span>{getFieldError('classHead.firstName')}</span>
-                  </p>
-                )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Class Head <span className="text-red-500">*</span>
+            </label>
+            <div className="relative" ref={teacherDropdownRef}>
+              <input
+                type="text"
+                placeholder="Search teachers by name, email, or employee ID..."
+                value={teacherSearchTerm}
+                onChange={(e) => {
+                  setTeacherSearchTerm(e.target.value);
+                  setIsTeacherDropdownOpen(true);
+                }}
+                onFocus={() => setIsTeacherDropdownOpen(true)}
+                disabled={isLoading || formik.isSubmitting || isLoadingTeachers}
+                className="w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 border-gray-300 focus:ring-indigo-500"
+              />
+
+              <div className="absolute right-3 top-3 pointer-events-none">
+                <i className="fas fa-chevron-down text-gray-400" />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Last Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="classHead.lastName"
-                  placeholder="Enter last name"
-                  value={formik.values.classHead?.lastName || ''}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
-                    isFieldInvalid('classHead.lastName')
-                      ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                      : 'border-gray-300 focus:ring-indigo-500 focus:border-transparent'
-                  }`}
-                  required
-                />
-                {isFieldInvalid('classHead.lastName') && (
-                  <p className="mt-1 text-xs text-red-600 flex items-center space-x-1">
-                    <i className="fas fa-exclamation-circle"></i>
-                    <span>{getFieldError('classHead.lastName')}</span>
-                  </p>
-                )}
-              </div>
+              {isTeacherDropdownOpen && !isLoadingTeachers && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
+                  {filteredTeachers.length === 0 ? (
+                    <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                      {teacherSearchTerm.trim() ? 'No teachers found' : 'No teachers available'}
+                    </div>
+                  ) : (
+                    <ul className="py-1">
+                      {filteredTeachers.map((teacher) => {
+                        const isSelected = selectedTeacherId === teacher?.id;
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="email"
-                    name="classHead.email"
-                    placeholder="teacher@school.com"
-                    value={formik.values.classHead?.email || ''}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
-                      isFieldInvalid('classHead.email')
-                        ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                        : isFieldValid('classHead.email')
-                        ? 'border-green-500 bg-green-50 focus:ring-green-500'
-                        : 'border-gray-300 focus:ring-indigo-500 focus:border-transparent'
-                    }`}
-                    required
-                  />
-                  {isFieldValid('classHead.email') && (
-                    <i className="fas fa-check-circle absolute right-3 top-3 text-green-500"></i>
-                  )}
-                  {isFieldInvalid('classHead.email') && (
-                    <i className="fas fa-exclamation-circle absolute right-3 top-3 text-red-500"></i>
+                        return (
+                          <li
+                            key={teacher?.id || teacher?.employeeId}
+                            className={`px-4 py-2 cursor-pointer hover:bg-indigo-50 ${
+                              isSelected ? 'bg-indigo-100' : ''
+                            }`}
+                            onClick={() => handleTeacherToggle(teacher)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="radio"
+                                  checked={isSelected}
+                                  readOnly
+                                  className="w-4 h-4 text-indigo-600"
+                                />
+
+                                <div>
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {teacher?.firstName ?? ''} {teacher?.lastName ?? ''}
+                                  </div>
+
+                                  <div className="text-xs text-gray-500">
+                                    {teacher?.email ?? ''} • {teacher?.employeeId ?? ''}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {isSelected && <i className="fas fa-check text-indigo-600" />}
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
                   )}
                 </div>
-                {isFieldInvalid('classHead.email') && (
-                  <p className="mt-1 text-xs text-red-600 flex items-center space-x-1">
-                    <i className="fas fa-exclamation-circle"></i>
-                    <span>{getFieldError('classHead.email')}</span>
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Employee ID <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="classHead.employeeId"
-                  placeholder="Enter employee ID"
-                  value={formik.values.classHead?.employeeId || ''}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
-                    isFieldInvalid('classHead.employeeId')
-                      ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                      : 'border-gray-300 focus:ring-indigo-500 focus:border-transparent'
-                  }`}
-                  required
-                />
-                {isFieldInvalid('classHead.employeeId') && (
-                  <p className="mt-1 text-xs text-red-600 flex items-center space-x-1">
-                    <i className="fas fa-exclamation-circle"></i>
-                    <span>{getFieldError('classHead.employeeId')}</span>
-                  </p>
-                )}
-              </div>
+              )}
             </div>
+            {isFieldInvalid('classHeadId') && (
+              <p className="mt-1 text-xs text-red-600 flex items-center space-x-1">
+                <i className="fas fa-exclamation-circle"></i>
+                <span>{getFieldError('classHeadId')}</span>
+              </p>
+            )}
           </div>
 
           {/* Schedule Section */}
@@ -1062,7 +592,8 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
               <div>
                 <p className="text-sm font-medium text-blue-900">Form Tips</p>
                 <p className="text-xs text-blue-700 mt-1">
-                  All fields marked with <span className="text-red-500">*</span> are required. Make sure to assign a class head before saving.
+                  All fields marked with <span className="text-red-500">*</span> are required. Make sure to
+                  assign a class head before saving.
                 </p>
               </div>
             </div>
@@ -1081,22 +612,7 @@ export const ClassForm = ({ initialData, onSubmit, onCancel, isLoading }: ClassF
           </button>
           <button
             type="submit"
-            onClick={(e) => {
-              e.preventDefault();
-              // Validate and submit
-              formik.validateForm().then((errors) => {
-                console.log('=== BUTTON CLICK - VALIDATION CHECK ===');
-                console.log('Formik Validation Errors:', errors);
-                console.log('Formik Values:', formik.values);
-                console.log('Is Edit Mode:', !!initialData);
-                console.log('Formik Errors Object:', formik.errors);
-                console.log('Formik isValid:', formik.isValid);
-                console.log('========================================');
-                
-                // Submit the form - Formik will handle validation
-                formik.submitForm();
-              });
-            }}
+            onClick={handleSaveClick}
             disabled={isLoading || formik.isSubmitting}
             className={`px-6 py-2.5 text-white rounded-lg font-medium transition-colors flex items-center space-x-2 ${
               isLoading || formik.isSubmitting

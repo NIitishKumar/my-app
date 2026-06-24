@@ -49,12 +49,7 @@ export interface ValidationErrors {
   grade?: string;
   roomNo?: string;
   capacity?: string;
-  classHead?: {
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    employeeId?: string;
-  };
+  classHeadId?: string;
   schedule?: {
     academicYear?: string;
     semester?: string;
@@ -104,35 +99,14 @@ export const validateClassForm = (data: Partial<CreateClassData>): ValidationErr
     errors.capacity = `Capacity must not exceed ${VALIDATION.CAPACITY_MAX}`;
   }
 
-  // Class Head validation
-  if (data.classHead) {
-    const classHeadErrors: Record<string, string> = {};
-    if (!data.classHead.firstName || data.classHead.firstName.trim().length === 0) {
-      classHeadErrors.firstName = 'First name is required';
-    }
-    if (!data.classHead.lastName || data.classHead.lastName.trim().length === 0) {
-      classHeadErrors.lastName = 'Last name is required';
-    }
-    if (!data.classHead.email || data.classHead.email.trim().length === 0) {
-      classHeadErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.classHead.email)) {
-      classHeadErrors.email = 'Please enter a valid email address';
-    }
-    if (!data.classHead.employeeId || data.classHead.employeeId.trim().length === 0) {
-      classHeadErrors.employeeId = 'Employee ID is required';
-    } else if (data.classHead.employeeId.length < VALIDATION.EMPLOYEE_ID_MIN_LENGTH) {
-      classHeadErrors.employeeId = `Employee ID must be at least ${VALIDATION.EMPLOYEE_ID_MIN_LENGTH} characters`;
-    } else if (data.classHead.employeeId.length > VALIDATION.EMPLOYEE_ID_MAX_LENGTH) {
-      classHeadErrors.employeeId = `Employee ID must not exceed ${VALIDATION.EMPLOYEE_ID_MAX_LENGTH} characters`;
-    }
-    // Only add classHead errors if there are actual errors
-    if (Object.keys(classHeadErrors).length > 0) {
-      errors.classHead = classHeadErrors;
-    }
-  } else {
-    errors.classHead = {
-      firstName: 'Class head information is required',
-    };
+  // Class Head validation (teacher _id)
+  const classHeadId =
+    typeof data.classHead === 'string'
+      ? data.classHead
+      : (data as Partial<CreateClassData & { classHeadId?: string }>).classHeadId;
+
+  if (!classHeadId || classHeadId.trim().length === 0) {
+    errors.classHeadId = 'Please select a class head';
   }
 
   // Schedule validation
@@ -201,13 +175,7 @@ export const getDefaultClassFormData = (): Partial<CreateClassData> => {
     capacity: 30,
     enrolled: 0,
     students: [],
-    classHead: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      employeeId: '',
-    },
-    lectures: [],
+    classHeadId: '',
     schedule: {
       academicYear: `${currentYear}-${currentYear + 1}`,
       semester: 'Fall',
