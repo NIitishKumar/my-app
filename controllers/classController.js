@@ -191,7 +191,12 @@ const createClass = async (req, res) => {
     }
 
     const result = await db.collection('classes').insertOne(classData);
-
+    classData.students.forEach(async id => {
+      await db.collection('students').findOneAndUpdate(
+        { _id: new ObjectId(id) },
+        { $set: { enrolledClass: result.insertedId } }
+      );
+    });
     res.status(201).json({
       success: true,
       message: 'Class created successfully',
@@ -280,7 +285,12 @@ const updateClass = async (req, res) => {
         message: 'Class not found'
       });
     }
-
+    updateData.students.forEach(async id => {
+      await db.collection('students').findOneAndUpdate(
+        { _id: new ObjectId(id) },
+        { $set: { enrolledClass: result.insertedId } }
+      );
+    });
     res.status(200).json({
       success: true,
       message: 'Class updated successfully',

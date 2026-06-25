@@ -50,6 +50,11 @@ const studentSchema = new Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  enrolledClass: {
+    type: ObjectId,
+    ref: 'class'
+
   }
 }, {
   timestamps: true
