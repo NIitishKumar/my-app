@@ -1,6 +1,7 @@
 const { getDatabase, ObjectId } = require("../db");
-const classSchema = require("../schemas/classSchema");
+const Class = require("../schemas/classSchema");
 const studentSchema = require("../schemas/studentSchema");
+const mongoose = require("mongoose");
 
 // Get all classes
 const getAllClasses = async (req, res) => {
@@ -489,6 +490,7 @@ const removeStudentFromClass = async (req, res) => {
 
 const removeStudentFromClassById = async (req, res) => {
   try {
+    const db = getDatabase();
     const { classId } = req.params;
     const { studentId } = req.body;
 
@@ -502,15 +504,15 @@ const removeStudentFromClassById = async (req, res) => {
       });
     }
 
-    const updatedClass = await classSchema.findOneAndUpdate(
+    const updatedClass = await db.collection("classes").findOneAndUpdate(
       { _id: new ObjectId(classId) },
       {
         $pull: {
-          students: studentId,
+          students: new ObjectId(studentId),
         },
       },
       {
-        new: true,
+        returnDocument: "after",
       },
     );
     if (!updatedClass) {
@@ -520,9 +522,13 @@ const removeStudentFromClassById = async (req, res) => {
       });
     }
 
-    await studentSchema.findOneAndUpdate(
+    await db.collection("students").findOneAndUpdate(
       { _id: new ObjectId(studentId) },
-      { enrolledClass: null },
+      {
+        $set: {
+          enrolledClass: null,
+        },
+      },
     );
     return res.status(200).json({
       success: true,
@@ -530,6 +536,7 @@ const removeStudentFromClassById = async (req, res) => {
       data: updatedClass,
     });
   } catch (error) {
+    console.log({ error });
     res.status(500).json({
       success: false,
       message: "Error removing student from class",
