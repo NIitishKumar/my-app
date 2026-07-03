@@ -14,6 +14,7 @@ const mapClassApiToDomain = (api: ClassApiDTO): Class => ({
   students: api.students?.map(({ _id }) => _id) ?? [],
 
   classHead: {
+    id: api?.classHead?._id,
     firstName: '',
     lastName: '',
     email: '',
@@ -23,7 +24,7 @@ const mapClassApiToDomain = (api: ClassApiDTO): Class => ({
   lectures: api.lectures?.map(({ _id }) => _id) ?? [],
 
   schedule: {
-    academicYear: '',
+    academicYear: api?.schedule?.academicYear,
     startDate: new Date(),
     endDate: new Date(),
   },

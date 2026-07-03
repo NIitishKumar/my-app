@@ -28,8 +28,9 @@ import * as Yup from 'yup';
 import type { Class, CreateClassData } from '../index.types';
 import type { StudentOption } from './components/StudentSelector';
 import type { TeacherOption } from './components/TeacherSelector';
-import { useStudents } from '../classDetails/index.hook';
+import { useStudents, useTeachers } from '../classDetails/index.hook';
 import { useRemoveStudentFromClass } from '../useClassesQueries';
+import { useUpdateClass } from '../../../features/admin';
 
 // ---------------------------------------------------------------------------
 // Data fetching (replace with your real API layer)
@@ -87,7 +88,6 @@ const validationSchema = Yup.object({
   isActive: Yup.boolean().required(),
   schedule: Yup.object({
     academicYear: Yup.string().required('Academic year is required'),
-    semester: Yup.string().required('Semester is required'),
     startDate: Yup.date().typeError('Invalid start date').required('Start date is required'),
     endDate: Yup.date()
       .typeError('Invalid end date')
@@ -152,48 +152,73 @@ interface UseClassFormArgs {
   isEditMode: any;
 }
 
-export const useClassForm = ({ initialData, onSubmit, isEditMode }: UseClassFormArgs) => {
+export const useClassForm = ({ initialData, onSubmit, isEditMode, classId }: UseClassFormArgs) => {
   // ---- Students / teachers data -------------------------------------------------
-  const [teachers, setTeachers] = useState<TeacherOption[]>([]);
+  // const [teachers, setTeachers] = useState<TeacherOption[]>([]);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
-  const [isLoadingTeachers, setIsLoadingTeachers] = useState(false);
 
   const { data: students = [] } = useStudents();
-
-  useEffect(() => {
-    let isMounted = true;
-    setIsLoadingTeachers(true);
-    fetchTeachers()
-      .then((data) => isMounted && setTeachers(data))
-      .catch((error) => console.error('Failed to load teachers', error))
-      .finally(() => isMounted && setIsLoadingTeachers(false));
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const { data, isLoading: isLoadingTeachers } = useTeachers() || {};
+  const teachers = data?.teachers ?? [];
 
   // ---- Formik ---------------------------------------------------------------
+  const updateClass = useUpdateClass();
+  const handleSubmit = (data) => {
+    if (classId) {
+      if (!classId) {
+        console.error('Cannot update: missing class ID');
+        alert('Error: Missing class ID. Please try again.');
+        return;
+      }
+
+      updateClass.mutate(
+        { id: classId, ...data },
+        {
+          onSuccess: (result) => {
+            console.log('Class updated successfully:', result);
+          },
+          onError: (updateError) => {
+            console.error('Error updating class:', updateError);
+            alert(`Error updating class: ${updateError instanceof Error ? updateError.message : 'Unknown error'}`);
+          },
+        },
+      );
+      // } else {
+      //   console.log('Creating new class');
+      //   createClass.mutate(data, {
+      //     onSuccess: (result) => {
+      //       console.log('Class created successfully:', result);
+      //       addToast({
+      //         type: 'success',
+      //         message: 'Class created successfully!',
+      //         duration: 3000,
+      //       });
+      //       setShowForm(false);
+      //       setEditingClass(undefined);
+      //       setEditingClassId(undefined);
+      //     },
+      //     onError: (createError) => {
+      //       console.error('Error creating class:', createError);
+      //       addToast({
+      //         type: 'error',
+      //         message: `Error creating class: ${createError instanceof Error ? createError.message : 'Unknown error'}`,
+      //         duration: 5000,
+      //       });
+      //     },
+      //   });
+    }
+  };
   const formik = useFormik<CreateClassData>({
     initialValues: mapClassToFormValues(initialData),
     validationSchema,
     enableReinitialize: true, // repopulate once async `initialData` arrives
-    onSubmit: async (values, helpers: FormikHelpers<CreateClassData>) => {
-      try {
-        await onSubmit(values);
-        helpers.setStatus({ showSuccess: true });
-      } catch (error) {
-        console.error('Failed to save class', error);
-        helpers.setStatus({ showSuccess: false });
-      } finally {
-        helpers.setSubmitting(false);
-      }
-    },
+    onSubmit: handleSubmit,
   });
 
   // Resolve classHeadId by employeeId once teachers have loaded, for the case
   // where the detail response only gave us a populated `classHead` object.
   useEffect(() => {
-    if (formik.values.classHeadId || teachers.length === 0) return;
+    if (formik.values.classHeadId || teachers?.length === 0) return;
 
     const classHead = (initialData as any)?.classHead;
     if (!classHead?.employeeId) return;
@@ -230,7 +255,6 @@ export const useClassForm = ({ initialData, onSubmit, isEditMode }: UseClassForm
 
   const filteredStudents = useMemo(() => {
     const term = studentSearchTerm.trim().toLowerCase();
-    console.log({ students, term, initialData });
     if (!term) return students?.filter((student) => !initialData?.students?.includes(student.id));
     return students.filter(
       (student) =>
@@ -249,7 +273,6 @@ export const useClassForm = ({ initialData, onSubmit, isEditMode }: UseClassForm
   );
 
   const handleRemoveStudent = (studentId) => {
-    console.log({ studentId });
     removeStudentMutation.mutate({
       classId: initialData?.id,
       studentId: studentId,
@@ -345,7 +368,7 @@ export const useClassForm = ({ initialData, onSubmit, isEditMode }: UseClassForm
   // Touches every top-level + schedule field on click so validation messages
   // appear immediately, then lets the <form onSubmit> (formik.handleSubmit)
   // run the actual validation + submit.
-  const handleSaveClick = useCallback(() => {
+  const handleSaveClick = useCallback(async () => {
     formik.setTouched(
       {
         className: true,
@@ -358,13 +381,15 @@ export const useClassForm = ({ initialData, onSubmit, isEditMode }: UseClassForm
         isActive: true,
         schedule: {
           academicYear: true,
-          semester: true,
-          startDate: true,
-          endDate: true,
         },
       },
       false,
     );
+    const errors = await formik.validateForm();
+
+    console.log('Errors:', errors);
+
+    formik.handleSubmit();
   }, [formik]);
 
   return {

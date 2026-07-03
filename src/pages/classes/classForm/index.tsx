@@ -47,7 +47,6 @@ export const ClassForm = ({ initialData: initialDataProp, onSubmit, onCancel, is
 
   // Explicit prop wins (e.g. reused in a modal); otherwise fall back to
   // whatever the route resolved. API responses come back as { id, data }.
-  console.log({ classDetailsResponse });
   const initialData = initialDataProp ?? classDetailsResponse;
 
   const {
@@ -78,7 +77,7 @@ export const ClassForm = ({ initialData: initialDataProp, onSubmit, onCancel, is
     handleRemoveStudent,
     handleSubjectToggle,
     handleSaveClick,
-  } = useClassForm({ initialData, onSubmit, isEditMode });
+  } = useClassForm({ initialData, onSubmit, isEditMode, classId: id });
 
   const isFormDisabled = Boolean(isLoading || formik.isSubmitting);
 

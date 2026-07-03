@@ -64,12 +64,12 @@ export const TeacherSelector = ({
 
         {isDropdownOpen && !isLoadingTeachers && (
           <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
-            {filteredTeachers.length === 0 ? (
+            {filteredTeachers?.length === 0 ? (
               <div className="px-4 py-3 text-sm text-gray-500 text-center">{searchTerm.trim() ? 'No teachers found' : 'No teachers available'}</div>
             ) : (
               <ul className="py-1">
-                {filteredTeachers.map((teacher) => {
-                  const isSelected = selectedTeacherId === teacher?.id;
+                {filteredTeachers?.map((teacher) => {
+                  const isSelected = selectedTeacherId === teacher.id;
                   return (
                     <li
                       key={teacher?.id || teacher?.employeeId}

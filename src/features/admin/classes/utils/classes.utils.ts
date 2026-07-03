@@ -20,7 +20,7 @@ export const sortClasses = (classes: Class[]): Class[] => {
     // First sort by grade
     const gradeCompare = parseInt(a.grade) - parseInt(b.grade);
     if (gradeCompare !== 0) return gradeCompare;
-    
+
     // Then sort by class name
     return a.className.localeCompare(b.className);
   });
@@ -31,12 +31,13 @@ export const sortClasses = (classes: Class[]): Class[] => {
  */
 export const filterClasses = (classes: Class[], searchTerm: string): Class[] => {
   const term = searchTerm.toLowerCase();
-  return classes.filter((classItem) =>
-    classItem.className.toLowerCase().includes(term) ||
-    classItem.grade.includes(term) ||
-    (classItem.section && classItem.section.toLowerCase().includes(term)) ||
-    classItem.roomNo.toLowerCase().includes(term) ||
-    `${classItem.classHead.firstName} ${classItem.classHead.lastName}`.toLowerCase().includes(term)
+  return classes.filter(
+    (classItem) =>
+      classItem.className.toLowerCase().includes(term) ||
+      classItem.grade.includes(term) ||
+      (classItem.section && classItem.section.toLowerCase().includes(term)) ||
+      classItem.roomNo.toLowerCase().includes(term) ||
+      `${classItem.classHead.firstName} ${classItem.classHead.lastName}`.toLowerCase().includes(term),
   );
 };
 
@@ -100,44 +101,10 @@ export const validateClassForm = (data: Partial<CreateClassData>): ValidationErr
   }
 
   // Class Head validation (teacher _id)
-  const classHeadId =
-    typeof data.classHead === 'string'
-      ? data.classHead
-      : (data as Partial<CreateClassData & { classHeadId?: string }>).classHeadId;
+  const classHeadId = typeof data.classHead === 'string' ? data.classHead : (data as Partial<CreateClassData & { classHeadId?: string }>).classHeadId;
 
   if (!classHeadId || classHeadId.trim().length === 0) {
     errors.classHeadId = 'Please select a class head';
-  }
-
-  // Schedule validation
-  if (data.schedule) {
-    const scheduleErrors: Record<string, string> = {};
-    if (!data.schedule.academicYear || data.schedule.academicYear.trim().length === 0) {
-      scheduleErrors.academicYear = 'Academic year is required';
-    }
-    if (!data.schedule.semester || data.schedule.semester.trim().length === 0) {
-      scheduleErrors.semester = 'Semester is required';
-    }
-    if (!data.schedule.startDate) {
-      scheduleErrors.startDate = 'Start date is required';
-    }
-    if (!data.schedule.endDate) {
-      scheduleErrors.endDate = 'End date is required';
-    } else if (data.schedule.startDate && data.schedule.endDate) {
-      const startDate = new Date(data.schedule.startDate);
-      const endDate = new Date(data.schedule.endDate);
-      if (endDate <= startDate) {
-        scheduleErrors.endDate = 'End date must be after start date';
-      }
-    }
-    // Only add schedule errors if there are actual errors
-    if (Object.keys(scheduleErrors).length > 0) {
-      errors.schedule = scheduleErrors;
-    }
-  } else {
-    errors.schedule = {
-      academicYear: 'Schedule information is required',
-    };
   }
 
   return errors;
@@ -217,14 +184,7 @@ export const getTeacherNameWithoutPrefix = (name: string): string => {
  * Get avatar color based on teacher initials
  */
 export const getAvatarColor = (initials: string): string => {
-  const colors = [
-    'bg-purple-500',
-    'bg-indigo-500',
-    'bg-blue-500',
-    'bg-cyan-500',
-    'bg-teal-500',
-    'bg-green-500',
-  ];
+  const colors = ['bg-purple-500', 'bg-indigo-500', 'bg-blue-500', 'bg-cyan-500', 'bg-teal-500', 'bg-green-500'];
   const index = initials.charCodeAt(0) % colors.length;
   return colors[index];
 };
@@ -330,7 +290,7 @@ export const generateMockClasses = (): Class[] => {
       isActive: false,
       createdAt: new Date(),
       updatedAt: new Date(),
-    }
+    },
   );
 
   // Generate additional classes for pagination
@@ -376,5 +336,3 @@ export const generateMockClasses = (): Class[] => {
 
   return mockClasses;
 };
-
-

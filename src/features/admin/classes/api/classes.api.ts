@@ -19,8 +19,6 @@ import type {
   CreateClassApiResponse,
 } from '../types/classes.types';
 
-
-
 // Mapper for actual API response (camelCase with _id)
 const mapClassHeadApiToDomain = (api: ClassHeadApiDTO | null | undefined): ClassHead => {
   if (!api) {
@@ -82,18 +80,14 @@ export const classesApi = {
   getAll: async (): Promise<Class[]> => {
     try {
       const response = await httpClient.get<ClassesApiResponse | ClassApiDTO[]>(classesEndpoints.list());
-      
-      // Debug: Log the actual response structure
-      console.log('Classes API Response:', response);
-      
       // Handle both wrapped response and direct array response
       let classesData: ClassApiDTO[];
-      
+
       if (!response) {
         console.warn('API returned null or undefined response');
         return [];
       }
-      
+
       if (Array.isArray(response)) {
         // Direct array response
         classesData = response;
@@ -111,16 +105,16 @@ export const classesApi = {
         console.warn('Unexpected API response structure:', response);
         return [];
       }
-      
+
       if (!classesData || !Array.isArray(classesData)) {
         console.warn('classesData is not a valid array:', classesData);
         return [];
       }
-      
+
       if (classesData.length === 0) {
         return [];
       }
-      
+
       return classesData.map(mapClassApiToDomain);
     } catch (error) {
       console.error('Error fetching classes:', error);
@@ -131,11 +125,11 @@ export const classesApi = {
   getById: async (id: string): Promise<Class> => {
     try {
       const response = await httpClient.get<ClassApiResponse>(classesEndpoints.detail(id));
-      
+
       if (!response || !response.data) {
         throw new Error('Invalid API response: missing data');
       }
-      
+
       return mapClassApiToDomain(response.data);
     } catch (error) {
       console.error('Error fetching class by ID:', error);
@@ -159,29 +153,22 @@ export const classesApi = {
           academicYear: data.schedule.academicYear,
           semester: data.schedule.semester,
           // Convert Date objects to YYYY-MM-DD format
-          startDate: data.schedule.startDate instanceof Date
-            ? data.schedule.startDate.toISOString().split('T')[0]
-            : data.schedule.startDate,
-          endDate: data.schedule.endDate instanceof Date
-            ? data.schedule.endDate.toISOString().split('T')[0]
-            : data.schedule.endDate,
+          startDate: data.schedule.startDate instanceof Date ? data.schedule.startDate.toISOString().split('T')[0] : data.schedule.startDate,
+          endDate: data.schedule.endDate instanceof Date ? data.schedule.endDate.toISOString().split('T')[0] : data.schedule.endDate,
         },
         students: data.students || [],
       };
 
       console.log('Creating class with payload:', payload);
-      
-      const response = await httpClient.post<CreateClassApiResponse>(
-        classesEndpoints.create(),
-        payload
-      );
-      
+
+      const response = await httpClient.post<CreateClassApiResponse>(classesEndpoints.create(), payload);
+
       console.log('Create API response:', response);
-      
+
       if (!response || !response.data) {
         throw new Error('Invalid API response: missing data');
       }
-      
+
       // Create API response uses camelCase format (same as ClassApiDTO), so reuse the existing mapper
       return mapClassApiToDomain(response.data);
     } catch (error) {
@@ -193,7 +180,7 @@ export const classesApi = {
   update: async (data: UpdateClassData): Promise<Class> => {
     try {
       const { id, ...updateData } = data;
-      
+
       // Prepare update payload - convert Date objects to ISO strings for schedule dates
       const payload: any = { ...updateData };
 
@@ -202,36 +189,26 @@ export const classesApi = {
       }
 
       delete payload.lectures;
-      
       // Convert schedule dates to ISO strings if present
       if (payload.schedule) {
         payload.schedule = {
           ...payload.schedule,
-          startDate: payload.schedule.startDate instanceof Date 
-            ? payload.schedule.startDate.toISOString() 
-            : payload.schedule.startDate,
-          endDate: payload.schedule.endDate instanceof Date 
-            ? payload.schedule.endDate.toISOString() 
-            : payload.schedule.endDate,
+          startDate: payload.schedule.startDate instanceof Date ? payload.schedule.startDate.toISOString() : payload.schedule.startDate,
+          endDate: payload.schedule.endDate instanceof Date ? payload.schedule.endDate.toISOString() : payload.schedule.endDate,
         };
       }
-      
+
       // Log the payload for debugging
       console.log('Updating class with payload:', payload);
       console.log('Update endpoint:', classesEndpoints.update(id));
-      
+
       // Send camelCase data directly (API accepts camelCase)
-      const response = await httpClient.put<UpdateClassApiResponse>(
-        classesEndpoints.update(id),
-        payload
-      );
-      
-      console.log('Update API response:', response);
-      
+      const response = await httpClient.put<UpdateClassApiResponse>(classesEndpoints.update(id), payload);
+
       if (!response || !response.data) {
         throw new Error('Invalid API response: missing data');
       }
-      
+
       return mapClassApiToDomain(response.data);
     } catch (error) {
       console.error('Error updating class:', error);
@@ -243,5 +220,3 @@ export const classesApi = {
     await httpClient.delete(classesEndpoints.delete(id));
   },
 };
-
-
