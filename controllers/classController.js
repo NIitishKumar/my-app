@@ -1,12 +1,12 @@
-const { getDatabase, ObjectId } = require('../db');
+const { getDatabase, ObjectId } = require("../db");
+const classSchema = require("../schemas/classSchema");
+const studentSchema = require("../schemas/studentSchema");
 
 // Get all classes
 const getAllClasses = async (req, res) => {
   try {
     const db = getDatabase();
-    const classes = await db.collection('classes')
-      .find({})
-      .toArray();
+    const classes = await db.collection("classes").find({}).toArray();
 
     // Populate students and lectures for each class
     const populatedClasses = await Promise.all(
@@ -15,10 +15,11 @@ const getAllClasses = async (req, res) => {
 
         // Populate students if they exist
         if (classItem.students && classItem.students.length > 0) {
-          const studentIds = classItem.students.map(id =>
-            typeof id === 'string' ? new ObjectId(id) : id
+          const studentIds = classItem.students.map((id) =>
+            typeof id === "string" ? new ObjectId(id) : id,
           );
-          const students = await db.collection('students')
+          const students = await db
+            .collection("students")
             .find({ _id: { $in: studentIds } })
             .project({
               firstName: 1,
@@ -26,7 +27,7 @@ const getAllClasses = async (req, res) => {
               email: 1,
               studentId: 1,
               age: 1,
-              gender: 1
+              gender: 1,
             })
             .toArray();
           populatedClass.students = students;
@@ -34,10 +35,11 @@ const getAllClasses = async (req, res) => {
 
         // Populate lectures if they exist
         if (classItem.lectures && classItem.lectures.length > 0) {
-          const lectureIds = classItem.lectures.map(id =>
-            typeof id === 'string' ? new ObjectId(id) : id
+          const lectureIds = classItem.lectures.map((id) =>
+            typeof id === "string" ? new ObjectId(id) : id,
           );
-          const lectures = await db.collection('lectures')
+          const lectures = await db
+            .collection("lectures")
             .find({ _id: { $in: lectureIds } })
             .project({
               title: 1,
@@ -45,26 +47,26 @@ const getAllClasses = async (req, res) => {
               teacher: 1,
               schedule: 1,
               duration: 1,
-              type: 1
+              type: 1,
             })
             .toArray();
           populatedClass.lectures = lectures;
         }
 
         return populatedClass;
-      })
+      }),
     );
 
     res.status(200).json({
       success: true,
       count: populatedClasses.length,
-      data: populatedClasses
+      data: populatedClasses,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error fetching classes',
-      error: error.message
+      message: "Error fetching classes",
+      error: error.message,
     });
   }
 };
@@ -78,25 +80,28 @@ const getClassById = async (req, res) => {
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid class ID'
+        message: "Invalid class ID",
       });
     }
 
-    const classData = await db.collection('classes').findOne({ _id: new ObjectId(id) });
+    const classData = await db
+      .collection("classes")
+      .findOne({ _id: new ObjectId(id) });
 
     if (!classData) {
       return res.status(404).json({
         success: false,
-        message: 'Class not found'
+        message: "Class not found",
       });
     }
 
     // Populate students if they exist
     if (classData.students && classData.students.length > 0) {
-      const studentIds = classData.students.map(id =>
-        typeof id === 'string' ? new ObjectId(id) : id
+      const studentIds = classData.students.map((id) =>
+        typeof id === "string" ? new ObjectId(id) : id,
       );
-      const students = await db.collection('students')
+      const students = await db
+        .collection("students")
         .find({ _id: { $in: studentIds } })
         .project({
           firstName: 1,
@@ -104,7 +109,7 @@ const getClassById = async (req, res) => {
           email: 1,
           studentId: 1,
           age: 1,
-          gender: 1
+          gender: 1,
         })
         .toArray();
       classData.students = students;
@@ -112,10 +117,11 @@ const getClassById = async (req, res) => {
 
     // Populate lectures if they exist
     if (classData.lectures && classData.lectures.length > 0) {
-      const lectureIds = classData.lectures.map(id =>
-        typeof id === 'string' ? new ObjectId(id) : id
+      const lectureIds = classData.lectures.map((id) =>
+        typeof id === "string" ? new ObjectId(id) : id,
       );
-      const lectures = await db.collection('lectures')
+      const lectures = await db
+        .collection("lectures")
         .find({ _id: { $in: lectureIds } })
         .project({
           title: 1,
@@ -123,7 +129,7 @@ const getClassById = async (req, res) => {
           teacher: 1,
           schedule: 1,
           duration: 1,
-          type: 1
+          type: 1,
         })
         .toArray();
       classData.lectures = lectures;
@@ -131,13 +137,13 @@ const getClassById = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: classData
+      data: classData,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error fetching class',
-      error: error.message
+      message: "Error fetching class",
+      error: error.message,
     });
   }
 };
@@ -149,71 +155,75 @@ const createClass = async (req, res) => {
     const classData = {
       ...req.body,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     // Validate enrolled count doesn't exceed capacity
     if (classData.enrolled > classData.capacity) {
       return res.status(400).json({
         success: false,
-        message: 'Enrolled students cannot exceed class capacity'
+        message: "Enrolled students cannot exceed class capacity",
       });
     }
 
     // Validate student references if provided
     if (classData.students && classData.students.length > 0) {
-      const studentIds = classData.students.map(id => new ObjectId(id));
-      const existingStudents = await db.collection('students')
+      const studentIds = classData.students.map((id) => new ObjectId(id));
+      const existingStudents = await db
+        .collection("students")
         .find({ _id: { $in: studentIds } })
         .toArray();
 
       if (existingStudents.length !== studentIds.length) {
         return res.status(400).json({
           success: false,
-          message: 'One or more student references are invalid'
+          message: "One or more student references are invalid",
         });
       }
     }
 
     // Validate lecture references if provided
     if (classData.lectures && classData.lectures.length > 0) {
-      const lectureIds = classData.lectures.map(id => new ObjectId(id));
-      const existingLectures = await db.collection('lectures')
+      const lectureIds = classData.lectures.map((id) => new ObjectId(id));
+      const existingLectures = await db
+        .collection("lectures")
         .find({ _id: { $in: lectureIds } })
         .toArray();
 
       if (existingLectures.length !== lectureIds.length) {
         return res.status(400).json({
           success: false,
-          message: 'One or more lecture references are invalid'
+          message: "One or more lecture references are invalid",
         });
       }
     }
 
-    const result = await db.collection('classes').insertOne(classData);
-    classData.students.forEach(async id => {
-      await db.collection('students').findOneAndUpdate(
-        { _id: new ObjectId(id) },
-        { $set: { enrolledClass: result.insertedId } }
-      );
+    const result = await db.collection("classes").insertOne(classData);
+    classData.students.forEach(async (id) => {
+      await db
+        .collection("students")
+        .findOneAndUpdate(
+          { _id: new ObjectId(id) },
+          { $set: { enrolledClass: result.insertedId } },
+        );
     });
     res.status(201).json({
       success: true,
-      message: 'Class created successfully',
-      data: { _id: result.insertedId, ...classData }
+      message: "Class created successfully",
+      data: { _id: result.insertedId, ...classData },
     });
   } catch (error) {
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
-        message: 'Class name already exists'
+        message: "Class name already exists",
       });
     }
 
     res.status(500).json({
       success: false,
-      message: 'Error creating class',
-      error: error.message
+      message: "Error creating class",
+      error: error.message,
     });
   }
 };
@@ -227,87 +237,94 @@ const updateClass = async (req, res) => {
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid class ID'
+        message: "Invalid class ID",
       });
     }
 
     const updateData = {
       ...req.body,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     // Validate enrolled count doesn't exceed capacity
-    if (updateData.enrolled && updateData.capacity && updateData.enrolled > updateData.capacity) {
+    if (
+      updateData.enrolled &&
+      updateData.capacity &&
+      updateData.enrolled > updateData.capacity
+    ) {
       return res.status(400).json({
         success: false,
-        message: 'Enrolled students cannot exceed class capacity'
+        message: "Enrolled students cannot exceed class capacity",
       });
     }
 
     // Validate student references if provided
     if (updateData.students && updateData.students.length > 0) {
-      const studentIds = updateData.students.map(id => new ObjectId(id));
-      const existingStudents = await db.collection('students')
+      const studentIds = updateData.students.map((id) => new ObjectId(id));
+      const existingStudents = await db
+        .collection("students")
         .find({ _id: { $in: studentIds } })
         .toArray();
 
       if (existingStudents.length !== studentIds.length) {
         return res.status(400).json({
           success: false,
-          message: 'One or more student references are invalid'
+          message: "One or more student references are invalid",
         });
       }
     }
 
     // Validate lecture references if provided
     if (updateData.lectures && updateData.lectures.length > 0) {
-      const lectureIds = updateData.lectures.map(id => new ObjectId(id));
-      const existingLectures = await db.collection('lectures')
+      const lectureIds = updateData.lectures.map((id) => new ObjectId(id));
+      const existingLectures = await db
+        .collection("lectures")
         .find({ _id: { $in: lectureIds } })
         .toArray();
 
       if (existingLectures.length !== lectureIds.length) {
         return res.status(400).json({
           success: false,
-          message: 'One or more lecture references are invalid'
+          message: "One or more lecture references are invalid",
         });
       }
     }
 
-    const result = await db.collection('classes').updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updateData }
-    );
+    const result = await db
+      .collection("classes")
+      .updateOne({ _id: new ObjectId(id) }, { $set: updateData });
 
     if (result.matchedCount === 0) {
       return res.status(404).json({
         success: false,
-        message: 'Class not found'
+        message: "Class not found",
       });
     }
-    updateData.students.forEach(async id => {
-      await db.collection('students').findOneAndUpdate(
-        { _id: new ObjectId(id) },
-        { $set: { enrolledClass: result.insertedId } }
-      );
+    updateData.students.forEach(async (id) => {
+      await db
+        .collection("students")
+        .findOneAndUpdate(
+          { _id: new ObjectId(id) },
+          { $set: { enrolledClass: result.insertedId } },
+        );
     });
     res.status(200).json({
       success: true,
-      message: 'Class updated successfully',
-      data: updateData
+      message: "Class updated successfully",
+      data: updateData,
     });
   } catch (error) {
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
-        message: 'Class name already exists'
+        message: "Class name already exists",
       });
     }
 
     res.status(500).json({
       success: false,
-      message: 'Error updating class',
-      error: error.message
+      message: "Error updating class",
+      error: error.message,
     });
   }
 };
@@ -321,28 +338,30 @@ const deleteClass = async (req, res) => {
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid class ID'
+        message: "Invalid class ID",
       });
     }
 
-    const result = await db.collection('classes').deleteOne({ _id: new ObjectId(id) });
+    const result = await db
+      .collection("classes")
+      .deleteOne({ _id: new ObjectId(id) });
 
     if (result.deletedCount === 0) {
       return res.status(404).json({
         success: false,
-        message: 'Class not found'
+        message: "Class not found",
       });
     }
 
     res.status(200).json({
       success: true,
-      message: 'Class deleted successfully'
+      message: "Class deleted successfully",
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error deleting class',
-      error: error.message
+      message: "Error deleting class",
+      error: error.message,
     });
   }
 };
@@ -357,33 +376,40 @@ const addStudentToClass = async (req, res) => {
     if (!ObjectId.isValid(id) || !ObjectId.isValid(studentId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid class ID or student ID'
+        message: "Invalid class ID or student ID",
       });
     }
 
     // Check if student exists
-    const student = await db.collection('students').findOne({ _id: new ObjectId(studentId) });
+    const student = await db
+      .collection("students")
+      .findOne({ _id: new ObjectId(studentId) });
     if (!student) {
       return res.status(404).json({
         success: false,
-        message: 'Student not found'
+        message: "Student not found",
       });
     }
 
     // Get current class
-    const classData = await db.collection('classes').findOne({ _id: new ObjectId(id) });
+    const classData = await db
+      .collection("classes")
+      .findOne({ _id: new ObjectId(id) });
     if (!classData) {
       return res.status(404).json({
         success: false,
-        message: 'Class not found'
+        message: "Class not found",
       });
     }
 
     // Check if student is already enrolled
-    if (classData.students && classData.students.includes(new ObjectId(studentId))) {
+    if (
+      classData.students &&
+      classData.students.includes(new ObjectId(studentId))
+    ) {
       return res.status(400).json({
         success: false,
-        message: 'Student is already enrolled in this class'
+        message: "Student is already enrolled in this class",
       });
     }
 
@@ -392,29 +418,29 @@ const addStudentToClass = async (req, res) => {
     if (currentEnrolled >= classData.capacity) {
       return res.status(400).json({
         success: false,
-        message: 'Class has reached maximum capacity'
+        message: "Class has reached maximum capacity",
       });
     }
 
     // Add student to class
-    const result = await db.collection('classes').updateOne(
+    const result = await db.collection("classes").updateOne(
       { _id: new ObjectId(id) },
       {
         $push: { students: new ObjectId(studentId) },
         $inc: { enrolled: 1 },
-        $set: { updatedAt: new Date() }
-      }
+        $set: { updatedAt: new Date() },
+      },
     );
 
     res.status(200).json({
       success: true,
-      message: 'Student added to class successfully'
+      message: "Student added to class successfully",
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error adding student to class',
-      error: error.message
+      message: "Error adding student to class",
+      error: error.message,
     });
   }
 };
@@ -428,35 +454,85 @@ const removeStudentFromClass = async (req, res) => {
     if (!ObjectId.isValid(id) || !ObjectId.isValid(studentId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid class ID or student ID'
+        message: "Invalid class ID or student ID",
       });
     }
 
-    const result = await db.collection('classes').updateOne(
+    const result = await db.collection("classes").updateOne(
       { _id: new ObjectId(id) },
       {
         $pull: { students: new ObjectId(studentId) },
         $inc: { enrolled: -1 },
-        $set: { updatedAt: new Date() }
-      }
+        $set: { updatedAt: new Date() },
+      },
     );
 
     if (result.matchedCount === 0) {
       return res.status(404).json({
         success: false,
-        message: 'Class not found'
+        message: "Class not found",
       });
     }
 
     res.status(200).json({
       success: true,
-      message: 'Student removed from class successfully'
+      message: "Student removed from class successfully",
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error removing student from class',
-      error: error.message
+      message: "Error removing student from class",
+      error: error.message,
+    });
+  }
+};
+
+const removeStudentFromClassById = async (req, res) => {
+  try {
+    const { classId, studentId } = req.params;
+
+    if (
+      !mongoose.Types.ObjectId.isValid(classId) ||
+      !mongoose.Types.ObjectId.isValid(studentId)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid classId or studentId.",
+      });
+    }
+
+    const updatedClass = await classSchema.findOneAndUpdate(
+      { _id: new ObjectId(classId) },
+      {
+        $pull: {
+          students: studentId,
+        },
+      },
+      {
+        new: true,
+      },
+    );
+    if (!updatedClass) {
+      return res.status(404).json({
+        success: false,
+        message: "Class not found.",
+      });
+    }
+
+    await studentSchema.findOneAndUpdate(
+      { _id: new ObjectId(studentId) },
+      { enrolledClass: null },
+    );
+    return res.status(200).json({
+      success: true,
+      message: "Student removed from class successfully.",
+      data: updatedClass,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error removing student from class",
+      error: error.message,
     });
   }
 };
@@ -468,5 +544,6 @@ module.exports = {
   updateClass,
   deleteClass,
   addStudentToClass,
-  removeStudentFromClass
+  removeStudentFromClass,
+  removeStudentFromClassById,
 };
