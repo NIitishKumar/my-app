@@ -33,6 +33,6 @@ router.post("/:id/students", addStudentToClass);
 // DELETE /api/classes/:id/students/:studentId - Remove student from class
 router.delete("/:id/students/:studentId", removeStudentFromClass);
 
-route.put("/:classId/remove-student/:studentId", removeStudentFromClassById);
+route.put("/:classId/remove-student", removeStudentFromClassById);
 
 module.exports = router;

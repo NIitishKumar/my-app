@@ -489,7 +489,8 @@ const removeStudentFromClass = async (req, res) => {
 
 const removeStudentFromClassById = async (req, res) => {
   try {
-    const { classId, studentId } = req.params;
+    const { classId } = req.params;
+    const { studentId } = req.body;
 
     if (
       !mongoose.Types.ObjectId.isValid(classId) ||
