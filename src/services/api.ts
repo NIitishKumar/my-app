@@ -22,7 +22,7 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response interceptor for handling errors
@@ -31,7 +31,7 @@ apiClient.interceptors.response.use(
   (error) => {
     const status = error.response?.status;
     const responseData = error.response?.data;
-    
+
     // Extract error message
     let errorMessage = error.message;
     if (responseData) {
@@ -41,13 +41,13 @@ apiClient.interceptors.response.use(
         errorMessage = responseData.message;
       }
     }
-    
+
     if (status === 401) {
       // Unauthorized - clear auth and redirect to login (don't show toast, redirect happens)
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       // Use replace instead of href to avoid history entry
-      window.location.replace('/login');
+      // window.location.replace('/login');
     } else if (status === 403) {
       // Forbidden - show toast
       toast.error(errorMessage || 'You do not have permission to access this resource.');
@@ -67,8 +67,7 @@ apiClient.interceptors.response.use(
       // Other client errors - show toast
       toast.error(errorMessage || 'An error occurred. Please try again.');
     }
-    
-    return Promise.reject(error);
-  }
-);
 
+    return Promise.reject(error);
+  },
+);

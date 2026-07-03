@@ -7,51 +7,61 @@ import { StudentLayout } from '../shared/layouts/StudentLayout';
 import { ParentLayout } from '../shared/layouts/ParentLayout';
 import { DashboardStatsSkeleton } from '../shared/components/skeletons';
 import { ROUTES, USER_ROLES } from '../shared/constants';
+import { AdminDashboard } from '../pages/dashboard/page';
+import { ClassesPage } from '../pages/classes/index.tsx';
+// import ClassForm from '../pages/classes/classForm/index.tsx';
 
 // Lazy load all page components
-const Login = lazy(() => import('../features/auth/pages/Login').then(m => ({ default: m.Login })));
-const AdminDashboard = lazy(() => import('../features/admin/dashboard/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
-const ClassesPage = lazy(() => import('../features/admin/classes').then(m => ({ default: m.ClassesPage })));
-const ClassDetailsPage = lazy(() => import('../features/admin/classes').then(m => ({ default: m.ClassDetailsPage })));
-const AttendancePage = lazy(() => import('../features/admin/classes/attendance/pages/AttendancePage').then(m => ({ default: m.AttendancePage })));
-const TeachersPage = lazy(() => import('../features/admin/teachers').then(m => ({ default: m.TeachersPage })));
-const StudentsPage = lazy(() => import('../features/admin/students').then(m => ({ default: m.StudentsPage })));
-const LecturesPage = lazy(() => import('../features/admin/lectures').then(m => ({ default: m.LecturesPage })));
-const LectureDetailsPage = lazy(() => import('../features/admin/lectures').then(m => ({ default: m.LectureDetailsPage })));
-const SubjectsPage = lazy(() => import('../features/admin/subjects').then(m => ({ default: m.SubjectsPage })));
-const SubjectDetailsPage = lazy(() => import('../features/admin/subjects').then(m => ({ default: m.SubjectDetailsPage })));
-const NoticesListPage = lazy(() => import('../features/notices').then(m => ({ default: m.NoticesListPage })));
-const CreateNoticePage = lazy(() => import('../features/notices').then(m => ({ default: m.CreateNoticePage })));
-const ExamsPage = lazy(() => import('../features/admin/exams/pages/ExamsPage').then(m => ({ default: m.ExamsPage })));
-const ReportsPage = lazy(() => import('../features/admin/reports/pages/ReportsPage').then(m => ({ default: m.ReportsPage })));
-const SettingsPage = lazy(() => import('../features/admin/settings/pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
-const AdminProfilePage = lazy(() => import('../features/admin/profile').then(m => ({ default: m.AdminProfilePage })));
-const TeacherDashboard = lazy(() => import('../features/teacher/dashboard/TeacherDashboard').then(m => ({ default: m.TeacherDashboard })));
-const TeacherClassesPage = lazy(() => import('../features/teacher/classes/pages/TeacherClassesPage').then(m => ({ default: m.TeacherClassesPage })));
-const TeacherClassDetailPage = lazy(() => import('../features/teacher/classes/pages/TeacherClassDetailPage').then(m => ({ default: m.TeacherClassDetailPage })));
-const TeacherAttendancePage = lazy(() => import('../features/teacher/classes/pages/TeacherAttendancePage').then(m => ({ default: m.TeacherAttendancePage })));
-const TeacherAttendance = lazy(() => import('../features/teacher/attendance').then(m => ({ default: m.AttendancePage })));
-const TeacherQueries = lazy(() => import('../features/teacher/queries/Queries').then(m => ({ default: m.Queries })));
-const TeacherExamsPage = lazy(() => import('../features/teacher/exams').then(m => ({ default: m.ExamsPage })));
-const TeacherSubjectsPage = lazy(() => import('../features/teacher/subjects').then(m => ({ default: m.TeacherSubjectsPage })));
-const TeacherSubjectDetailsPage = lazy(() => import('../features/teacher/subjects').then(m => ({ default: m.TeacherSubjectDetailsPage })));
-const TeacherProfilePage = lazy(() => import('../features/teacher/profile').then(m => ({ default: m.TeacherProfilePage })));
-const StudentDashboard = lazy(() => import('../features/student/dashboard/StudentDashboard').then(m => ({ default: m.StudentDashboard })));
-const Exams = lazy(() => import('../features/student/exams/Exams').then(m => ({ default: m.Exams })));
-const Notifications = lazy(() => import('../features/student/notifications/Notifications').then(m => ({ default: m.Notifications })));
-const StudentRecords = lazy(() => import('../features/student/records/Records').then(m => ({ default: m.Records })));
-const StudentSubjectsPage = lazy(() => import('../features/student/subjects').then(m => ({ default: m.StudentSubjectsPage })));
-const StudentSubjectDetailsPage = lazy(() => import('../features/student/subjects').then(m => ({ default: m.StudentSubjectDetailsPage })));
-const StudentProfilePage = lazy(() => import('../features/student/profile').then(m => ({ default: m.StudentProfilePage })));
-const StudentAttendancePage = lazy(() => import('../features/student/attendance').then(m => ({ default: m.StudentAttendancePage })));
-const TimetablePage = lazy(() => import('../features/student/timetable').then(m => ({ default: m.TimetablePage })));
-const ParentDashboard = lazy(() => import('../features/parent/dashboard/ParentDashboard').then(m => ({ default: m.ParentDashboard })));
-const ParentAttendance = lazy(() => import('../features/parent/attendance/Attendance').then(m => ({ default: m.Attendance })));
-const ParentRecords = lazy(() => import('../features/parent/records/Records').then(m => ({ default: m.Records })));
-const ParentSubjectsPage = lazy(() => import('../features/parent/subjects').then(m => ({ default: m.ParentSubjectsPage })));
-const ParentSubjectDetailsPage = lazy(() => import('../features/parent/subjects').then(m => ({ default: m.ParentSubjectDetailsPage })));
-const ParentProfilePage = lazy(() => import('../features/parent/profile').then(m => ({ default: m.ParentProfilePage })));
-const HelpSupportPage = lazy(() => import('../features/help-support').then(m => ({ default: m.HelpSupportPage })));
+const Login = lazy(() => import('../features/auth/pages/Login').then((m) => ({ default: m.Login })));
+// const AdminDashboard = lazy(() => import('../features/admin/dashboard/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+// const ClassesPage = lazy(() => import('../features/admin/classes').then((m) => ({ default: m.ClassesPage })));
+const ClassForm = lazy(() => import('../pages/classes/classForm/index.tsx'));
+const ClassDetailsPage = lazy(() => import('../features/admin/classes').then((m) => ({ default: m.ClassDetailsPage })));
+const AttendancePage = lazy(() => import('../features/admin/classes/attendance/pages/AttendancePage').then((m) => ({ default: m.AttendancePage })));
+const TeachersPage = lazy(() => import('../features/admin/teachers').then((m) => ({ default: m.TeachersPage })));
+const StudentsPage = lazy(() => import('../features/admin/students').then((m) => ({ default: m.StudentsPage })));
+const LecturesPage = lazy(() => import('../features/admin/lectures').then((m) => ({ default: m.LecturesPage })));
+const LectureDetailsPage = lazy(() => import('../features/admin/lectures').then((m) => ({ default: m.LectureDetailsPage })));
+const SubjectsPage = lazy(() => import('../features/admin/subjects').then((m) => ({ default: m.SubjectsPage })));
+const SubjectDetailsPage = lazy(() => import('../features/admin/subjects').then((m) => ({ default: m.SubjectDetailsPage })));
+const NoticesListPage = lazy(() => import('../features/notices').then((m) => ({ default: m.NoticesListPage })));
+const CreateNoticePage = lazy(() => import('../features/notices').then((m) => ({ default: m.CreateNoticePage })));
+const ExamsPage = lazy(() => import('../features/admin/exams/pages/ExamsPage').then((m) => ({ default: m.ExamsPage })));
+const ReportsPage = lazy(() => import('../features/admin/reports/pages/ReportsPage').then((m) => ({ default: m.ReportsPage })));
+const SettingsPage = lazy(() => import('../features/admin/settings/pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
+const AdminProfilePage = lazy(() => import('../features/admin/profile').then((m) => ({ default: m.AdminProfilePage })));
+const TeacherDashboard = lazy(() => import('../features/teacher/dashboard/TeacherDashboard').then((m) => ({ default: m.TeacherDashboard })));
+const TeacherClassesPage = lazy(() =>
+  import('../features/teacher/classes/pages/TeacherClassesPage').then((m) => ({ default: m.TeacherClassesPage })),
+);
+const TeacherClassDetailPage = lazy(() =>
+  import('../features/teacher/classes/pages/TeacherClassDetailPage').then((m) => ({ default: m.TeacherClassDetailPage })),
+);
+const TeacherAttendancePage = lazy(() =>
+  import('../features/teacher/classes/pages/TeacherAttendancePage').then((m) => ({ default: m.TeacherAttendancePage })),
+);
+const TeacherAttendance = lazy(() => import('../features/teacher/attendance').then((m) => ({ default: m.AttendancePage })));
+const TeacherQueries = lazy(() => import('../features/teacher/queries/Queries').then((m) => ({ default: m.Queries })));
+const TeacherExamsPage = lazy(() => import('../features/teacher/exams').then((m) => ({ default: m.ExamsPage })));
+const TeacherSubjectsPage = lazy(() => import('../features/teacher/subjects').then((m) => ({ default: m.TeacherSubjectsPage })));
+const TeacherSubjectDetailsPage = lazy(() => import('../features/teacher/subjects').then((m) => ({ default: m.TeacherSubjectDetailsPage })));
+const TeacherProfilePage = lazy(() => import('../features/teacher/profile').then((m) => ({ default: m.TeacherProfilePage })));
+const StudentDashboard = lazy(() => import('../features/student/dashboard/StudentDashboard').then((m) => ({ default: m.StudentDashboard })));
+const Exams = lazy(() => import('../features/student/exams/Exams').then((m) => ({ default: m.Exams })));
+const Notifications = lazy(() => import('../features/student/notifications/Notifications').then((m) => ({ default: m.Notifications })));
+const StudentRecords = lazy(() => import('../features/student/records/Records').then((m) => ({ default: m.Records })));
+const StudentSubjectsPage = lazy(() => import('../features/student/subjects').then((m) => ({ default: m.StudentSubjectsPage })));
+const StudentSubjectDetailsPage = lazy(() => import('../features/student/subjects').then((m) => ({ default: m.StudentSubjectDetailsPage })));
+const StudentProfilePage = lazy(() => import('../features/student/profile').then((m) => ({ default: m.StudentProfilePage })));
+const StudentAttendancePage = lazy(() => import('../features/student/attendance').then((m) => ({ default: m.StudentAttendancePage })));
+const TimetablePage = lazy(() => import('../features/student/timetable').then((m) => ({ default: m.TimetablePage })));
+const ParentDashboard = lazy(() => import('../features/parent/dashboard/ParentDashboard').then((m) => ({ default: m.ParentDashboard })));
+const ParentAttendance = lazy(() => import('../features/parent/attendance/Attendance').then((m) => ({ default: m.Attendance })));
+const ParentRecords = lazy(() => import('../features/parent/records/Records').then((m) => ({ default: m.Records })));
+const ParentSubjectsPage = lazy(() => import('../features/parent/subjects').then((m) => ({ default: m.ParentSubjectsPage })));
+const ParentSubjectDetailsPage = lazy(() => import('../features/parent/subjects').then((m) => ({ default: m.ParentSubjectDetailsPage })));
+const ParentProfilePage = lazy(() => import('../features/parent/profile').then((m) => ({ default: m.ParentProfilePage })));
+const HelpSupportPage = lazy(() => import('../features/help-support').then((m) => ({ default: m.HelpSupportPage })));
 
 // Fallback component for route loading
 const RouteFallback = () => (
@@ -78,6 +88,8 @@ export const AppRoutes = () => {
         >
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="classes" element={<ClassesPage />} />
+          <Route path="classes/add" element={<ClassForm />} />
+          <Route path="classes/edit/:id" element={<ClassForm />} />
           <Route path="classes/:id" element={<ClassDetailsPage />} />
           <Route path="classes/:id/attendance" element={<AttendancePage />} />
           <Route path="teachers" element={<TeachersPage />} />

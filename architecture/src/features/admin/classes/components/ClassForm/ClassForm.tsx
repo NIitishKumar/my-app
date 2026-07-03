@@ -2,4 +2,3 @@
 export function ClassForm() {
   return null;
 }
-

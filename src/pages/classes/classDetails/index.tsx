@@ -1,0 +1,303 @@
+/**
+ * ClassDetailsPage Component
+ * Displays comprehensive class details including students and lectures
+ */
+
+import { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useClassDetails } from './index.hook';
+import { AttendanceTab } from '../../../features/admin';
+import { formatDateForInput } from '../../../utils/helper';
+import { LectureDetailItem } from '../components/LeactureDetails';
+import { StudentDetailItem } from '../components/StudentsDetails';
+
+export const ClassDetailsPage = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'overview' | 'students' | 'lectures' | 'attendance'>('overview');
+  const { data: classData, isLoading, error } = useClassDetails(id || '');
+
+  if (isLoading) {
+    return (
+      <div className="p-4 lg:p-6">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          <p className="mt-2 text-gray-600">Loading class details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !classData) {
+    return (
+      <div className="p-4 lg:p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center space-x-2 text-red-800">
+            <i className="fas fa-exclamation-circle"></i>
+            <span className="font-medium">Error loading class details</span>
+          </div>
+          <p className="mt-2 text-sm text-red-600">{error instanceof Error ? error.message : 'Class not found or failed to load'}</p>
+          <button
+            onClick={() => navigate('/admin/classes')}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Back to Classes
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const handleEdit = () => {
+    navigate(`/admin/classes`, { state: { editClassId: classData.id } });
+  };
+
+  return (
+    <div className="p-3 sm:p-4 lg:p-6 max-w-full overflow-x-hidden">
+      {/* Header */}
+      <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <button
+              onClick={() => navigate('/admin/classes')}
+              className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
+              title="Back to Classes"
+            >
+              <i className="fas fa-arrow-left text-gray-600"></i>
+            </button>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">{classData.className}</h1>
+              <p className="text-xs sm:text-sm text-gray-600 mt-1">Class Details</p>
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={handleEdit}
+          className="px-3 sm:px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base w-full sm:w-auto"
+        >
+          <i className="fas fa-edit"></i>
+          <span>Edit Class</span>
+        </button>
+      </div>
+
+      {/* Tabs */}
+      <div className="mb-4 sm:mb-6 border-b border-gray-200 overflow-x-auto -mx-3 sm:-mx-4 lg:-mx-6 px-3 sm:px-4 lg:px-6">
+        <nav className="flex space-x-4 sm:space-x-8 min-w-max">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
+              activeTab === 'overview'
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <i className="fas fa-info-circle mr-1.5 sm:mr-2"></i>
+            Overview
+          </button>
+          <button
+            onClick={() => setActiveTab('students')}
+            className={`py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
+              activeTab === 'students'
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <i className="fas fa-user-graduate mr-1.5 sm:mr-2"></i>
+            Students ({classData.students.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('lectures')}
+            className={`py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
+              activeTab === 'lectures'
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <i className="fas fa-chalkboard mr-1.5 sm:mr-2"></i>
+            Lectures ({classData.lectures.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('attendance')}
+            className={`py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap ${
+              activeTab === 'attendance'
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <i className="fas fa-clipboard-check mr-1.5 sm:mr-2"></i>
+            Attendance
+          </button>
+        </nav>
+      </div>
+
+      {activeTab === 'attendance' ? (
+        <AttendanceTab classId={id || ''} className={classData.className} />
+      ) : (
+        <div className="space-y-6">
+          {/* Basic Information Card */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+              <i className="fas fa-info-circle text-indigo-600"></i>
+              <span>Basic Information</span>
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase">Class Name</label>
+                <p className="mt-1 text-sm text-gray-900">{classData.className}</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase">Grade</label>
+                <p className="mt-1 text-sm text-gray-900">{classData.grade}</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase">Room Number</label>
+                <p className="mt-1 text-sm text-gray-900">{classData.roomNo}</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase">Capacity</label>
+                <p className="mt-1 text-sm text-gray-900">{classData.capacity} students</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase">Enrolled</label>
+                <p className="mt-1 text-sm text-gray-900">{classData.enrolled} students</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase">Status</label>
+                <p className="mt-1">
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      classData.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    {classData.isActive ? 'Active' : 'Inactive'}
+                  </span>
+                </p>
+              </div>
+              {classData.subjects && classData.subjects.length > 0 && (
+                <div className="md:col-span-2 lg:col-span-3">
+                  <label className="text-xs font-medium text-gray-500 uppercase">Subjects</label>
+                  <div className="mt-1 flex flex-wrap gap-2">
+                    {classData.subjects.map((subject, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800"
+                      >
+                        {subject}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Class Head Information Card */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+              <i className="fas fa-user-tie text-indigo-600"></i>
+              <span>Class Head</span>
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase">Name</label>
+                <p className="mt-1 text-sm text-gray-900">
+                  {classData.classHead.firstName} {classData.classHead.lastName}
+                </p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase">Email</label>
+                <p className="mt-1 text-sm text-gray-900">{classData.classHead.email}</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase">Employee ID</label>
+                <p className="mt-1 text-sm text-gray-900">{classData.classHead.employeeId}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Schedule Information Card */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+              <i className="fas fa-calendar-alt text-indigo-600"></i>
+              <span>Schedule</span>
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase">Academic Year</label>
+                <p className="mt-1 text-sm text-gray-900">{classData?.schedule?.academicYear}</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase">Semester</label>
+                <p className="mt-1 text-sm text-gray-900">{classData?.schedule?.semester}</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase">Start Date</label>
+                <p className="mt-1 text-sm text-gray-900">{formatDateForInput(classData?.schedule?.startDate)}</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 uppercase">End Date</label>
+                <p className="mt-1 text-sm text-gray-900">{formatDateForInput(classData?.schedule?.endDate)}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Students Section - Only show in overview or students tab */}
+          {(activeTab === 'overview' || activeTab === 'students') && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+                <i className="fas fa-user-graduate text-indigo-600"></i>
+                <span>Enrolled Students ({classData.students.length})</span>
+              </h2>
+              {classData.students.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <i className="fas fa-user-slash text-4xl mb-3 text-gray-400"></i>
+                  <p>No students enrolled in this class.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {classData.students.map((studentId) => (
+                    <StudentDetailItem key={studentId} studentId={studentId} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Lectures Section - Only show in overview or lectures tab */}
+          {(activeTab === 'overview' || activeTab === 'lectures') && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+                <i className="fas fa-chalkboard text-indigo-600"></i>
+                <span>Assigned Lectures ({classData.lectures.length})</span>
+              </h2>
+              {classData.lectures.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <i className="fas fa-chalkboard-teacher text-4xl mb-3 text-gray-400"></i>
+                  <p>No lectures assigned to this class.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {classData.lectures.map((lectureId) => (
+                    <LectureDetailItem key={lectureId} lectureId={lectureId} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Metadata */}
+          <div className="bg-gray-50 rounded-xl border border-gray-200 p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-600">
+              <div>
+                <span className="font-medium">Created:</span> {classData.createdAt ? new Date(classData.createdAt).toLocaleString() : 'N/A'}
+              </div>
+              <div>
+                <span className="font-medium">Last Updated:</span> {classData.updatedAt ? new Date(classData.updatedAt).toLocaleString() : 'N/A'}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
