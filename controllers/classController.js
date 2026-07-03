@@ -199,15 +199,37 @@ const createClass = async (req, res) => {
       }
     }
 
+    const enrolledStudents = await db
+      .collection("students")
+      .find({
+        _id: {
+          $in: classData.students.map((id) => new ObjectId(id)),
+        },
+        enrolledClass: {
+          $exists: true,
+          $ne: null,
+        },
+      })
+      .toArray();
+
+    if (enrolledStudents.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `${enrolledStudents[0].firstName} ${enrolledStudents[0].lastName} is already enrolled in another class.`,
+      });
+    }
+
     const result = await db.collection("classes").insertOne(classData);
-    classData.students.forEach(async (id) => {
-      await db
-        .collection("students")
-        .findOneAndUpdate(
-          { _id: new ObjectId(id) },
-          { $set: { enrolledClass: result.insertedId } },
-        );
-    });
+    await Promise.all(
+      classData.students.map(async (id) => {
+        await db
+          .collection("students")
+          .findOneAndUpdate(
+            { _id: new ObjectId(id) },
+            { $set: { enrolledClass: result.insertedId } },
+          );
+      }),
+    );
     res.status(201).json({
       success: true,
       message: "Class created successfully",
@@ -291,9 +313,30 @@ const updateClass = async (req, res) => {
       }
     }
 
+    const enrolledStudents = await db
+      .collection("students")
+      .find({
+        _id: {
+          $in: updateData.students.map((id) => new ObjectId(id)),
+        },
+        enrolledClass: {
+          $exists: true,
+          $ne: null,
+          $ne: new ObjectId(id), // Ignore students already in this class
+        },
+      })
+      .toArray();
+
+    if (enrolledStudents.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `${enrolledStudents[0].firstName} ${enrolledStudents[0].lastName} is already enrolled in another class.`,
+      });
+    }
+
     const result = await db
       .collection("classes")
-      .updateOne({ _id: new ObjectId(id) }, { $set: updateData });
+      .findOneAndUpdate({ _id: new ObjectId(id) }, { $set: updateData });
 
     if (result.matchedCount === 0) {
       return res.status(404).json({
@@ -301,19 +344,20 @@ const updateClass = async (req, res) => {
         message: "Class not found",
       });
     }
-    updateData.students.forEach(async (id) => {
+    (updateData.students.forEach(async (id) => {
       await db
         .collection("students")
         .findOneAndUpdate(
           { _id: new ObjectId(id) },
-          { $set: { enrolledClass: result.insertedId } },
+          { $set: { enrolledClass: result._id } },
         );
-    });
-    res.status(200).json({
-      success: true,
-      message: "Class updated successfully",
-      data: updateData,
-    });
+    }),
+      // );
+      res.status(200).json({
+        success: true,
+        message: "Class updated successfully",
+        data: updateData,
+      }));
   } catch (error) {
     if (error.code === 11000) {
       return res.status(400).json({
