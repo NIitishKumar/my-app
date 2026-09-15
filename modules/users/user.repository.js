@@ -1,4 +1,4 @@
-import User from './user.schema.js';
+import { User } from "./index.js";
 
 const create = async ({ name, email, password, role }) => {
 

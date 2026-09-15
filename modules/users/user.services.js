@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { create, findUserByEmail, findUserByEmailAndPassword } from "./user.repository.js"
+import { createUserRepo, findUserByEmailRepo } from "./index.js";
 
 export const createUser = async (data) => {
     try {
@@ -8,14 +8,14 @@ export const createUser = async (data) => {
             throw new Error(`All fields are required`);
         }
 
-        const user = await findUserByEmail({ email });
+        const user = await findUserByEmailRepo({ email });
         if (user) {
             throw new Error("User already exists");
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        return await create({ name, email, password: hashedPassword, role });
+        return await createUserRepo({ name, email, password: hashedPassword, role });
     } catch (error) {
         console.log(error);
         throw error
@@ -25,7 +25,7 @@ export const createUser = async (data) => {
 export const findUser = async (data) => {
     try {
         const { email, password } = data;
-        const user = await findUserByEmail({ email })
+        const user = await findUserByEmailRepo({ email })
         if (!user) {
             throw new Error("User not found");
         }

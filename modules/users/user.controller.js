@@ -1,4 +1,4 @@
-import { createUser as createUserServices, findUser } from './user.services.js'
+import { createUserServices, findUser } from "./index.js";
 
 const createUser = async (req, res) => {
     try {
