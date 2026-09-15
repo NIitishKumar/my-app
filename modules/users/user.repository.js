@@ -22,4 +22,14 @@ const findUserByEmail = async ({ email }) => {
     return user
 }
 
-export { create, findUserByEmail };
+const findUserByEmailAndPassword = async ({ email, password }) => {
+    try {
+        const user = await User.findOne({ email, password })
+        return user
+    } catch (error) {
+        console.log(error);
+        throw error
+    }
+}
+
+export { create, findUserByEmail, findUserByEmailAndPassword };

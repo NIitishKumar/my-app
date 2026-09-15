@@ -1,4 +1,4 @@
-import { createUser as createUserServices } from './user.services.js'
+import { createUser as createUserServices, findUser } from './user.services.js'
 
 const createUser = async (req, res) => {
     try {
@@ -15,4 +15,18 @@ const createUser = async (req, res) => {
     }
 }
 
-export { createUser }
+const loginUser = async (req, res) => {
+    try {
+        const user = await findUser(req.body);
+        res.code(200).send({
+            message: "User found successfully",
+            user
+        })
+    } catch (error) {
+        res.code(400).send({
+            message: error.message
+        })
+    }
+}
+
+export { createUser, findUser, loginUser }
