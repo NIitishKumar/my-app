@@ -5,6 +5,7 @@ import cors from '@fastify/cors'
 import classRoutes from './modules/classes/class.route.js'
 import studnetRoutes from './modules/students/student.route.js'
 import teacherRoutes from './modules/teachers/teacher.route.js'
+import lectureRoutes from './modules/lectures/lecture.route.js'
 const fastify = Fastify({
     logger: true
 })
@@ -20,6 +21,7 @@ fastify.register(userRoutes);
 fastify.register(classRoutes);
 fastify.register(studnetRoutes);
 fastify.register(teacherRoutes);
+fastify.register(lectureRoutes);
 
 fastify.get('/', (req, res) => {
     return 'Server is running';
