@@ -4,6 +4,28 @@ import { Class } from '../classes/index.js';
 import { Student } from './index.js';
 import bcrypt from 'bcrypt';
 
+export async function getStudents() {
+    try {
+        const students = await Student.find({}).sort({ createdAt: 1 });
+        return students || [];
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function getStudentDetails(studentId) {
+    try {
+        const student = await Student.findOne({ _id: studentId });
+        if (!student) {
+            const err = new Error('Student not found!');
+            err.status = 404;
+            return err;
+        }
+        return student;
+    } catch (error) {
+        throw error;
+    }
+}
 
 export async function createStudent(payload) {
 
@@ -87,7 +109,7 @@ export async function updateStudentClass(studentId, newClassId) {
 
 
 // --- Delete: removes from class roster, deletes profile, deletes login ---
-async function deleteStudent(studentId) {
+export async function deleteStudent(studentId) {
     const student = await Student.findById(studentId);
     if (!student) return false;
 

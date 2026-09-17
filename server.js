@@ -9,7 +9,8 @@ const fastify = Fastify({
 })
 
 await fastify.register(cors, {
-    origin: true
+    origin: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE']
 });
 
 connectToDatabase();
