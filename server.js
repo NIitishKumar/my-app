@@ -4,13 +4,14 @@ import { connectToDatabase } from './config/db.js'
 import cors from '@fastify/cors'
 import classRoutes from './modules/classes/class.route.js'
 import studnetRoutes from './modules/students/student.route.js'
+import teacherRoutes from './modules/teachers/teacher.route.js'
 const fastify = Fastify({
     logger: true
 })
 
 await fastify.register(cors, {
     origin: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
 });
 
 connectToDatabase();
@@ -18,6 +19,7 @@ connectToDatabase();
 fastify.register(userRoutes);
 fastify.register(classRoutes);
 fastify.register(studnetRoutes);
+fastify.register(teacherRoutes);
 
 fastify.get('/', (req, res) => {
     return 'Server is running';
