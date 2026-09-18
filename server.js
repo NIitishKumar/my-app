@@ -6,6 +6,8 @@ import classRoutes from './modules/classes/class.route.js'
 import studnetRoutes from './modules/students/student.route.js'
 import teacherRoutes from './modules/teachers/teacher.route.js'
 import lectureRoutes from './modules/lectures/lecture.route.js'
+import attendanceRoutes from './modules/attendance/attendance.route.js'
+import dashboardRoutes from './modules/dashboard/dashboard.route.js'
 const fastify = Fastify({
     logger: true
 })
@@ -22,13 +24,15 @@ fastify.register(classRoutes);
 fastify.register(studnetRoutes);
 fastify.register(teacherRoutes);
 fastify.register(lectureRoutes);
+fastify.register(attendanceRoutes);
+fastify.register(dashboardRoutes);
 
 fastify.get('/', (req, res) => {
     return 'Server is running';
 })
 
 // Run the server!
-fastify.listen({ port: 3000 }, (err, address) => {
+fastify.listen({ port: 3000, host: '0.0.0.0' }, (err, address) => {
     if (err) throw err
     console.log(`Server is now listening on ${address}`)
 })
