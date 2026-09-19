@@ -8,6 +8,7 @@ import teacherRoutes from './modules/teachers/teacher.route.js'
 import lectureRoutes from './modules/lectures/lecture.route.js'
 import attendanceRoutes from './modules/attendance/attendance.route.js'
 import dashboardRoutes from './modules/dashboard/dashboard.route.js'
+import myClassesRoutes from './modules/my_classes/my_classes.route.js'
 const fastify = Fastify({
     logger: true
 })
@@ -26,6 +27,7 @@ fastify.register(teacherRoutes);
 fastify.register(lectureRoutes);
 fastify.register(attendanceRoutes);
 fastify.register(dashboardRoutes);
+fastify.register(myClassesRoutes);
 
 fastify.get('/', (req, res) => {
     return 'Server is running';
